@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   SafeAreaView,
+  Image,
 } from 'react-native';
 import AddressPicker from '../components/AddressPicker';
 import ProfileImagePicker from '../components/ProfileImagePicker';
@@ -67,8 +68,10 @@ const SignupScreen = () => {
     <LinearGradient colors={["#4F8CFF", "#A6C8FF"]} style={styles.container}>
       <SafeAreaView style={{ flex: 1, width: '100%' }}>
         <View style={styles.signupContent}>
-          <Text style={styles.loginTitle}>Sign Up</Text>
-          <ProfileImagePicker image={profileImage} setImage={setProfileImage} avatarStyle={styles.avatar} />
+          <View style={styles.logoContainer}>
+            <Image source={require('../../assets/EventraLogo.png')} style={styles.logoCentered} resizeMode="contain" />
+          </View>
+          <Text style={styles.loginTitle}>Sign Up to Eventra</Text>
           <TextInput
             placeholder="Name"
             placeholderTextColor="#8fa1c7"
@@ -145,11 +148,28 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 370,
     alignSelf: 'center',
-    marginTop: 60,
+    marginTop: 36,
     marginBottom: 10,
     alignItems: 'center',
     gap: 14,
     backgroundColor: 'transparent',
+  },
+  logoContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 18,
+    marginBottom: 8,
+  },
+  logoCentered: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
   avatar: {
     width: 90,
@@ -182,13 +202,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   loginTitle: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#222',
-    marginBottom: 0,
+    marginBottom: 18,
     marginTop: 0,
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
     textAlign: 'center',
+    alignSelf: 'center',
+    width: '100%',
   },
   loginInput: {
     width: '100%',
