@@ -1,0 +1,65 @@
+[
+  {
+    "name": "Pakistan",
+    "states": [
+      {
+        "name": "Punjab",
+        "cities": ["Lahore", "Rawalpindi", "Faisalabad", "Multan"]
+      },
+      {
+        "name": "Sindh",
+        "cities": ["Karachi", "Hyderabad", "Sukkur", "Larkana"]
+      },
+      {
+        "name": "Khyber Pakhtunkhwa",
+        "cities": ["Peshawar", "Abbottabad", "Mardan", "Swat"]
+      },
+      {
+        "name": "Balochistan",
+        "cities": ["Quetta", "Gwadar", "Turbat", "Khuzdar"]
+      }
+    ]
+  },
+  {
+    "name": "India",
+    "states": [
+      {
+        "name": "Maharashtra",
+        "cities": ["Mumbai", "Pune", "Nagpur", "Nashik"]
+      },
+      {
+        "name": "Punjab",
+        "cities": ["Amritsar", "Ludhiana", "Jalandhar", "Patiala"]
+      },
+      {
+        "name": "Uttar Pradesh",
+        "cities": ["Lucknow", "Kanpur", "Agra", "Varanasi"]
+      },
+      {
+        "name": "West Bengal",
+        "cities": ["Kolkata", "Howrah", "Durgapur", "Siliguri"]
+      }
+    ]
+  },
+  {
+    "name": "United States",
+    "states": [
+      {
+        "name": "California",
+        "cities": ["Los Angeles", "San Francisco", "San Diego", "Sacramento"]
+      },
+      {
+        "name": "Texas",
+        "cities": ["Houston", "Dallas", "Austin", "San Antonio"]
+      },
+      {
+        "name": "New York",
+        "cities": ["New York City", "Buffalo", "Rochester", "Albany"]
+      },
+      {
+        "name": "Florida",
+        "cities": ["Miami", "Orlando", "Tampa", "Jacksonville"]
+      }
+    ]
+  }
+]

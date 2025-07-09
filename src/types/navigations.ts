@@ -3,8 +3,12 @@ export type RootStackParamList = {
   Main: undefined; // ✅ Main is your TabNavigator
 };
 
+
 export type AuthStackParamList = {
+  Intro: undefined;
+  SplashTransition: undefined;
   Login: undefined;
+  Signup: undefined;
 };
 
 export type TabParamList = {
