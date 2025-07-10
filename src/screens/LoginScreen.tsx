@@ -54,6 +54,9 @@ const LoginScreen = () => {
   return (
     <LinearGradient colors={["#4F8CFF", "#A6C8FF"]} style={styles.container}>
       <SafeAreaView style={{ flex: 1, width: '100%' }}>
+        <View style={styles.logoContainer}>
+          <Image source={require('../../assets/EventraLogo.png')} style={styles.logoRect} resizeMode="contain" />
+        </View>
         <View style={styles.formSimpleCentered}>
           <Text style={styles.loginTitle}>Login</Text>
           <TextInput
@@ -75,6 +78,14 @@ const LoginScreen = () => {
             onChangeText={setPassword}
             selectionColor="#4F8CFF"
           />
+          <View style={styles.loginOptionsRow}>
+            <TouchableOpacity>
+              <Text style={styles.loginOptionText}>Forgot password?</Text>
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <Text style={styles.loginOptionText}>Save password</Text>
+            </TouchableOpacity>
+          </View>
           {error && <Text style={styles.error}>{error}</Text>}
           <TouchableOpacity style={styles.loginBtnSimple} onPress={handleLogin} disabled={loading}>
             {loading ? (
@@ -90,10 +101,9 @@ const LoginScreen = () => {
         </View>
         <View style={styles.signupContainer}>
           <Text style={styles.signupText}>Don't have an account? </Text>
-  
-        <Pressable onPress={() => navi.navigate('Signup')}>
+          <Pressable onPress={() => navi.navigate('Signup')}>
             <Text style={styles.signupLink}>Signup</Text>
-        </Pressable>
+          </Pressable>
         </View>
       </SafeAreaView>
     </LinearGradient>
@@ -111,6 +121,22 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: 'transparent',
   },
+
+
+    logoContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 100,
+    marginBottom: 14,
+  },
+  logoRect: {
+    width: 260,
+    height: 120,
+    marginBottom: 12,
+    alignSelf: 'center',
+    // backgroundColor: 'white',
+    borderRadius: 16,
+  },
   // Remove card/box styles, use simple layout
   // headerSimple removed, title now inside form
   formSimpleCentered: {
@@ -119,7 +145,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     flex: 1,
-    marginTop: 60,
+    marginTop: -200,//to near with logo.
   },
   inputSimpleCentered: {
     width: '100%',
@@ -150,6 +176,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 19,
     letterSpacing: 0.5,
+  },
+  loginOptionsRow: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+    marginTop: -8,
+  },
+  loginOptionText: {
+    color: '#222',
+    fontSize: 15,
+    fontWeight: '500',
+    opacity: 0.95,
+    textDecorationLine: 'underline',
+    marginLeft:16,
+    marginRight:20,
   },
   googleBtnSimple: {
     flexDirection: 'row',

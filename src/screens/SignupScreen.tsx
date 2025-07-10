@@ -69,9 +69,9 @@ const SignupScreen = () => {
       <SafeAreaView style={{ flex: 1, width: '100%' }}>
         <View style={styles.signupContent}>
           <View style={styles.logoContainer}>
-            <Image source={require('../../assets/EventraLogo.png')} style={styles.logoCentered} resizeMode="contain" />
+            <Image source={require('../../assets/EventraLogo.png')} style={styles.logoRect} resizeMode="contain" />
           </View>
-          <Text style={styles.loginTitle}>Sign Up to Eventra</Text>
+          <Text style={styles.loginTitle}>Signup</Text>
           <TextInput
             placeholder="Name"
             placeholderTextColor="#8fa1c7"
@@ -126,9 +126,12 @@ const SignupScreen = () => {
             <Text style={styles.signupBtnText}>Sign Up</Text>
           )}
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.loginLinkBottom}>
-          <Text style={styles.loginLinkBottomText}>Already have an account? <Text style={{textDecorationLine:'underline'}}>Login</Text></Text>
-        </TouchableOpacity>
+        <View style={styles.loginLinkBottom}>
+          <Text style={styles.loginLinkBottomText}>
+            Already have an account?{' '}
+            <Text style={styles.loginLinkBlue} onPress={() => navigation.goBack()}>Login</Text>
+          </Text>
+        </View>
       </SafeAreaView>
     </LinearGradient>
   );
@@ -160,16 +163,18 @@ const styles = StyleSheet.create({
     marginTop: 18,
     marginBottom: 8,
   },
-  logoCentered: {
-    width: 64,
-    height: 64,
+  logoRect: {
+    width: 260,
+    height: 120,
+    marginBottom: 12,
+    alignSelf: 'center',
+    // backgroundColor: 'white',
     borderRadius: 16,
-    backgroundColor: '#fff',
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
+  },
+  loginLinkBlue: {
+    color: '#4F8CFF',
+    fontWeight: 'bold',
+    textDecorationLine: 'underline',
   },
   avatar: {
     width: 90,
@@ -279,7 +284,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   signupBtnModern: {
-    width: '96%',
+    width: '90%',
     alignSelf: 'center',
     backgroundColor: '#222',
     borderRadius: 12,
