@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,107 +10,25 @@ import {
   StatusBar,
   ActivityIndicator
 } from 'react-native';
-import { useSelector } from 'react-redux';
-import { RootState } from '../redux/store';
-
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../redux/store';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import eventService from '../api/eventService';
-
-// Define Event type here or import from eventService if exported
-interface Event {
-  id: string;
-  title: string;
-  description: string;
-  price: string;
-  image: string;
-  organizer: string;
-  date: string;
-  likes: number;
-  comments: number;
-  category: string;
-}
-
-// Mock data for testing or when API fails
-const mockEvents: Event[] = [
-  {
-    id: '1',
-    title: 'Summer Tech Conference 2024',
-    description: 'Join us for an evening of tech talks and networking. Explore the latest trends in AI and web development.',
-    price: '$99',
-    image: '../../assets/intro_card1.jpg',
-    organizer: 'Shahid Arain',
-    date: '2024-07-15',
-    likes: 124,
-    comments: 23,
-    category: 'Conference'
-  },
-  {
-    id: '2',
-    title: 'Design Workshop',
-    description: 'Hands-on workshop on UI/UX design principles and tools.',
-    price: '$75',
-    image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?ixlib=rb-4.0.3',
-    organizer: 'Hasnain',
-    date: '2024-07-22',
-    likes: 89,
-    comments: 12,
-    category: 'Workshop'
-  },
-  {
-    id: '3',
-    title: 'Networking Mixer',
-    description: 'Connect with professionals in tech and digital industries.',
-    price: 'Free',
-    image: 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?ixlib=rb-4.0.3',
-    organizer: 'Asad Raza',
-    date: '2024-07-30',
-    likes: 67,
-    comments: 8,
-    category: 'Networking'
-  }
-];
+import { fetchEvents, likeEvent, Event } from '../redux/slices/eventSlice';
 
 const HomeScreen = () => {
+  const dispatch = useDispatch<AppDispatch>();
   const user = useSelector((state: RootState) => state.auth.user);
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const events = useSelector((state: RootState) => state.events.events);
+  const loading = useSelector((state: RootState) => state.events.loading);
+  const error = useSelector((state: RootState) => state.events.error);
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    // Fetch events when component mounts
+    dispatch(fetchEvents());
+  }, [dispatch]);
 
-  const fetchEvents = async () => {
-    try {
-      setLoading(true);
-      // Try to get events from API
-      try {
-        const eventsData = await eventService.getAllEvents();
-        
-        // Check if we got valid data
-        if (eventsData && Array.isArray(eventsData) && eventsData.length > 0) {
-          setEvents(eventsData);
-          setError(null);
-          setLoading(false);
-          return;
-        } else {
-          console.log('No events returned from API, using mock data');
-        }
-      } catch (apiErr) {
-        console.log('API error:', apiErr);
-      }
-      
-      // If we reach here, use mock data
-      console.log('Using mock events data:', mockEvents);
-      setEvents(mockEvents);
-      setError('Failed to load events, showing sample data');
-      setLoading(false);
-    } catch (err) {
-      console.log('Unexpected error in fetchEvents:', err);
-      setError('Failed to load events, showing sample data');
-      setEvents(mockEvents); // Use mock data as fallback
-      setLoading(false);
-    }
+  const handleLikeEvent = (eventId: string) => {
+    dispatch(likeEvent(eventId));
   };
 
   const renderEventCard = ({ item }: { item: Event }) => (
@@ -122,7 +40,12 @@ const HomeScreen = () => {
           <Text style={styles.priceText}> · {item.price}</Text>
         </View>
       </View>
-      <Image source={{ uri: item.image }} style={styles.eventImage} resizeMode="cover" />
+      <Image 
+        source={{ uri: item.image }} 
+        style={styles.eventImage} 
+        resizeMode="cover" 
+        defaultSource={require('../../assets/EventraLogo.png')} 
+      />
       <View style={styles.eventContent}>
         <Text style={styles.eventTitle}>{item.title}</Text>
         <Text style={styles.eventDescription} numberOfLines={2}>
@@ -130,10 +53,13 @@ const HomeScreen = () => {
         </Text>
         <View style={styles.eventActions}>
           <View style={styles.socialActions}>
-            <View style={styles.actionButton}>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={() => handleLikeEvent(item.id)}
+            >
               <Icon name="heart-outline" size={20} color="#666" />
               <Text style={styles.actionCount}>{item.likes}</Text>
-            </View>
+            </TouchableOpacity>
             <View style={styles.actionButton}>
               <Icon name="comment-outline" size={20} color="#666" />
               <Text style={styles.actionCount}>{item.comments}</Text>
@@ -146,6 +72,10 @@ const HomeScreen = () => {
       </View>
     </View>
   );
+
+  const handleRefresh = () => {
+    dispatch(fetchEvents());
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -163,7 +93,12 @@ const HomeScreen = () => {
       ) : (
         <>
           {error && (
-            <Text style={styles.errorBanner}>{error}</Text>
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorBanner}>{error}</Text>
+              <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
+                <Text style={styles.retryText}>Try Again</Text>
+              </TouchableOpacity>
+            </View>
           )}
           <FlatList
             data={events}
@@ -171,9 +106,14 @@ const HomeScreen = () => {
             keyExtractor={item => item.id}
             contentContainerStyle={styles.listContainer}
             showsVerticalScrollIndicator={false}
+            refreshing={loading}
+            onRefresh={handleRefresh}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <Text style={styles.emptyText}>No events found</Text>
+                <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
+                  <Text style={styles.retryText}>Refresh</Text>
+                </TouchableOpacity>
               </View>
             }
           />
@@ -189,7 +129,8 @@ export default HomeScreen;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#fff',
+    height:'auto'
   },
   header: {
     flexDirection: 'row',
@@ -217,12 +158,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  errorContainer: {
+    backgroundColor: '#ffeeee',
+    padding: 12,
+    marginHorizontal: 16,
+    marginTop: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
   errorText: {
     color: '#d9534f',
     fontSize: 16,
   },
   listContainer: {
-    padding: 16,
+    padding: '5%',
   },
   eventCard: {
     backgroundColor: '#fff',
@@ -266,6 +215,7 @@ const styles = StyleSheet.create({
     height: 140,
     marginTop: 8,
     marginBottom: 8,
+    backgroundColor: '#f0f0f0', // Placeholder color before image loads
   },
   eventContent: {
     paddingHorizontal: 16,
@@ -318,14 +268,20 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   errorBanner: {
-    backgroundColor: '#ffeeee',
-    padding: 10,
-    marginHorizontal: 16,
-    marginTop: 10,
-    borderRadius: 4,
-    borderLeftWidth: 4,
-    borderLeftColor: '#d9534f',
     color: '#d9534f',
+    fontSize: 14,
+    marginBottom: 10,
+  },
+  retryButton: {
+    backgroundColor: '#007BFF',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 4,
+    marginTop: 12,
+  },
+  retryText: {
+    color: '#fff',
+    fontWeight: '500',
     fontSize: 14,
   },
   emptyContainer: {
@@ -337,5 +293,6 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: '#777',
+    marginBottom: 10,
   }
 });
