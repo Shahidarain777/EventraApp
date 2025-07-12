@@ -28,6 +28,7 @@ const HomeScreen = () => {
   }, [dispatch]);
 
   const handleLikeEvent = (eventId: string) => {
+    // Dispatch the like action
     dispatch(likeEvent(eventId));
   };
 
@@ -47,7 +48,7 @@ const HomeScreen = () => {
         defaultSource={require('../../assets/EventraLogo.png')} 
       />
       <View style={styles.eventContent}>
-        <Text style={styles.eventTitle}>{item.title}</Text>
+        <Text style={styles.eventTitle} numberOfLines={1} ellipsizeMode="tail">{item.title}</Text>
         <Text style={styles.eventDescription} numberOfLines={2}>
           {item.description} <Text style={styles.seeMoreText}>see more</Text>
         </Text>
@@ -57,13 +58,17 @@ const HomeScreen = () => {
               style={styles.actionButton}
               onPress={() => handleLikeEvent(item.id)}
             >
-              <Icon name="heart-outline" size={20} color="#666" />
+              <Icon 
+                name={item.isLiked ? "heart" : "heart-outline"} 
+                size={22} 
+                color={item.isLiked ? "#FF4A6D" : "#666"} 
+              />
               <Text style={styles.actionCount}>{item.likes}</Text>
             </TouchableOpacity>
-            <View style={styles.actionButton}>
-              <Icon name="comment-outline" size={20} color="#666" />
+            <TouchableOpacity style={styles.actionButton}>
+              <Icon name="comment-text-outline" size={22} color="#666" />
               <Text style={styles.actionCount}>{item.comments}</Text>
-            </View>
+            </TouchableOpacity>
           </View>
           <TouchableOpacity style={styles.joinButton}>
             <Text style={styles.joinButtonText}>Join</Text>
@@ -108,6 +113,9 @@ const HomeScreen = () => {
             showsVerticalScrollIndicator={false}
             refreshing={loading}
             onRefresh={handleRefresh}
+            style={{width: '100%', flex: 1}}
+            windowSize={3}
+            maxToRenderPerBatch={5}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <Text style={styles.emptyText}>No events found</Text>
@@ -129,8 +137,8 @@ export default HomeScreen;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
-    height:'auto'
+    backgroundColor: '#4F8CFF',
+    width: '100%',
   },
   header: {
     flexDirection: 'row',
@@ -138,7 +146,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: '2%',
     paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
@@ -171,17 +179,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   listContainer: {
-    padding: '5%',
+    paddingVertical: 10,
+    paddingHorizontal: 0,
+    width: '100%',
+    flexGrow: 1,
   },
   eventCard: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    marginBottom: 20,
+    borderRadius: 6,
+    marginBottom: 10,
+    marginTop: -8,
+    marginHorizontal: 2, 
     overflow: 'hidden',
-    elevation: 2,
+    elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   eventHeader: {
@@ -190,7 +203,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 4,
+    paddingBottom: 8,
+    backgroundColor: '#fff',
   },
   organizerName: {
     fontSize: 14,
@@ -212,9 +226,9 @@ const styles = StyleSheet.create({
   },
   eventImage: {
     width: '100%',
-    height: 140,
-    marginTop: 8,
-    marginBottom: 8,
+    height: 160,
+    marginTop: 0,
+    marginBottom: 4,
     backgroundColor: '#f0f0f0', // Placeholder color before image loads
   },
   eventContent: {
@@ -249,12 +263,15 @@ const styles = StyleSheet.create({
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 20,
+    paddingVertical: 5,
+    paddingHorizontal: 2,
   },
   actionCount: {
-    marginLeft: 4,
+    marginLeft: 6,
     fontSize: 14,
     color: '#666',
+    fontWeight: '500',
   },
   joinButton: {
     backgroundColor: '#2196F3',

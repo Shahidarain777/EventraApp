@@ -13,6 +13,7 @@ export interface Event {
   likes: number;
   comments: number;
   category: string;
+  isLiked?: boolean;
 }
 
 // State type
@@ -43,31 +44,8 @@ export const mockEvents: Event[] = [
     date: '2024-07-15',
     likes: 124,
     comments: 23,
-    category: 'Conference'
-  },
-  {
-    id: '2',
-    title: 'Design Workshop',
-    description: 'Hands-on workshop on UI/UX design principles and tools.',
-    price: '$75',
-    image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?ixlib=rb-4.0.3',
-    organizer: 'Sarah Johnson',
-    date: '2024-07-22',
-    likes: 89,
-    comments: 12,
-    category: 'Workshop'
-  },
-  {
-    id: '3',
-    title: 'Networking Mixer',
-    description: 'Connect with professionals in tech and digital industries.',
-    price: 'Free',
-    image: 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?ixlib=rb-4.0.3',
-    organizer: 'Tech Network Group',
-    date: '2024-07-30',
-    likes: 67,
-    comments: 8,
-    category: 'Networking'
+    category: 'Conference',
+    isLiked: false
   }
 ];
 
@@ -114,7 +92,8 @@ export const fetchEvents = createAsyncThunk<
           date: event.dateTime?.start ? new Date(event.dateTime.start).toLocaleDateString() : 'TBD',
           likes: event.likes || 0,
           comments: event.comments || 0,
-          category: event.categoryInfo?.name || 'Event'
+          category: event.categoryInfo?.name || 'Event',
+          isLiked: event.isLiked || false
         };
       });
     }
@@ -146,15 +125,25 @@ export const fetchEventById = createAsyncThunk<
 
 // Like event thunk
 export const likeEvent = createAsyncThunk<
-  { eventId: string; likes: number },
+  { eventId: string; likes: number; isLiked: boolean },
   string,
-  { rejectValue: string }
->('events/likeEvent', async (eventId, { rejectWithValue }) => {
+  { rejectValue: string; state: { events: EventState } }
+>('events/likeEvent', async (eventId, { rejectWithValue, getState }) => {
   try {
+    // Get the current event to check its isLiked status (to toggle it)
+    const events = getState().events.events;
+    const event = events.find(e => e.id === eventId);
+    const currentLikeStatus = event?.isLiked || false;
+    
+    // In a real app, you'd send the current like status to the server
     const response = await api.post(`/events/${eventId}/like`);
+    
+    // For now, we'll toggle the like status and update the count based on our action
+    // In a real implementation, you'd use the server response
     return { 
       eventId,
-      likes: response.data.likes || 0
+      likes: currentLikeStatus ? (event?.likes || 1) - 1 : (event?.likes || 0) + 1,
+      isLiked: !currentLikeStatus
     };
   } catch (error: any) {
     const message = error.response?.data?.message || error.message || 'Failed to like event';
@@ -223,13 +212,15 @@ const eventSlice = createSlice({
       
       // Like event cases
       .addCase(likeEvent.fulfilled, (state, action) => {
-        const { eventId, likes } = action.payload;
+        const { eventId, likes, isLiked } = action.payload;
         const event = state.events.find(event => event.id === eventId);
         if (event) {
           event.likes = likes;
+          event.isLiked = isLiked;
         }
         if (state.event && state.event.id === eventId) {
           state.event.likes = likes;
+          state.event.isLiked = isLiked;
         }
       })
       
