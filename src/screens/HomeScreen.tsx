@@ -13,9 +13,13 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { TabParamList } from '../types/navigations';
 import { fetchEvents, likeEvent, Event } from '../redux/slices/eventSlice';
 
 const HomeScreen = () => {
+  const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
   const dispatch = useDispatch<AppDispatch>();
   const user = useSelector((state: RootState) => state.auth.user);
   const events = useSelector((state: RootState) => state.events.events);
@@ -87,7 +91,7 @@ const HomeScreen = () => {
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
       <View style={styles.header}>
         <Text style={styles.homeText}>Home</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('CreateEvent')}>
           <Text style={styles.createEventText}>Create Event</Text>
         </TouchableOpacity>
       </View>
@@ -146,7 +150,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     paddingHorizontal: 16,
-    paddingTop: '2%',
+    paddingTop: '20%',
     paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
