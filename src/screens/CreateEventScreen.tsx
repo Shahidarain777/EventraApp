@@ -9,7 +9,8 @@ import {
   Image,
   Platform,
   ActivityIndicator,
-  Switch
+  Switch,
+  Alert
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,6 +21,9 @@ import AddressPicker from '../components/AddressPicker';
 // @ts-ignore
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Modal from 'react-native-modal';
+import MapView, { Marker, MapPressEvent } from 'react-native-maps';
+import LocationPickerModal from '../components/LocationPickerModal';
 
 import axios from '../api/axios'; // If not already imported
 
@@ -91,6 +95,8 @@ const CreateEventScreen = () => {
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [error, setError] = useState('');
+  const [mapModalVisible, setMapModalVisible] = useState(false);
+  const [pickedLocation, setPickedLocation] = useState<{latitude: number, longitude: number} | null>(null);
 
   const handleCategoryChange = (text: string) => {
     setCategory(text);
@@ -126,22 +132,39 @@ type UserSearchBoxProps = {
   setValue: (val: string) => void;
   type: 'subLeader' | 'financeManager';
 };
+// Modern UserSearchBox with icon and fixed input logic
 const UserSearchBox: React.FC<UserSearchBoxProps> = ({ label, value, setValue, type }) => (
   <View style={styles.userSearchBox}>
     <Text style={styles.label}>{label} <Text style={{color:'#888',fontSize:13}}>(optional)</Text></Text>
-    <TextInput
-      style={styles.input}
-      placeholder={label}
-      placeholderTextColor="#888"
-      value={type === userSearchType ? userQuery : value}
-      onFocus={() => { setUserSearchType(type); setShowUserDropdown(true); setUserQuery(''); }}
-      onChangeText={text => { setUserQuery(text); setShowUserDropdown(true); setUserSearchType(type); }}
-    />
+    <View style={styles.userSearchInputRow}>
+      <TextInput
+        style={styles.userSearchInput}
+        placeholder={label}
+        placeholderTextColor="#888"
+        value={type === userSearchType ? userQuery : value}
+        onFocus={() => {
+          setUserSearchType(type);
+          setShowUserDropdown(true);
+          setUserQuery(value); // Start with current value
+        }}
+        onChangeText={text => {
+          setUserQuery(text);
+          setShowUserDropdown(true);
+          setUserSearchType(type);
+          setValue(text); // Always update value so typing works
+        }}
+      />
+      <Ionicons name="search" size={22} style={styles.userSearchIcon} />
+    </View>
     {showUserDropdown && userSearchType === type && userResults.length > 0 && (
       <View style={styles.userDropdown}>
         <ScrollView style={{ maxHeight: 120 }}>
           {userResults.map((user) => (
-            <TouchableOpacity key={user.id} style={styles.userDropdownItem} onPress={() => { setValue(user.username); setShowUserDropdown(false); setUserQuery(user.username); }}>
+            <TouchableOpacity key={user.id} style={styles.userDropdownItem} onPress={() => {
+              setValue(user.username);
+              setShowUserDropdown(false);
+              setUserQuery(user.username);
+            }}>
               <Text style={styles.userDropdownText}>{user.username}</Text>
             </TouchableOpacity>
           ))}
@@ -239,7 +262,8 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({ label, value, setValue, t
       <Text style={styles.label}>Event Title</Text>
       <TextInput
         style={styles.input}
-        placeholder="Enter event title"
+        placeholder="Event Title"
+        placeholderTextColor="#888"
         value={title}
         onChangeText={setTitle}
       />
@@ -247,31 +271,37 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({ label, value, setValue, t
       <Text style={styles.label}>Category</Text>
       <TextInput
         style={styles.input}
-        placeholder="Select or type category"
-        value={category}
-        onChangeText={handleCategoryChange}
+        placeholder="Category"
+        placeholderTextColor="#888"
+        value={showOtherCategory ? otherCategory : category}
+        onChangeText={text => {
+          if (showOtherCategory) {
+            setOtherCategory(text);
+          } else {
+            handleCategoryChange(text);
+          }
+        }}
       />
-      {showOtherCategory && (
-        <TextInput
-          style={styles.input}
-          placeholder="Enter new category"
-          value={otherCategory}
-          onChangeText={setOtherCategory}
-        />
-      )}
       <View style={styles.categoryListRow}>
         {categoriesPreset.map((cat) => (
           <TouchableOpacity
             key={cat}
-            style={[styles.categoryChip, category === cat && styles.categoryChipSelected]}
-            onPress={() => handleCategoryChange(cat)}
+            style={[styles.categoryChip, (category === cat && !showOtherCategory) && styles.categoryChipSelected]}
+            onPress={() => {
+              setShowOtherCategory(false);
+              handleCategoryChange(cat);
+            }}
           >
             <Text style={styles.categoryChipText}>{cat}</Text>
           </TouchableOpacity>
         ))}
         <TouchableOpacity
           style={[styles.categoryChip, showOtherCategory && styles.categoryChipSelected]}
-          onPress={() => setShowOtherCategory(true)}
+          onPress={() => {
+            setShowOtherCategory(true);
+            setCategory('');
+            setOtherCategory('');
+          }}
         >
           <Text style={styles.categoryChipText}>Other</Text>
         </TouchableOpacity>
@@ -280,7 +310,8 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({ label, value, setValue, t
       <Text style={styles.label}>Description</Text>
       <TextInput
         style={styles.textarea}
-        placeholder="Describe your event"
+        placeholder="Description"
+        placeholderTextColor="#888"
         value={description}
         onChangeText={setDescription}
         multiline
@@ -306,6 +337,7 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({ label, value, setValue, t
         <TextInput
           style={styles.latLngInput}
           placeholder="Latitude"
+          placeholderTextColor="#888"
           value={latitude}
           onChangeText={setLatitude}
           keyboardType="numeric"
@@ -313,11 +345,27 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({ label, value, setValue, t
         <TextInput
           style={styles.latLngInput}
           placeholder="Longitude"
+          placeholderTextColor="#888"
           value={longitude}
           onChangeText={setLongitude}
           keyboardType="numeric"
         />
       </View>
+      <TouchableOpacity
+        style={{width: '100%', backgroundColor: '#007BFF', borderRadius: 10, padding: 12, alignItems: 'center', marginBottom: 14}}
+        onPress={() => setMapModalVisible(true)}
+      >
+        <Text style={{color: '#fff', fontWeight: '600', fontSize: 16}}>Pick Location on Map</Text>
+      </TouchableOpacity>
+      <LocationPickerModal
+        visible={mapModalVisible}
+        onClose={() => setMapModalVisible(false)}
+        onPick={(lat, lng) => {
+          setLatitude(lat.toString());
+          setLongitude(lng.toString());
+        }}
+        initialLocation={latitude && longitude ? { latitude: parseFloat(latitude), longitude: parseFloat(longitude) } : undefined}
+      />
 
       <Text style={styles.label}>Visibility</Text>
       <View style={styles.rowBtns}>
@@ -497,16 +545,18 @@ const styles = StyleSheet.create({
   },
   textarea: {
     width: '100%',
-    backgroundColor: '#f7f7f7',
+    backgroundColor: '#fff',
     borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    fontSize: 15,
     marginBottom: 14,
     borderWidth: 1,
     borderColor: '#e0e0e0',
     minHeight: 70,
     maxHeight: 120,
+    color: '#222',
+    fontWeight: '400',
   },
   categoryListRow: {
     flexDirection: 'row',
@@ -561,13 +611,15 @@ const styles = StyleSheet.create({
   },
   latLngInput: {
     width: '48%',
-    backgroundColor: '#f7f7f7',
+    backgroundColor: '#fff', // Make background white for visibility
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
     borderWidth: 1,
     borderColor: '#e0e0e0',
+    color: '#222', // Ensure input text is dark
+    fontWeight: '500',
   },
   rowBtns: {
     flexDirection: 'row',
@@ -627,12 +679,42 @@ const styles = StyleSheet.create({
   },
   userSearchBox: {
     width: '100%',
-    marginBottom: 14,
+    marginBottom: 18,
     position: 'relative',
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 14,
+    shadowColor: '#000',
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  userSearchInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+  },
+  userSearchInput: {
+    flex: 1,
+    backgroundColor: '#f7f7f7',
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    color: '#222',
+    fontWeight: '500',
+  },
+  userSearchIcon: {
+    marginLeft: 8,
+    color: '#888',
   },
   userDropdown: {
     position: 'absolute',
-    top: 60,
+    top: 70,
     left: 0,
     right: 0,
     backgroundColor: '#fff',
