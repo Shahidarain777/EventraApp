@@ -17,11 +17,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../redux/store';
 import { createEvent } from '../redux/slices/eventSlice';
 import { launchImageLibrary } from 'react-native-image-picker';
-import AddressPicker from '../components/AddressPicker';
+// import AddressPicker from '../components/AddressPicker';
 // @ts-ignore
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import Modal from 'react-native-modal';
+import { Modal } from 'react-native';
 import MapView, { Marker, MapPressEvent } from 'react-native-maps';
 import LocationPickerModal from '../components/LocationPickerModal';
 
@@ -324,15 +324,13 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({ label, value, setValue, t
         <UserSearchBox label="Finance Manager" value={financeManager} setValue={setFinanceManager} type="financeManager" />
       </View>
 
-      <Text style={styles.label}>Location</Text>
-      <AddressPicker
-        country={country}
-        state={state}
-        city={city}
-        setCountry={setCountry}
-        setState={setState}
-        setCity={setCity}
-      />
+      <Text style={styles.label}>Event Location</Text>
+      <TouchableOpacity
+        style={{width: '100%', backgroundColor: '#007BFF', borderRadius: 10, padding: 12, alignItems: 'center', marginBottom: 14}}
+        onPress={() => setMapModalVisible(true)}
+      >
+        <Text style={{color: '#fff', fontWeight: '600', fontSize: 16}}>Pick Location on Map</Text>
+      </TouchableOpacity>
       <View style={styles.latLngRow}>
         <TextInput
           style={styles.latLngInput}
@@ -341,6 +339,7 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({ label, value, setValue, t
           value={latitude}
           onChangeText={setLatitude}
           keyboardType="numeric"
+          editable={false}
         />
         <TextInput
           style={styles.latLngInput}
@@ -349,23 +348,27 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({ label, value, setValue, t
           value={longitude}
           onChangeText={setLongitude}
           keyboardType="numeric"
+          editable={false}
         />
       </View>
-      <TouchableOpacity
-        style={{width: '100%', backgroundColor: '#007BFF', borderRadius: 10, padding: 12, alignItems: 'center', marginBottom: 14}}
-        onPress={() => setMapModalVisible(true)}
-      >
-        <Text style={{color: '#fff', fontWeight: '600', fontSize: 16}}>Pick Location on Map</Text>
-      </TouchableOpacity>
-      <LocationPickerModal
+      {/* Use built-in Modal for map picker */}
+      <Modal
         visible={mapModalVisible}
-        onClose={() => setMapModalVisible(false)}
-        onPick={(lat, lng) => {
-          setLatitude(lat.toString());
-          setLongitude(lng.toString());
-        }}
-        initialLocation={latitude && longitude ? { latitude: parseFloat(latitude), longitude: parseFloat(longitude) } : undefined}
-      />
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setMapModalVisible(false)}
+      >
+        <LocationPickerModal
+          visible={true}
+          onClose={() => setMapModalVisible(false)}
+          onPick={(lat, lng) => {
+            setLatitude(lat.toString());
+            setLongitude(lng.toString());
+            setMapModalVisible(false);
+          }}
+          initialLocation={latitude && longitude ? { latitude: parseFloat(latitude), longitude: parseFloat(longitude) } : undefined}
+        />
+      </Modal>
 
       <Text style={styles.label}>Visibility</Text>
       <View style={styles.rowBtns}>
@@ -403,9 +406,11 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({ label, value, setValue, t
       <TextInput
         style={styles.input}
         placeholder="Max attendees"
+        placeholderTextColor="#888"
         value={capacity}
         onChangeText={setCapacity}
         keyboardType="numeric"
+        color="#222"
       />
 
       <Text style={styles.label}>Start Date - End Date</Text>
@@ -445,13 +450,20 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({ label, value, setValue, t
         />
       </View>
       {isPaid && (
-        <TextInput
-          style={styles.input}
-          placeholder="Joining Fee"
-          value={joiningFee}
-          onChangeText={setJoiningFee}
-          keyboardType="numeric"
-        />
+        <View style={styles.feeInputRow}>
+          <View style={styles.currencyBox}>
+            <Text style={styles.currencyText}>PKR</Text>
+          </View>
+          <TextInput
+            style={styles.feeInput}
+            placeholder="Amount"
+            placeholderTextColor="#888"
+            value={joiningFee}
+            onChangeText={setJoiningFee}
+            keyboardType="numeric"
+            color="#222"
+          />
+        </View>
       )}
 
       <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={uploading}>
@@ -736,6 +748,42 @@ const styles = StyleSheet.create({
   userDropdownText: {
     fontSize: 16,
     color: '#222',
+  },
+  feeInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 14,
+    backgroundColor: '#f7f7f7',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+  },
+  currencyBox: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    backgroundColor: '#eaf0fa',
+    borderRadius: 8,
+    marginRight: 6,
+    borderWidth: 1,
+    borderColor: '#dbe6fa',
+  },
+  currencyText: {
+    color: '#2788ff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  feeInput: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    fontSize: 16,
+    color: '#222',
+    fontWeight: '500',
   },
   error: {
     color: '#d9534f',
