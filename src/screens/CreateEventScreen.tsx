@@ -8,7 +8,8 @@ import {
   ScrollView,
   Image,
   Platform,
-  ActivityIndicator
+  ActivityIndicator,
+  Switch
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -19,6 +20,14 @@ import AddressPicker from '../components/AddressPicker';
 // @ts-ignore
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+
+import axios from '../api/axios'; // If not already imported
+
+
+type User = { id: string; username: string };
+
+
+
 
 const categoriesPreset = [
   'Technology',
@@ -32,12 +41,37 @@ const categoriesPreset = [
 ];
 
 const CreateEventScreen = () => {
+
+
+  // User search hooks (must be inside function component)
+  const [subLeader, setSubLeader] = useState('');
+  const [financeManager, setFinanceManager] = useState('');
+  const [userQuery, setUserQuery] = useState('');
+  const [userResults, setUserResults] = useState<User[]>([]);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [userSearchType, setUserSearchType] = useState<'subLeader' | 'financeManager' | null>(null);
+
+  React.useEffect(() => {
+    const fetchUsers = async () => {
+      if (userQuery.length < 2) {
+        setUserResults([]);
+        return;
+      }
+      try {
+        const res = await axios.get(`/users/search?query=${userQuery}`);
+        setUserResults(res.data || []);
+      } catch {
+        setUserResults([]);
+      }
+    };
+    fetchUsers();
+  }, [userQuery]);
   const navigation = useNavigation();
   const dispatch = useDispatch<AppDispatch>();
   const eventError = useSelector((state: RootState) => state.events.error);
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
-  const [categoryOptions, setCategoryOptions] = useState(categoriesPreset);
+// Removed unused categoryOptions state
   const [showOtherCategory, setShowOtherCategory] = useState(false);
   const [otherCategory, setOtherCategory] = useState('');
   const [description, setDescription] = useState('');
@@ -68,20 +102,54 @@ const CreateEventScreen = () => {
     }
   };
 
+  // Debounce image pick to prevent multiple triggers
+  let imagePickInProgress = false;
   const handleImagePick = async () => {
+    if (imagePickInProgress) return;
+    imagePickInProgress = true;
     launchImageLibrary({
       mediaType: 'photo',
       selectionLimit: 5,
       quality: 0.7,
     }, (response) => {
+      imagePickInProgress = false;
       if (response.didCancel || response.errorCode) return;
       if (response.assets) {
-        setImages([...images, ...response.assets.map(a => a.uri || '')]);
+        setImages(prev => [...prev, ...response.assets!.map(a => a.uri || '')]);
       }
     });
   };
 
-
+type UserSearchBoxProps = {
+  label: string;
+  value: string;
+  setValue: (val: string) => void;
+  type: 'subLeader' | 'financeManager';
+};
+const UserSearchBox: React.FC<UserSearchBoxProps> = ({ label, value, setValue, type }) => (
+  <View style={styles.userSearchBox}>
+    <Text style={styles.label}>{label} <Text style={{color:'#888',fontSize:13}}>(optional)</Text></Text>
+    <TextInput
+      style={styles.input}
+      placeholder={label}
+      placeholderTextColor="#888"
+      value={type === userSearchType ? userQuery : value}
+      onFocus={() => { setUserSearchType(type); setShowUserDropdown(true); setUserQuery(''); }}
+      onChangeText={text => { setUserQuery(text); setShowUserDropdown(true); setUserSearchType(type); }}
+    />
+    {showUserDropdown && userSearchType === type && userResults.length > 0 && (
+      <View style={styles.userDropdown}>
+        <ScrollView style={{ maxHeight: 120 }}>
+          {userResults.map((user) => (
+            <TouchableOpacity key={user.id} style={styles.userDropdownItem} onPress={() => { setValue(user.username); setShowUserDropdown(false); setUserQuery(user.username); }}>
+              <Text style={styles.userDropdownText}>{user.username}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+    )}
+  </View>
+);
   const handleDateChange = (
     type: 'start' | 'end',
     _event: unknown,
@@ -117,7 +185,6 @@ const CreateEventScreen = () => {
       date: date.start.toISOString(),
       category: showOtherCategory ? otherCategory : category,
       isLiked: false,
-      // Add any other fields your API expects
       country,
       state,
       city,
@@ -127,12 +194,14 @@ const CreateEventScreen = () => {
       approvalRequired,
       capacity,
       endDate: date.end.toISOString(),
+      subLeader,
+      financeManager,
     };
 
     try {
       const resultAction = await dispatch(createEvent(eventData));
       if (createEvent.fulfilled.match(resultAction)) {
-        setUploading(false);
+         setUploading(false);
         navigation.goBack();
       } else {
         setUploading(false);
@@ -142,13 +211,31 @@ const CreateEventScreen = () => {
       setUploading(false);
       setError(err.message || 'Failed to create event');
     }
+    
   };
-
+ 
   return (
+
+
+
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
       <Text style={styles.title}>Create Event</Text>
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {eventError ? <Text style={styles.error}>{eventError}</Text> : null}
+
+      {/* Card style for event images upload at top */}
+      <View style={styles.imageCard}>
+        <View style={styles.imagePreviewRow}>
+          {images.map((img, idx) => (
+            <Image key={idx} source={{ uri: img }} style={styles.eventImagePreview} />
+          ))}
+        </View>
+        <TouchableOpacity style={styles.addImageBtnCenter} onPress={handleImagePick}>
+          <Ionicons name="add" size={32} color="#007BFF" />
+        </TouchableOpacity>
+      </View>
+      {/* <Text style={styles.label}>Event Images</Text> */}
+
       <Text style={styles.label}>Event Title</Text>
       <TextInput
         style={styles.input}
@@ -200,14 +287,10 @@ const CreateEventScreen = () => {
         numberOfLines={3}
       />
 
-      <Text style={styles.label}>Upload Event Images</Text>
-      <View style={styles.imageRow}>
-        {images.map((img, idx) => (
-          <Image key={idx} source={{ uri: img }} style={styles.eventImage} />
-        ))}
-        <TouchableOpacity style={styles.addImageBtn} onPress={handleImagePick}>
-          <Ionicons name="add" size={28} color="#007BFF" />
-        </TouchableOpacity>
+      {/* User search boxes for Sub Leader and Finance Manager */}
+      <View>
+        <UserSearchBox label="Sub Leader" value={subLeader} setValue={setSubLeader} type="subLeader" />
+        <UserSearchBox label="Finance Manager" value={financeManager} setValue={setFinanceManager} type="financeManager" />
       </View>
 
       <Text style={styles.label}>Location</Text>
@@ -304,13 +387,14 @@ const CreateEventScreen = () => {
         />
       )}
 
-      <View style={styles.rowBtns}>
-        <TouchableOpacity
-          style={[styles.toggleBtn, isPaid && styles.toggleBtnActive]}
-          onPress={() => setIsPaid(!isPaid)}
-        >
-          <Text style={styles.toggleBtnText}>{isPaid ? 'Paid' : 'Free'}</Text>
-        </TouchableOpacity>
+      <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
+        <Text style={[styles.label, { flex: 1 }]}>Is Paid?</Text>
+        <Switch
+          value={isPaid}
+          onValueChange={setIsPaid}
+          trackColor={{ false: '#e0e0e0', true: '#007BFF' }}
+          thumbColor={isPaid ? '#007BFF' : '#fff'}
+        />
       </View>
       {isPaid && (
         <TextInput
@@ -336,9 +420,51 @@ const CreateEventScreen = () => {
 export default CreateEventScreen;
 
 const styles = StyleSheet.create({
+  imageCard: {
+    width: '100%',
+    backgroundColor: '#f7f7f7',
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 10,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  imagePreviewRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+    flexWrap: 'wrap',
+  },
+  eventImagePreview: {
+    width: 70,
+    height: 70,
+    borderRadius: 10,
+    marginRight: 10,
+    marginBottom: 10,
+    backgroundColor: '#e0e0e0',
+  },
+  addImageBtnCenter: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    borderWidth: 2,
+    borderColor: '#2d8bffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    alignSelf: 'center',
+    shadowColor: '#2d8bffff',
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 2,
+  },
   container: {
     padding: '6%',
-    backgroundColor: '#fff',
+    backgroundColor: '#ffff',
     flexGrow: 1,
     alignItems: 'center',
   },
@@ -363,9 +489,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    marginBottom: 14,
+    marginBottom: 0,
     borderWidth: 1,
     borderColor: '#e0e0e0',
+    color: '#222',
+    fontWeight: '500',
   },
   textarea: {
     width: '100%',
@@ -395,7 +523,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   categoryChipSelected: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#2d8bffff',
   },
   categoryChipText: {
     color: '#333',
@@ -420,7 +548,7 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 8,
     borderWidth: 1.5,
-    borderColor: '#007BFF',
+    borderColor: '#2d8bffff',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f7f7f7',
@@ -456,7 +584,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   toggleBtnActive: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#2788ffff',
   },
   toggleBtnText: {
     color: '#222',
@@ -485,7 +613,7 @@ const styles = StyleSheet.create({
   },
   submitBtn: {
     width: '100%',
-    backgroundColor: '#007BFF',
+    backgroundColor: '#0b1015ff',
     borderRadius: 10,
     paddingVertical: 15,
     alignItems: 'center',
@@ -496,6 +624,36 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 18,
+  },
+  userSearchBox: {
+    width: '100%',
+    marginBottom: 14,
+    position: 'relative',
+  },
+  userDropdown: {
+    position: 'absolute',
+    top: 60,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    elevation: 3,
+    zIndex: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+  },
+  userDropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  userDropdownText: {
+    fontSize: 16,
+    color: '#222',
   },
   error: {
     color: '#d9534f',
