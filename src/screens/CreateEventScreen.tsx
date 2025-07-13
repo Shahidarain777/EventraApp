@@ -250,7 +250,17 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({ label, value, setValue, t
       <View style={styles.imageCard}>
         <View style={styles.imagePreviewRow}>
           {images.map((img, idx) => (
-            <Image key={idx} source={{ uri: img }} style={styles.eventImagePreview} />
+            <View key={idx} style={styles.imagePreviewBox}>
+              <Image source={{ uri: img }} style={styles.eventImagePreview} />
+              <TouchableOpacity
+                style={styles.removeImageBtn}
+                onPress={() => {
+                  setImages(prev => prev.filter((_, i) => i !== idx));
+                }}
+              >
+                <Ionicons name="close-circle" size={22} color="#d9534f" />
+              </TouchableOpacity>
+            </View>
           ))}
         </View>
         <TouchableOpacity style={styles.addImageBtnCenter} onPress={handleImagePick}>
@@ -482,15 +492,12 @@ export default CreateEventScreen;
 const styles = StyleSheet.create({
   imageCard: {
     width: '100%',
-    backgroundColor: '#f7f7f7',
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 10,
+    backgroundColor: '#f0f0f0', // capsule style like categories
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 18,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    elevation: 2,
+    borderWidth: 0,
   },
   imagePreviewRow: {
     flexDirection: 'row',
@@ -499,32 +506,38 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     flexWrap: 'wrap',
   },
+  imagePreviewBox: {
+    position: 'relative',
+    marginRight: 10,
+    marginBottom: 10,
+  },
   eventImagePreview: {
     width: 70,
     height: 70,
     borderRadius: 10,
-    marginRight: 10,
-    marginBottom: 10,
     backgroundColor: '#e0e0e0',
+  },
+  removeImageBtn: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: 'transparent',
+    zIndex: 2,
   },
   addImageBtnCenter: {
     width: 54,
     height: 54,
     borderRadius: 27,
     borderWidth: 2,
-    borderColor: '#2d8bffff',
+    borderColor: '#2788ff',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#f7faff',
     alignSelf: 'center',
-    shadowColor: '#2d8bffff',
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    elevation: 2,
   },
   container: {
     padding: '6%',
-    backgroundColor: '#ffff',
+    backgroundColor: '#f7faff', // subtle blue shade for page background
     flexGrow: 1,
     alignItems: 'center',
   },
@@ -557,7 +570,7 @@ const styles = StyleSheet.create({
   },
   textarea: {
     width: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: '#f7faff', // subtle blue for textarea
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 11,
@@ -677,7 +690,7 @@ const styles = StyleSheet.create({
   },
   submitBtn: {
     width: '100%',
-    backgroundColor: '#0b1015ff',
+    backgroundColor: '#2788ff', // modern blue
     borderRadius: 10,
     paddingVertical: 15,
     alignItems: 'center',
@@ -696,10 +709,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 14,
     padding: 14,
-    shadowColor: '#000',
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    elevation: 2,
     borderWidth: 1,
     borderColor: '#e0e0e0',
   },
