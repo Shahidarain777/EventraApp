@@ -9,6 +9,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loginFromStorage } from './src/redux/slices/authSlice';
 import { PersistGate } from 'redux-persist/integration/react';
 import { navigationRef } from './src/navigators/NavigationService';
+import { setupInterceptors } from './src/api/setupInterceptors';
+
+// Setup API interceptors once when app starts
+setupInterceptors();
 
 const AppEntry = () => {
   const [loading, setLoading] = useState(true);

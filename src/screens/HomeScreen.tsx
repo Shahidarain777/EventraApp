@@ -141,7 +141,7 @@ export default HomeScreen;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#4F8CFF',
+    backgroundColor: '#6695ebff',
     width: '100%',
   },
   header: {
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     paddingHorizontal: 16,
-    paddingTop: '20%',
+    paddingTop: '2%',
     paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',

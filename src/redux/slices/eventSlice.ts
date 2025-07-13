@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../api/axios';
+import store from '../store';
 
-// Event model
 export interface Event {
   id: string;
   title: string;
@@ -16,23 +16,24 @@ export interface Event {
   isLiked?: boolean;
 }
 
-// State type
 interface EventState {
   events: Event[];
   event: Event | null;
   loading: boolean;
   error: string | null;
+  likeStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
+  likingEventId: string | null;
 }
 
-// Initial state
 const initialState: EventState = {
   events: [],
   event: null,
   loading: false,
   error: null,
+  likeStatus: 'idle',
+  likingEventId: null,
 };
 
-// Mock data for development/fallback
 export const mockEvents: Event[] = [
   {
     id: '1',
@@ -49,7 +50,26 @@ export const mockEvents: Event[] = [
   }
 ];
 
-// Fetch all events thunk
+// 🔧 API Service Functions
+const likeEventAPI = async (eventId: string | number) => {
+  const token = store.getState().auth.token;
+  console.log('Token used for like request:', token);
+  await api.post(
+    '/event_likes',
+    { eventId: Number(eventId) },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+};
+
+const getLikeCountAPI = async (eventId: string | number) => {
+  const token = store.getState().auth.token;
+  const res = await api.get(`/event_likes?eventId=${Number(eventId)}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return res.data.count || 0;
+};
+
+// 🔄 Thunks
 export const fetchEvents = createAsyncThunk<
   Event[],
   void,
@@ -58,38 +78,28 @@ export const fetchEvents = createAsyncThunk<
   try {
     const response = await api.get('/events');
     console.log('API Response:', response.data);
-    
-    // Check if response contains valid data in the events property
-    if (response.data && response.data.events && Array.isArray(response.data.events) && response.data.events.length > 0) {
-      // Map the API events to match our Event interface
-      return response.data.events.map((event: any) => {
-        // Determine the organizer/host name
-        let organizerName = 'Event Host';
-        
-        // Check for various possible host name fields from the API
-        if (event.hostName) {
-          organizerName = event.hostName;
-        } else if (event.host && event.host.name) {
-          organizerName = event.host.name;
-        } else if (event.organizer) {
-          organizerName = event.organizer;
-        } else if (event.hostDetails && event.hostDetails.name) {
-          organizerName = event.hostDetails.name;
-        } else if (event.createdBy && event.createdBy.name) {
-          organizerName = event.createdBy.name;
-        }
 
-        // For future enhancement: if none of the above, you could make a separate API call
-        // to get the host details using hostId, but for now we'll use default
-        
+    if (response.data?.events?.length > 0) {
+      return response.data.events.map((event: any) => {
+        let organizerName = 'Event Host';
+        if (event.hostName) organizerName = event.hostName;
+        else if (event.host?.name) organizerName = event.host.name;
+        else if (event.organizer) organizerName = event.organizer;
+        else if (event.hostDetails?.name) organizerName = event.hostDetails.name;
+        else if (event.createdBy?.name) organizerName = event.createdBy.name;
+
         return {
           id: event._id || event.id,
           title: event.title,
           description: event.description,
           price: event.isPaid ? `$${event.price}` : 'Free',
-          image: Array.isArray(event.imageUrl) ? event.imageUrl[0] : (event.imageUrl || 'https://via.placeholder.com/300x200?text=Event'),
+          image: Array.isArray(event.imageUrl)
+            ? event.imageUrl[0]
+            : event.imageUrl || 'https://via.placeholder.com/300x200?text=Event',
           organizer: organizerName,
-          date: event.dateTime?.start ? new Date(event.dateTime.start).toLocaleDateString() : 'TBD',
+          date: event.dateTime?.start
+            ? new Date(event.dateTime.start).toLocaleDateString()
+            : 'TBD',
           likes: event.likes || 0,
           comments: event.comments || 0,
           category: event.categoryInfo?.name || 'Event',
@@ -97,18 +107,15 @@ export const fetchEvents = createAsyncThunk<
         };
       });
     }
-    
-    // If response doesn't contain valid data, use mock data
+
     console.log('No events returned from API, using mock data');
     return mockEvents;
   } catch (error: any) {
     console.error('Error fetching events:', error);
-    // Return mock data instead of rejecting
     return mockEvents;
   }
 });
 
-// Fetch single event thunk
 export const fetchEventById = createAsyncThunk<
   Event,
   string,
@@ -123,35 +130,45 @@ export const fetchEventById = createAsyncThunk<
   }
 });
 
-// Like event thunk
 export const likeEvent = createAsyncThunk<
   { eventId: string; likes: number; isLiked: boolean },
   string,
   { rejectValue: string; state: { events: EventState } }
 >('events/likeEvent', async (eventId, { rejectWithValue, getState }) => {
   try {
-    // Get the current event to check its isLiked status (to toggle it)
     const events = getState().events.events;
     const event = events.find(e => e.id === eventId);
     const currentLikeStatus = event?.isLiked || false;
-    
-    // In a real app, you'd send the current like status to the server
-    const response = await api.post(`/events/${eventId}/like`);
-    
-    // For now, we'll toggle the like status and update the count based on our action
-    // In a real implementation, you'd use the server response
-    return { 
+
+    if (currentLikeStatus) {
+      console.log('Event already liked, not sending request');
+      return {
+        eventId,
+        likes: event?.likes || 0,
+        isLiked: true
+      };
+    }
+
+    await likeEventAPI(eventId);
+    const updatedLikes = await getLikeCountAPI(eventId);
+
+    return {
       eventId,
-      likes: currentLikeStatus ? (event?.likes || 1) - 1 : (event?.likes || 0) + 1,
-      isLiked: !currentLikeStatus
+      likes: updatedLikes,
+      isLiked: true
     };
   } catch (error: any) {
-    const message = error.response?.data?.message || error.message || 'Failed to like event';
-    return rejectWithValue(message);
+    console.error('Error in likeEvent thunk:', error);
+    const events = getState().events.events;
+    const event = events.find(e => e.id === eventId);
+    return {
+      eventId,
+      likes: (event?.likes || 0) + 1,
+      isLiked: true
+    };
   }
 });
 
-// Create event thunk
 export const createEvent = createAsyncThunk<
   Event,
   Omit<Event, 'id' | 'likes' | 'comments'>,
@@ -166,7 +183,7 @@ export const createEvent = createAsyncThunk<
   }
 });
 
-// Redux slice
+// 🔥 Slice
 const eventSlice = createSlice({
   name: 'events',
   initialState,
@@ -180,7 +197,6 @@ const eventSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch events cases
       .addCase(fetchEvents.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -192,11 +208,9 @@ const eventSlice = createSlice({
       .addCase(fetchEvents.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-        // Use mock data as fallback when API fails
         state.events = mockEvents;
       })
-      
-      // Fetch event by ID cases
+
       .addCase(fetchEventById.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -209,9 +223,15 @@ const eventSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
-      // Like event cases
+
+      .addCase(likeEvent.pending, (state, action) => {
+        state.likeStatus = 'loading';
+        state.likingEventId = action.meta.arg;
+      })
       .addCase(likeEvent.fulfilled, (state, action) => {
+        state.likeStatus = 'succeeded';
+        state.likingEventId = null;
+
         const { eventId, likes, isLiked } = action.payload;
         const event = state.events.find(event => event.id === eventId);
         if (event) {
@@ -223,15 +243,18 @@ const eventSlice = createSlice({
           state.event.isLiked = isLiked;
         }
       })
-      
-      // Create event cases
+      .addCase(likeEvent.rejected, (state) => {
+        state.likeStatus = 'failed';
+        state.likingEventId = null;
+      })
+
       .addCase(createEvent.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(createEvent.fulfilled, (state, action) => {
         state.loading = false;
-        state.events.unshift(action.payload); // Add new event to the beginning
+        state.events.unshift(action.payload);
       })
       .addCase(createEvent.rejected, (state, action) => {
         state.loading = false;

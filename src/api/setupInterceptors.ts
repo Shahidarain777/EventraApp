@@ -10,7 +10,10 @@ export const setupInterceptors = () => {
     (config) => {
       const token = store.getState().auth.token;
       if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
+        // Ensure the token has Bearer prefix
+        const authToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+        config.headers.Authorization = authToken;
+        console.log('Interceptor adding Authorization header:', authToken);
       }
       return config;
     },
