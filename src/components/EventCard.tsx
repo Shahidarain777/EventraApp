@@ -164,8 +164,8 @@ const styles = StyleSheet.create({
   eventImage: {
     width: '100%',
     height: 160,
-    marginTop: 0,
-    marginBottom: 4,
+    marginTop: 10,
+    marginBottom: 40,
     backgroundColor: '#f0f0f0', // Placeholder color before image loads
   },
   eventContent: {

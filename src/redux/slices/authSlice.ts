@@ -6,6 +6,9 @@ interface User {
   id: string;
   name: string;
   email: string;
+  phone?: string; // Add phone number field
+  role?: string; // Add role field
+  createdAt?: string; // Add creation date field
   // Add more fields if needed
 }
 

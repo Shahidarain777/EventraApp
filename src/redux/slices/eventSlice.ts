@@ -7,7 +7,8 @@ export interface Event {
   title: string;
   description: string;
   price: string;
-  image: string;
+  image: string; // Keep for backward compatibility
+  images?: string[]; // New field for multiple images
   organizer: string;
   date: string;
   likes: number;
@@ -41,11 +42,68 @@ export const mockEvents: Event[] = [
     description: 'Join us for an evening of tech talks and networking. Explore the latest trends in AI and web development.',
     price: '$99',
     image: 'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?ixlib=rb-4.0.3',
+    images: [
+      'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?ixlib=rb-4.0.3',
+      'https://images.unsplash.com/photo-1511578314322-379afb476865?ixlib=rb-4.0.3',
+      'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3'
+    ],
     organizer: 'Asad Raza',
     date: '2024-07-15',
     likes: 124,
     comments: 23,
     category: 'Conference',
+    isLiked: false
+  },
+  {
+    id: '2',
+    title: 'Business Networking Event',
+    description: 'Connect with like-minded professionals and expand your business network.',
+    price: 'Free',
+    image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?ixlib=rb-4.0.3',
+    images: [
+      'https://images.unsplash.com/photo-1511578314322-379afb476865?ixlib=rb-4.0.3',
+      'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3'
+    ],
+    organizer: 'Sarah Johnson',
+    date: '2024-07-20',
+    likes: 45,
+    comments: 12,
+    category: 'Business',
+    isLiked: false
+  },
+  {
+    id: '3',
+    title: 'Art Gallery Opening',
+    description: 'Discover amazing artwork from local artists at this exclusive gallery opening.',
+    price: '$25',
+    image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3',
+    images: [
+      'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3'
+    ],
+    organizer: 'Michael Chen',
+    date: '2024-07-25',
+    likes: 78,
+    comments: 8,
+    category: 'Arts',
+    isLiked: false
+  },
+  {
+    id: '4',
+    title: 'Food Festival Downtown',
+    description: 'Taste delicious food from around the world at our annual food festival.',
+    price: '$15',
+    image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?ixlib=rb-4.0.3',
+    images: [
+      'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?ixlib=rb-4.0.3',
+      'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?ixlib=rb-4.0.3',
+      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-4.0.3',
+      'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?ixlib=rb-4.0.3'
+    ],
+    organizer: 'Food Lovers Inc',
+    date: '2024-08-01',
+    likes: 156,
+    comments: 34,
+    category: 'Food',
     isLiked: false
   }
 ];
@@ -96,6 +154,11 @@ export const fetchEvents = createAsyncThunk<
           image: Array.isArray(event.imageUrl)
             ? event.imageUrl[0]
             : event.imageUrl || 'https://via.placeholder.com/300x200?text=Event',
+          images: Array.isArray(event.imageUrl) 
+            ? event.imageUrl 
+            : event.imageUrl 
+              ? [event.imageUrl] 
+              : ['https://via.placeholder.com/300x200?text=Event'],
           organizer: organizerName,
           date: event.dateTime?.start
             ? new Date(event.dateTime.start).toLocaleDateString()

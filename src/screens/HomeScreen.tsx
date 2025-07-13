@@ -36,6 +36,108 @@ const HomeScreen = () => {
     dispatch(likeEvent(eventId));
   };
 
+  const renderImageGrid = (images: string[]) => {
+    if (!images || images.length === 0) {
+      return (
+        <Image 
+          source={require('../../assets/EventraLogo.png')} 
+          style={styles.eventImage} 
+          resizeMode="cover" 
+        />
+      );
+    }
+
+    if (images.length === 1) {
+      return (
+        <Image 
+          source={{ uri: images[0] }} 
+          style={styles.eventImage} 
+          resizeMode="cover" 
+          defaultSource={require('../../assets/EventraLogo.png')} 
+        />
+      );
+    }
+
+    if (images.length === 2) {
+      return (
+        <View style={styles.imageGrid}>
+          <Image 
+            source={{ uri: images[0] }} 
+            style={styles.imageGridHalf} 
+            resizeMode="cover" 
+            defaultSource={require('../../assets/EventraLogo.png')} 
+          />
+          <Image 
+            source={{ uri: images[1] }} 
+            style={styles.imageGridHalf} 
+            resizeMode="cover" 
+            defaultSource={require('../../assets/EventraLogo.png')} 
+          />
+        </View>
+      );
+    }
+
+    if (images.length === 3) {
+      return (
+        <View style={styles.imageGrid}>
+          <Image 
+            source={{ uri: images[0] }} 
+            style={styles.imageGridHalf} 
+            resizeMode="cover" 
+            defaultSource={require('../../assets/EventraLogo.png')} 
+          />
+          <View style={styles.imageGridColumn}>
+            <Image 
+              source={{ uri: images[1] }} 
+              style={styles.imageGridQuarter} 
+              resizeMode="cover" 
+              defaultSource={require('../../assets/EventraLogo.png')} 
+            />
+            <Image 
+              source={{ uri: images[2] }} 
+              style={styles.imageGridQuarter} 
+              resizeMode="cover" 
+              defaultSource={require('../../assets/EventraLogo.png')} 
+            />
+          </View>
+        </View>
+      );
+    }
+
+    // For 4 or more images
+    return (
+      <View style={styles.imageGrid}>
+        <Image 
+          source={{ uri: images[0] }} 
+          style={styles.imageGridHalf} 
+          resizeMode="cover" 
+          defaultSource={require('../../assets/EventraLogo.png')} 
+        />
+        <View style={styles.imageGridColumn}>
+          <Image 
+            source={{ uri: images[1] }} 
+            style={styles.imageGridQuarter} 
+            resizeMode="cover" 
+            defaultSource={require('../../assets/EventraLogo.png')} 
+          />
+          <View style={styles.imageGridQuarterContainer}>
+            <Image 
+              source={{ uri: images[2] }} 
+              style={styles.imageGridQuarter} 
+              resizeMode="cover" 
+              defaultSource={require('../../assets/EventraLogo.png')} 
+            />
+            {images.length > 3 && (
+              <View style={styles.moreImagesOverlay}>
+                <Text style={styles.moreImagesText}>+{images.length - 3}</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </View>
+    );
+  };
+
   const renderEventCard = ({ item }: { item: Event }) => (
     <View style={styles.eventCard}>
       <View style={styles.eventHeader}>
@@ -45,12 +147,7 @@ const HomeScreen = () => {
           <Text style={styles.priceText}> · {item.price}</Text>
         </View>
       </View>
-      <Image 
-        source={{ uri: item.image }} 
-        style={styles.eventImage} 
-        resizeMode="cover" 
-        defaultSource={require('../../assets/EventraLogo.png')} 
-      />
+      {renderImageGrid(item.images || [item.image])}
       <View style={styles.eventContent}>
         <Text style={styles.eventTitle} numberOfLines={1} ellipsizeMode="tail">{item.title}</Text>
         <Text style={styles.eventDescription} numberOfLines={2}>
@@ -230,10 +327,49 @@ const styles = StyleSheet.create({
   },
   eventImage: {
     width: '100%',
-    height: 160,
+    height: 250,
     marginTop: 0,
     marginBottom: 4,
     backgroundColor: '#f0f0f0', // Placeholder color before image loads
+  },
+  imageGrid: {
+    flexDirection: 'row',
+    height: 250,
+    marginTop: 0,
+    marginBottom: 4,
+  },
+  imageGridHalf: {
+    width: '50%',
+    height: 250,
+    backgroundColor: '#f0f0f0',
+  },
+  imageGridColumn: {
+    flex: 1,
+    flexDirection: 'column',
+  },
+  imageGridQuarter: {
+    width: '100%',
+    height: 125,
+    backgroundColor: '#f0f0f0',
+  },
+  imageGridQuarterContainer: {
+    position: 'relative',
+    height: 125,
+  },
+  moreImagesOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  moreImagesText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   eventContent: {
     paddingHorizontal: 16,
