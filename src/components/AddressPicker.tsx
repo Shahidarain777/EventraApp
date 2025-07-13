@@ -57,6 +57,7 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ country, state, city, set
           <TextInput
             style={styles.input}
             placeholder="Select"
+            placeholderTextColor="#222"
             value={countryQuery || country}
             onChangeText={text => { setCountryQuery(text); setShowCountryDropdown(true); }}
             onFocus={() => setShowCountryDropdown(true)}
@@ -69,9 +70,11 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ country, state, city, set
               keyboardShouldPersistTaps="handled"
               renderItem={({ item }) => (
                 <TouchableOpacity onPress={() => handleCountrySelect(item.name)} style={styles.dropdownItem}>
-                  <Text>{item.name}</Text>
+                  <Text style={styles.dropdownItemText}>{item.name}</Text>
                 </TouchableOpacity>
               )}
+              scrollEnabled={true}
+              nestedScrollEnabled={true}
             />
           )}
         </View>
@@ -80,6 +83,7 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ country, state, city, set
           <TextInput
             style={styles.input}
             placeholder="Select"
+            placeholderTextColor="#222"
             value={stateQuery || state}
             onChangeText={text => { setStateQuery(text); setShowStateDropdown(true); }}
             onFocus={() => setShowStateDropdown(true)}
@@ -93,9 +97,11 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ country, state, city, set
               keyboardShouldPersistTaps="handled"
               renderItem={({ item }) => (
                 <TouchableOpacity onPress={() => handleStateSelect(item.name)} style={styles.dropdownItem}>
-                  <Text>{item.name}</Text>
+                  <Text style={styles.dropdownItemText}>{item.name}</Text>
                 </TouchableOpacity>
               )}
+              scrollEnabled={true}
+              nestedScrollEnabled={true}
             />
           )}
         </View>
@@ -103,7 +109,8 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ country, state, city, set
           <Text style={styles.label}>City</Text>
           <TextInput
             style={styles.input}
-            placeholder="Slect"
+            placeholder="Select"
+            placeholderTextColor="#222"
             value={cityQuery || city}
             onChangeText={text => { setCityQuery(text); setShowCityDropdown(true); }}
             onFocus={() => setShowCityDropdown(true)}
@@ -117,9 +124,11 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ country, state, city, set
               keyboardShouldPersistTaps="handled"
               renderItem={({ item }) => (
                 <TouchableOpacity onPress={() => handleCitySelect(item)} style={styles.dropdownItem}>
-                  <Text>{item}</Text>
+                  <Text style={styles.dropdownItemText}>{item}</Text>
                 </TouchableOpacity>
               )}
+              scrollEnabled={true}
+              nestedScrollEnabled={true}
             />
           )}
         </View>
@@ -132,6 +141,7 @@ const styles = StyleSheet.create({
   addressBox: {
     width: '100%',
     backgroundColor: '#f7faff',
+  
     borderRadius: 14,
     padding: 12,
     marginBottom: 18,
@@ -160,28 +170,41 @@ const styles = StyleSheet.create({
   },
   input: {
     width: '100%',
-    backgroundColor: '#f0f4fa',
+    backgroundColor: '#eaf0fa',
     borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     marginBottom: 6,
     color: '#222',
-    fontSize: 16,
+    fontSize: 17,
     borderWidth: 1,
+
     borderColor: '#dbe6fa',
+    fontWeight: '500',
+    letterSpacing: 0.1,
   },
   dropdown: {
     maxHeight: 120,
     backgroundColor: '#fff',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#dbe6fa',
+    borderColor: '#d0dbeeff',
     marginBottom: 6,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
   },
   dropdownItem: {
-    padding: 10,
+    padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f4fa',
+  },
+  dropdownItemText: {
+    color: '#222',
+    fontSize: 16,
+    fontWeight: '500',
+    letterSpacing: 0.1,
   },
 });
 
