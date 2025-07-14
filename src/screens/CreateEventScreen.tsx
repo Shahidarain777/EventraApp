@@ -192,43 +192,52 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({ label, value, setValue, t
     if (!title.trim()) return setError('Event title is required');
     if (!category.trim() && !otherCategory.trim()) return setError('Category is required');
     if (!description.trim()) return setError('Description is required');
-    if (!country || !state || !city) return setError('Complete address required');
-    if (!latitude || !longitude) return setError('Latitude and Longitude required');
+    // Address fields are optional for now
+    // Latitude and Longitude are optional for now (testing)
     if (!date.start || !date.end) return setError('Start and End date required');
     if (isPaid && !joiningFee) return setError('Joining fee required for paid event');
     setUploading(true);
 
-    // Prepare event data for API
-    const eventData = {
-      title,
-      description,
-      price: isPaid ? joiningFee : 'Free',
-      image: images[0] || '', // Only first image for now
-      organizer: '', // You can set organizer from user state if needed
-      date: date.start.toISOString(),
-      category: showOtherCategory ? otherCategory : category,
-      isLiked: false,
-      country,
-      state,
-      city,
-      latitude,
-      longitude,
-      visibility,
-      approvalRequired,
-      capacity,
-      endDate: date.end.toISOString(),
-      subLeader,
-      financeManager,
-    };
+    // Use FormData for image upload
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('description', description);
+    formData.append('price', isPaid ? joiningFee : 'Free');
+    formData.append('organizer', ''); // Set organizer if needed
+    formData.append('date', date.start.toISOString());
+    formData.append('category', showOtherCategory ? otherCategory : category);
+    formData.append('isLiked', 'false');
+    formData.append('country', country);
+    formData.append('state', state);
+    formData.append('city', city);
+    formData.append('latitude', latitude);
+    formData.append('longitude', longitude);
+    formData.append('visibility', visibility);
+    formData.append('approvalRequired', approvalRequired);
+    formData.append('capacity', capacity);
+    formData.append('endDate', date.end.toISOString());
+    formData.append('subLeader', subLeader);
+    formData.append('financeManager', financeManager);
+    if (images[0]) {
+      formData.append('image', {
+        uri: images[0],
+        type: 'image/jpeg',
+        name: 'event.jpg',
+      });
+    }
 
     try {
-      const resultAction = await dispatch(createEvent(eventData));
-      if (createEvent.fulfilled.match(resultAction)) {
-         setUploading(false);
+      // Replace '/events' with your actual backend endpoint
+      const res = await axios.post('/events', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      setUploading(false);
+      if (res.status === 201 || res.status === 200) {
         navigation.goBack();
       } else {
-        setUploading(false);
-        setError(resultAction.payload as string || 'Failed to create event');
+        setError('Failed to create event');
       }
     } catch (err: any) {
       setUploading(false);
@@ -420,7 +429,6 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({ label, value, setValue, t
         value={capacity}
         onChangeText={setCapacity}
         keyboardType="numeric"
-        color="#222"
       />
 
       <Text style={styles.label}>Start Date - End Date</Text>
@@ -471,7 +479,6 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({ label, value, setValue, t
             value={joiningFee}
             onChangeText={setJoiningFee}
             keyboardType="numeric"
-            color="#222"
           />
         </View>
       )}
