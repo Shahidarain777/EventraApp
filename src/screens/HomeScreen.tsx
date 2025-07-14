@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,12 @@ import {
   Image,
   SafeAreaView,
   StatusBar,
-  ActivityIndicator
+  ActivityIndicator,
+  TouchableWithoutFeedback,
+  Animated,
+  Modal,
+  TextInput,
+  Alert
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
@@ -16,7 +21,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { TabParamList } from '../types/navigations';
-import { fetchEvents, likeEvent, Event } from '../redux/slices/eventSlice';
+import { fetchEvents, likeEvent, addComment, Event } from '../redux/slices/eventSlice';
 
 const HomeScreen = () => {
   const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
@@ -25,6 +30,22 @@ const HomeScreen = () => {
   const events = useSelector((state: RootState) => state.events.events);
   const loading = useSelector((state: RootState) => state.events.loading);
   const error = useSelector((state: RootState) => state.events.error);
+  
+  // State to track which event descriptions are expanded
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
+  
+  // State for double tap functionality - track last tap time per event
+  const [lastTapTimes, setLastTapTimes] = useState<{[key: string]: number}>({});
+  const DOUBLE_TAP_DELAY = 300; // milliseconds
+  
+  // State for heart animation
+  const [showHeartAnimation, setShowHeartAnimation] = useState<{[key: string]: boolean}>({});
+  const [heartAnimations, setHeartAnimations] = useState<{[key: string]: Animated.Value}>({});
+  
+  // State for comment modal
+  const [commentModalVisible, setCommentModalVisible] = useState(false);
+  const [selectedEventId, setSelectedEventId] = useState<string>('');
+  const [commentText, setCommentText] = useState('');
 
   useEffect(() => {
     // Fetch events when component mounts
@@ -34,6 +55,98 @@ const HomeScreen = () => {
   const handleLikeEvent = (eventId: string) => {
     // Dispatch the like action
     dispatch(likeEvent(eventId));
+  };
+
+  const handleDoubleTap = (eventId: string) => {
+    const now = Date.now();
+    const lastTap = lastTapTimes[eventId];
+    
+    if (lastTap && (now - lastTap) < DOUBLE_TAP_DELAY) {
+      // Double tap detected
+      handleLikeEvent(eventId);
+      
+      // Trigger heart animation
+      if (!heartAnimations[eventId]) {
+        setHeartAnimations(prev => ({
+          ...prev,
+          [eventId]: new Animated.Value(0)
+        }));
+      }
+      
+      setShowHeartAnimation(prev => ({
+        ...prev,
+        [eventId]: true
+      }));
+      
+      // Animate the heart
+      const animation = heartAnimations[eventId] || new Animated.Value(0);
+      animation.setValue(0);
+      
+      Animated.sequence([
+        Animated.timing(animation, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(animation, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        })
+      ]).start(() => {
+        setShowHeartAnimation(prev => ({
+          ...prev,
+          [eventId]: false
+        }));
+      });
+    }
+    
+    setLastTapTimes(prev => ({
+      ...prev,
+      [eventId]: now
+    }));
+  };
+
+  const toggleDescription = (eventId: string) => {
+    setExpandedDescriptions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(eventId)) {
+        newSet.delete(eventId);
+      } else {
+        newSet.add(eventId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleCommentPress = (eventId: string) => {
+    setSelectedEventId(eventId);
+    setCommentModalVisible(true);
+  };
+
+  const handleCommentSubmit = async () => {
+    if (!commentText.trim()) {
+      Alert.alert('Error', 'Please enter a comment');
+      return;
+    }
+
+    try {
+      await dispatch(addComment({
+        eventId: selectedEventId,
+        comment: commentText.trim()
+      })).unwrap();
+      
+      setCommentText('');
+      setCommentModalVisible(false);
+      Alert.alert('Success', 'Comment added successfully!');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to add comment. Please try again.');
+    }
+  };
+
+  const handleCommentCancel = () => {
+    setCommentText('');
+    setCommentModalVisible(false);
   };
 
   const renderImageGrid = (images: string[]) => {
@@ -139,44 +252,83 @@ const HomeScreen = () => {
   };
 
   const renderEventCard = ({ item }: { item: Event }) => (
-    <View style={styles.eventCard}>
-      <View style={styles.eventHeader}>
-        <Text style={styles.organizerName}>{item.organizer}</Text>
-        <View style={styles.categoryPrice}>
-          <Text style={styles.categoryText}>{item.category}</Text>
-          <Text style={styles.priceText}> · {item.price}</Text>
+    <TouchableWithoutFeedback onPress={() => handleDoubleTap(item.id)}>
+      <View style={styles.eventCard}>
+        <View style={styles.eventHeader}>
+          <Text style={styles.organizerName}>{item.organizer}</Text>
+          <View style={styles.categoryPrice}>
+            <Text style={styles.categoryText}>{item.category}</Text>
+            <Text style={styles.priceText}> · {item.price}</Text>
+          </View>
         </View>
-      </View>
-      {renderImageGrid(item.images || [item.image])}
-      <View style={styles.eventContent}>
-        <Text style={styles.eventTitle} numberOfLines={1} ellipsizeMode="tail">{item.title}</Text>
-        <Text style={styles.eventDescription} numberOfLines={2}>
-          {item.description} <Text style={styles.seeMoreText}>see more</Text>
-        </Text>
-        <View style={styles.eventActions}>
-          <View style={styles.socialActions}>
-            <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={() => handleLikeEvent(item.id)}
+        <View style={styles.imageContainer}>
+          {renderImageGrid(item.images || [item.image])}
+          {showHeartAnimation[item.id] && heartAnimations[item.id] && (
+            <Animated.View
+              style={[
+                styles.heartAnimationContainer,
+                {
+                  opacity: heartAnimations[item.id],
+                  transform: [
+                    {
+                      scale: heartAnimations[item.id].interpolate({
+                        inputRange: [0, 0.5, 1],
+                        outputRange: [0.5, 1.2, 0.8],
+                      }),
+                    },
+                  ],
+                },
+              ]}
             >
-              <Icon 
-                name={item.isLiked ? "heart" : "heart-outline"} 
-                size={22} 
-                color={item.isLiked ? "#FF4A6D" : "#666"} 
-              />
-              <Text style={styles.actionCount}>{item.likes}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
-              <Icon name="comment-text-outline" size={22} color="#666" />
-              <Text style={styles.actionCount}>{item.comments}</Text>
+              <Icon name="heart" size={80} color="#FF4A6D" />
+            </Animated.View>
+          )}
+        </View>
+        <View style={styles.eventContent}>
+          <Text style={styles.eventTitle} numberOfLines={1} ellipsizeMode="tail">{item.title}</Text>
+          <View>
+            <Text 
+              style={styles.eventDescription} 
+              numberOfLines={expandedDescriptions.has(item.id) ? undefined : 2}
+            >
+              {item.description}
+            </Text>
+            {item.description && item.description.length > 100 && (
+              <TouchableOpacity onPress={() => toggleDescription(item.id)}>
+                <Text style={styles.seeMoreText}>
+                  {expandedDescriptions.has(item.id) ? 'see less' : 'see more'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          <View style={styles.eventActions}>
+            <View style={styles.socialActions}>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => handleLikeEvent(item.id)}
+              >
+                <Icon 
+                  name={item.isLiked ? "heart" : "heart-outline"} 
+                  size={22} 
+                  color={item.isLiked ? "#FF4A6D" : "#666"} 
+                />
+                <Text style={styles.actionCount}>{item.likes}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => handleCommentPress(item.id)}
+              >
+                <Icon name="comment-text-outline" size={22} color="#666" />
+                <Text style={styles.actionCount}>{item.comments}</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={styles.joinButton}>
+              <Text style={styles.joinButtonText}>Join</Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.joinButton}>
-            <Text style={styles.joinButtonText}>Join</Text>
-          </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 
   const handleRefresh = () => {
@@ -228,6 +380,51 @@ const HomeScreen = () => {
           />
         </>
       )}
+
+      {/* Comment Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={commentModalVisible}
+        onRequestClose={handleCommentCancel}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.commentModalContainer}>
+            <View style={styles.commentModalHeader}>
+              <Text style={styles.commentModalTitle}>Add Comment</Text>
+              <TouchableOpacity onPress={handleCommentCancel}>
+                <Icon name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            
+            <TextInput
+              style={styles.commentInput}
+              placeholder="Write your comment here..."
+              value={commentText}
+              onChangeText={setCommentText}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+              autoFocus
+            />
+            
+            <View style={styles.commentModalActions}>
+              <TouchableOpacity 
+                style={styles.cancelButton} 
+                onPress={handleCommentCancel}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.submitButton} 
+                onPress={handleCommentSubmit}
+              >
+                <Text style={styles.submitButtonText}>Post Comment</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
     </SafeAreaView>
   );
@@ -330,7 +527,19 @@ const styles = StyleSheet.create({
     height: 250,
     marginTop: 0,
     marginBottom: 4,
-    backgroundColor: '#f0f0f0', // Placeholder color before image loads
+    backgroundColor: '#f0f0f0',
+  },
+  imageContainer: {
+    position: 'relative',
+  },
+  heartAnimationContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -40,
+    marginLeft: -40,
+    zIndex: 10,
+    pointerEvents: 'none',
   },
   imageGrid: {
     flexDirection: 'row',
@@ -384,11 +593,14 @@ const styles = StyleSheet.create({
   eventDescription: {
     fontSize: 14,
     color: '#444',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   seeMoreText: {
     color: '#007BFF',
     fontSize: 14,
+    fontWeight: '500',
+    marginTop: 4,
+    marginBottom: 4,
   },
   eventActions: {
     flexDirection: 'row',
@@ -451,5 +663,74 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#777',
     marginBottom: 10,
-  }
+  },
+  // Comment Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  commentModalContainer: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    maxHeight: '70%',
+  },
+  commentModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  commentModalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#111',
+  },
+  commentInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 20,
+    minHeight: 100,
+    fontSize: 16,
+    backgroundColor: '#ffffffff',
+    color: '#000',
+  },
+  commentModalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginRight: 10,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#666',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  submitButton: {
+    flex: 1,
+    backgroundColor: '#007BFF',
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginLeft: 10,
+    alignItems: 'center',
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });

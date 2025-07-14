@@ -246,6 +246,23 @@ export const createEvent = createAsyncThunk<
   }
 });
 
+export const addComment = createAsyncThunk<
+  { eventId: string; comment: string },
+  { eventId: string; comment: string },
+  { rejectValue: string }
+>('events/addComment', async ({ eventId, comment }, { rejectWithValue }) => {
+  try {
+    const response = await api.post('/event_comments', {
+      eventId,
+      comment
+    });
+    return { eventId, comment };
+  } catch (error: any) {
+    const message = error.response?.data?.message || error.message || 'Failed to add comment';
+    return rejectWithValue(message);
+  }
+});
+
 // 🔥 Slice
 const eventSlice = createSlice({
   name: 'events',
@@ -321,6 +338,23 @@ const eventSlice = createSlice({
       })
       .addCase(createEvent.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.payload as string;
+      })
+
+      .addCase(addComment.pending, (state) => {
+        // Optional: Add loading state for comments if needed
+      })
+      .addCase(addComment.fulfilled, (state, action) => {
+        const { eventId } = action.payload;
+        const event = state.events.find(event => event.id === eventId);
+        if (event) {
+          event.comments += 1;
+        }
+        if (state.event && state.event.id === eventId) {
+          state.event.comments += 1;
+        }
+      })
+      .addCase(addComment.rejected, (state, action) => {
         state.error = action.payload as string;
       });
   },
