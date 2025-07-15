@@ -12,7 +12,10 @@ const RootNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {token ? (
-        <Stack.Screen name="Main" component={TabNavigator} />
+        <>
+          <Stack.Screen name="Main" component={TabNavigator} />
+          <Stack.Screen name="EventDetailScreen" component={require('../screens/EventDetailScreen').default} />
+        </>
       ) : (
         <Stack.Screen name="Auth" component={AuthNavigator} />
       )}

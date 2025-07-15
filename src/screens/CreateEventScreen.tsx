@@ -17,6 +17,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../redux/store';
 import { createEvent } from '../redux/slices/eventSlice';
 import { launchImageLibrary } from 'react-native-image-picker';
+import UserSearchBox from '../components/UserSearchBox';
+import DatePickerRow from '../components/DatePickerRow';
+import ImageUploadCard from '../components/ImageUploadCard';
 // import AddressPicker from '../components/AddressPicker';
 // @ts-ignore
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -33,7 +36,7 @@ type User = { id: string; username: string };
 
 
 
-const categoriesPreset = [
+export const categoriesPreset = [
   'Technology',
   'Health & Wellness',
   'Education',
@@ -126,53 +129,6 @@ const CreateEventScreen = () => {
     });
   };
 
-type UserSearchBoxProps = {
-  label: string;
-  value: string;
-  setValue: (val: string) => void;
-  type: 'subLeader' | 'financeManager';
-};
-// Modern UserSearchBox with icon and fixed input logic
-const UserSearchBox: React.FC<UserSearchBoxProps> = ({ label, value, setValue, type }) => (
-  <View style={styles.userSearchBox}>
-    <Text style={styles.label}>{label} <Text style={{color:'#888',fontSize:13}}>(optional)</Text></Text>
-    <View style={styles.userSearchInputRow}>
-      <TextInput
-        style={styles.userSearchInput}
-        placeholder={label}
-        placeholderTextColor="#888"
-        value={type === userSearchType ? userQuery : value}
-        onFocus={() => {
-          setUserSearchType(type);
-          setShowUserDropdown(true);
-          setUserQuery(value); // Start with current value
-        }}
-        onChangeText={text => {
-          setUserQuery(text);
-          setShowUserDropdown(true);
-          setUserSearchType(type);
-          setValue(text); // Always update value so typing works
-        }}
-      />
-      <Ionicons name="search" size={22} style={styles.userSearchIcon} />
-    </View>
-    {showUserDropdown && userSearchType === type && userResults.length > 0 && (
-      <View style={styles.userDropdown}>
-        <ScrollView style={{ maxHeight: 120 }}>
-          {userResults.map((user) => (
-            <TouchableOpacity key={user.id} style={styles.userDropdownItem} onPress={() => {
-              setValue(user.username);
-              setShowUserDropdown(false);
-              setUserQuery(user.username);
-            }}>
-              <Text style={styles.userDropdownText}>{user.username}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-    )}
-  </View>
-);
   const handleDateChange = (
     type: 'start' | 'end',
     _event: unknown,
@@ -257,26 +213,13 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({ label, value, setValue, t
 
       {/* Card style for event images upload at top */}
       <View style={styles.imageCard}>
-        <View style={styles.imagePreviewRow}>
-          {images.map((img, idx) => (
-            <View key={idx} style={styles.imagePreviewBox}>
-              <Image source={{ uri: img }} style={styles.eventImagePreview} />
-              <TouchableOpacity
-                style={styles.removeImageBtn}
-                onPress={() => {
-                  setImages(prev => prev.filter((_, i) => i !== idx));
-                }}
-              >
-                <Ionicons name="close-circle" size={22} color="#d9534f" />
-              </TouchableOpacity>
-            </View>
-          ))}
-        </View>
-        <TouchableOpacity style={styles.addImageBtnCenter} onPress={handleImagePick}>
-          <Ionicons name="add" size={32} color="#007BFF" />
-        </TouchableOpacity>
+        <Text style={styles.eventImagesLabel}>Event Images</Text>
+        <ImageUploadCard
+          images={images}
+          onAdd={handleImagePick}
+          onRemove={idx => setImages(prev => prev.filter((_, i) => i !== idx))}
+        />
       </View>
-      {/* <Text style={styles.label}>Event Images</Text> */}
 
       <Text style={styles.label}>Event Title</Text>
       <TextInput
@@ -339,8 +282,34 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({ label, value, setValue, t
 
       {/* User search boxes for Sub Leader and Finance Manager */}
       <View>
-        <UserSearchBox label="Sub Leader" value={subLeader} setValue={setSubLeader} type="subLeader" />
-        <UserSearchBox label="Finance Manager" value={financeManager} setValue={setFinanceManager} type="financeManager" />
+        <UserSearchBox
+          label="Sub Leader"
+          value={subLeader}
+          setValue={setSubLeader}
+          type="subLeader"
+          userSearchType={userSearchType}
+          setUserSearchType={setUserSearchType}
+          showUserDropdown={showUserDropdown}
+          setShowUserDropdown={setShowUserDropdown}
+          userQuery={userQuery}
+          setUserQuery={setUserQuery}
+          userResults={userResults}
+          styles={styles}
+        />
+        <UserSearchBox
+          label="Finance Manager"
+          value={financeManager}
+          setValue={setFinanceManager}
+          type="financeManager"
+          userSearchType={userSearchType}
+          setUserSearchType={setUserSearchType}
+          showUserDropdown={showUserDropdown}
+          setShowUserDropdown={setShowUserDropdown}
+          userQuery={userQuery}
+          setUserQuery={setUserQuery}
+          userResults={userResults}
+          styles={styles}
+        />
       </View>
 
       <Text style={styles.label}>Event Location</Text>
@@ -431,32 +400,18 @@ const UserSearchBox: React.FC<UserSearchBoxProps> = ({ label, value, setValue, t
         keyboardType="numeric"
       />
 
-      <Text style={styles.label}>Start Date - End Date</Text>
-      <View style={styles.dateRow}>
-        <TouchableOpacity style={styles.dateBtn} onPress={() => setShowStartPicker(true)}>
-          <Text style={styles.dateBtnText}>{date.start.toLocaleDateString()}</Text>
-        </TouchableOpacity>
-        <Text style={{ marginHorizontal: 8 }}>-</Text>
-        <TouchableOpacity style={styles.dateBtn} onPress={() => setShowEndPicker(true)}>
-          <Text style={styles.dateBtnText}>{date.end.toLocaleDateString()}</Text>
-        </TouchableOpacity>
+      <View style={{ width: '100%', marginBottom: 10 }}>
+        <Text style={styles.label}>Start Date - End Date</Text>
+        <DatePickerRow
+          date={date}
+          setShowStartPicker={setShowStartPicker}
+          setShowEndPicker={setShowEndPicker}
+          showStartPicker={showStartPicker}
+          showEndPicker={showEndPicker}
+          handleDateChange={handleDateChange}
+          styles={styles}
+        />
       </View>
-      {showStartPicker && (
-        <DateTimePicker
-          value={date.start}
-          mode="date"
-          display="default"
-          onChange={(e: any, d?: Date) => handleDateChange('start', e, d)}
-        />
-      )}
-      {showEndPicker && (
-        <DateTimePicker
-          value={date.end}
-          mode="date"
-          display="default"
-          onChange={(e: any, d?: Date) => handleDateChange('end', e, d)}
-        />
-      )}
 
       <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
         <Text style={[styles.label, { flex: 1 }]}>Is Paid?</Text>
@@ -499,12 +454,24 @@ export default CreateEventScreen;
 const styles = StyleSheet.create({
   imageCard: {
     width: '100%',
-    backgroundColor: '#f0f0f0', // capsule style like categories
+    backgroundColor: '#f7f7f7', // match event title input box color
     borderRadius: 20,
     padding: 24,
     marginBottom: 18,
     alignItems: 'center',
     borderWidth: 0,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  eventImagesLabel: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2788ff',
+    marginBottom: 10,
+    alignSelf: 'center',
+    letterSpacing: 0.5,
   },
   imagePreviewRow: {
     flexDirection: 'row',

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
+ import {
   View,
   Text,
   StyleSheet,
@@ -19,12 +19,19 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
+import type { CompositeNavigationProp } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import type { TabParamList } from '../types/navigations';
+import type { RootStackParamList, TabParamList } from '../types/navigations';
 import { fetchEvents, likeEvent, addComment, Event } from '../redux/slices/eventSlice';
 
 const HomeScreen = () => {
-  const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
+  const navigation = useNavigation<
+    CompositeNavigationProp<
+      BottomTabNavigationProp<TabParamList, 'Home'>,
+      StackNavigationProp<RootStackParamList>
+    >
+  >();
   const dispatch = useDispatch<AppDispatch>();
   const user = useSelector((state: RootState) => state.auth.user);
   const events = useSelector((state: RootState) => state.events.events);
@@ -322,7 +329,10 @@ const HomeScreen = () => {
                 <Text style={styles.actionCount}>{item.comments}</Text>
               </TouchableOpacity>
             </View>
-            <TouchableOpacity style={styles.joinButton}>
+            <TouchableOpacity 
+              style={styles.joinButton}
+              onPress={() => navigation.navigate('EventDetailScreen', { event: item })}
+            >
               <Text style={styles.joinButtonText}>Join</Text>
             </TouchableOpacity>
           </View>
@@ -340,7 +350,7 @@ const HomeScreen = () => {
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
       <View style={styles.header}>
         <Text style={styles.homeText}>Home</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('CreateEvent')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Main', { screen: 'CreateEvent' })}>
           <Text style={styles.createEventText}>Create Event</Text>
         </TouchableOpacity>
       </View>

@@ -1,6 +1,8 @@
+import type { Event } from '../redux/slices/eventSlice';
 export type RootStackParamList = {
   Auth: undefined;
-  Main: undefined; // ✅ Main is your TabNavigator
+  Main: { screen?: string } | undefined; // Allow nested tab navigation
+  EventDetailScreen: { event: Event };
 };
 
 
