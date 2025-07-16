@@ -2,19 +2,19 @@ import React from 'react';
 import { Text } from 'react-native';
 import { EventType } from './EventCard';
 
-interface EventStatusProps {
+interface DueDateProps {
   event: EventType;
   styles: any;
 }
 
-const EventStatus: React.FC<EventStatusProps> = ({ event, styles }) => {
+const DueDate: React.FC<DueDateProps> = ({ event, styles }) => {
   // Support both flat and nested date fields
   const hasFlatDates = event.date && event.endDate;
   const hasNestedDates = event.dateTime && event.dateTime.start && event.dateTime.end;
   if (!hasFlatDates && !hasNestedDates) {
     return (
       <>
-        <Text style={styles.sectionTitle}>Status</Text>
+        <Text style={styles.sectionTitle}>Due Date</Text>
         <Text style={styles.detailText}>No date set</Text>
       </>
     );
@@ -30,14 +30,14 @@ const EventStatus: React.FC<EventStatusProps> = ({ event, styles }) => {
     if (diffDays > 0) {
       return (
         <>
-          <Text style={styles.sectionTitle}>Days Left</Text>
+          <Text style={styles.sectionTitle}>Due Date</Text>
           <Text style={styles.detailText}>{diffDays} day{diffDays > 1 ? 's' : ''} left</Text>
         </>
       );
     } else {
       return (
         <>
-          <Text style={styles.sectionTitle}>Hours Left</Text>
+          <Text style={styles.sectionTitle}>Due Date</Text>
           <Text style={styles.detailText}>{diffHours} hour{diffHours !== 1 ? 's' : ''} left</Text>
         </>
       );
@@ -46,7 +46,7 @@ const EventStatus: React.FC<EventStatusProps> = ({ event, styles }) => {
     // Event in progress
     return (
       <>
-        <Text style={styles.sectionTitle}>Status</Text>
+        <Text style={styles.sectionTitle}>Due Date</Text>
         <Text style={styles.detailText}>Event in progress</Text>
       </>
     );
@@ -54,11 +54,11 @@ const EventStatus: React.FC<EventStatusProps> = ({ event, styles }) => {
     // Event ended
     return (
       <>
-        <Text style={styles.sectionTitle}>Status</Text>
+        <Text style={styles.sectionTitle}>Due Date</Text>
         <Text style={styles.detailText}>Event ended</Text>
       </>
     );
   }
 };
 
-export default EventStatus;
+export default DueDate;

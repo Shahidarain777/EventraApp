@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import EventCard, { EventType } from '../components/EventCard';
-import EventStatus from '../components/EventStatus';
 import { RouteProp } from '@react-navigation/native';
+import DueDate from '../components/DueDate';
 
 type EventDetailScreenProps = {
   route: RouteProp<{ params: { event: EventType } }, 'params'>;
@@ -24,7 +24,7 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
         <Text style={styles.detailText}>{event.category || 'N/A'}</Text>
 
         {/* Days/Hours left/status logic using reusable component */}
-        <EventStatus event={event} styles={styles} />
+        <DueDate event={event} styles={styles} />
       </View>
     </ScrollView>
   );
