@@ -146,6 +146,14 @@ export const fetchEvents = createAsyncThunk<
         else if (event.hostDetails?.name) organizerName = event.hostDetails.name;
         else if (event.createdBy?.name) organizerName = event.createdBy.name;
 
+        // Always provide a dateTime object
+        const dateTime = event.dateTime && event.dateTime.start && event.dateTime.end
+          ? event.dateTime
+          : {
+              start: event.date || undefined,
+              end: event.endDate || undefined,
+            };
+
         return {
           id: event._id || event.id,
           title: event.title,
@@ -163,6 +171,8 @@ export const fetchEvents = createAsyncThunk<
           date: event.dateTime?.start
             ? new Date(event.dateTime.start).toLocaleDateString()
             : 'TBD',
+          endDate: event.dateTime?.end || event.endDate,
+          dateTime,
           likes: event.likes || 0,
           comments: event.comments || 0,
           category: event.categoryInfo?.name || 'Event',
@@ -186,7 +196,19 @@ export const fetchEventById = createAsyncThunk<
 >('events/fetchEventById', async (eventId, { rejectWithValue }) => {
   try {
     const response = await api.get(`/events/${eventId}`);
-    return response.data;
+    const event = response.data;
+    // Always provide a dateTime object
+    const dateTime = event.dateTime && event.dateTime.start && event.dateTime.end
+      ? event.dateTime
+      : {
+          start: event.date || undefined,
+          end: event.endDate || undefined,
+        };
+    return {
+      ...event,
+      endDate: event.dateTime?.end || event.endDate,
+      dateTime,
+    };
   } catch (error: any) {
     const message = error.response?.data?.message || error.message || 'Failed to fetch event';
     return rejectWithValue(message);

@@ -148,8 +148,6 @@ const CreateEventScreen = () => {
     if (!title.trim()) return setError('Event title is required');
     if (!category.trim() && !otherCategory.trim()) return setError('Category is required');
     if (!description.trim()) return setError('Description is required');
-    // Address fields are optional for now
-    // Latitude and Longitude are optional for now (testing)
     if (!date.start || !date.end) return setError('Start and End date required');
     if (isPaid && !joiningFee) return setError('Joining fee required for paid event');
     setUploading(true);
@@ -160,7 +158,6 @@ const CreateEventScreen = () => {
     formData.append('description', description);
     formData.append('price', isPaid ? joiningFee : 'Free');
     formData.append('organizer', ''); // Set organizer if needed
-    formData.append('date', date.start.toISOString());
     formData.append('category', showOtherCategory ? otherCategory : category);
     formData.append('isLiked', 'false');
     formData.append('country', country);
@@ -171,9 +168,16 @@ const CreateEventScreen = () => {
     formData.append('visibility', visibility);
     formData.append('approvalRequired', approvalRequired);
     formData.append('capacity', capacity);
-    formData.append('endDate', date.end.toISOString());
     formData.append('subLeader', subLeader);
     formData.append('financeManager', financeManager);
+    // Add dateTime as a nested object (stringified)
+    formData.append('dateTime', JSON.stringify({
+      start: date.start.toISOString(),
+      end: date.end.toISOString(),
+    }));
+    // For backward compatibility, also include flat fields
+    formData.append('date', date.start.toISOString());
+    formData.append('endDate', date.end.toISOString());
     if (images[0]) {
       formData.append('image', {
         uri: images[0],
@@ -191,7 +195,25 @@ const CreateEventScreen = () => {
       });
       setUploading(false);
       if (res.status === 201 || res.status === 200) {
-        navigation.goBack();
+        // If you want to immediately show the event detail, pass the event object with dateTime
+        if (res.data && res.data._id) {
+          // Use navigation.navigate with the correct params object for type safety
+          // @ts-ignore
+          navigation.navigate({
+            name: 'EventDetailScreen',
+            params: {
+              event: {
+                ...res.data,
+                dateTime: {
+                  start: date.start.toISOString(),
+                  end: date.end.toISOString(),
+                },
+              },
+            },
+          });
+        } else {
+          navigation.goBack();
+        }
       } else {
         setError('Failed to create event');
       }
@@ -199,7 +221,6 @@ const CreateEventScreen = () => {
       setUploading(false);
       setError(err.message || 'Failed to create event');
     }
-    
   };
  
   return (
