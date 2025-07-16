@@ -13,7 +13,8 @@ import React, { useEffect, useState } from 'react';
   Animated,
   Modal,
   TextInput,
-  Alert
+  Alert,
+  Share
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
@@ -154,6 +155,25 @@ const HomeScreen = () => {
   const handleCommentCancel = () => {
     setCommentText('');
     setCommentModalVisible(false);
+  };
+
+  const handleShareEvent = async (event: Event) => {
+    try {
+      const shareMessage = `🎉 Check out this event: ${event.title}\n\n📝 ${event.description}\n\n📅 Date: ${event.date}\n💰 Price: ${event.price}\n👨‍💼 Organizer: ${event.organizer}\n\nJoin us for an amazing experience!`;
+      
+      const result = await Share.share({
+        message: shareMessage,
+        title: event.title,
+      });
+
+      if (result.action === Share.sharedAction) {
+        // Successfully shared
+        console.log('Event shared successfully');
+      }
+    } catch (error) {
+      console.error('Error sharing event:', error);
+      Alert.alert('Error', 'Failed to share event. Please try again.');
+    }
   };
 
   const renderImageGrid = (images: string[]) => {
@@ -327,6 +347,12 @@ const HomeScreen = () => {
               >
                 <Icon name="comment-text-outline" size={22} color="#666" />
                 <Text style={styles.actionCount}>{item.comments}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => handleShareEvent(item)}
+              >
+                <Icon name="share-variant-outline" size={22} color="#666" />
               </TouchableOpacity>
             </View>
             <TouchableOpacity 

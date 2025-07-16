@@ -7,18 +7,27 @@ import {
   Image, 
   ScrollView, 
   SafeAreaView,
-  Alert 
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { logout } from '../redux/slices/authSlice';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { launchImageLibrary } from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
+import api from '../api/axios';
+
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
+  const navigation = useNavigation();
   const user = useAppSelector((state) => state.auth.user);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const token = useSelector((state: RootState) => state.auth.token);
 
   const handleLogout = () => {
     Alert.alert(
@@ -41,15 +50,97 @@ const ProfileScreen = () => {
   const handleProfileImagePick = () => {
     launchImageLibrary({
       mediaType: 'photo',
-      quality: 0.7,
+      quality: 0.3, // Reduced quality to 30% to stay under 1MB
+      maxWidth: 800, // Limit width to 800px
+      maxHeight: 800, // Limit height to 800px
       selectionLimit: 1,
-    }, (response) => {
+    }, async (response) => {
       if (response.didCancel || response.errorCode) return;
+      
       if (response.assets && response.assets[0]) {
-        setProfileImage(response.assets[0].uri || null);
+        const asset = response.assets[0];
+        
+        if (!asset.uri) {
+          Alert.alert('Error', 'Failed to get image URI');
+          return;
+        }
+
+                // Check file size (optional warning)
+        if (asset.fileSize && asset.fileSize > 20 * 1024 * 1024) { // 20MB
+          Alert.alert(
+            'Image too large', 
+            'Please select a smaller image or the app will compress it automatically.'
+          );
+        }
+
+        // Show uploading state
+        setUploadingImage(true);
+        
+        try {
+          // Create FormData for multipart upload
+          const formData = new FormData();
+          formData.append('image', {
+            uri: asset.uri,
+            type: asset.type || 'image/jpeg',
+            name: asset.fileName || `profile_${Date.now()}.jpg`,
+          } as any);
+
+          console.log('Uploading image:', {
+            size: asset.fileSize,
+            type: asset.type,
+            name: asset.fileName
+          });
+
+          // Upload image to your API
+          const response = await api.post('/api/upload-image', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              Authorization: `Bearer ${token}`,  // Use token here
+            },
+            timeout: 30000,
+          });
+
+          if (response.data?.image?.url) {
+            // Update profile image state with the uploaded image URL
+            const imageUrl = `${api.defaults.baseURL?.replace('/api', '')}${response.data.image.url}`;
+            setProfileImage(imageUrl);
+            
+            // Optional: Update user profile with the new image URL
+            //await updateUserProfileImage(response.data.image.url);
+            
+            Alert.alert('Success', 'Profile image updated successfully!');
+          } else {
+            throw new Error('Invalid response from server');
+          }
+        } catch (error: any) {
+          console.error('Image upload error:', error);
+          
+          let errorMessage = 'Failed to upload image. Please try again.';
+          if (error.response?.status === 413) {
+            errorMessage = 'Image is too large. Please select a smaller image.';
+          } else if (error.response?.status === 404) {
+            errorMessage = 'Upload service not found. Please contact support.';
+          } else if (error.code === 'ECONNABORTED') {
+            errorMessage = 'Upload timeout. Please check your connection and try again.';
+          }
+          
+          Alert.alert('Upload Failed', errorMessage);
+        } finally {
+          setUploadingImage(false);
+        }
       }
     });
   };
+
+  // const updateUserProfileImage = async (imageUrl: string) => {
+  //   try {
+  //     // You'll need to create this API endpoint to update user profile
+  //     await api.put('/profile/image', { profileImageUrl: imageUrl });
+  //   } catch (error) {
+  //     console.error('Failed to update user profile:', error);
+  //     // Don't show error to user as the image was uploaded successfully
+  //   }
+  // };
 
   const handlePasswordChange = () => {
     Alert.alert(
@@ -69,7 +160,11 @@ const ProfileScreen = () => {
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Profile Picture Section */}
         <View style={styles.profileImageSection}>
-          <TouchableOpacity style={styles.profileImageContainer} onPress={handleProfileImagePick}>
+          <TouchableOpacity 
+            style={styles.profileImageContainer} 
+            onPress={handleProfileImagePick}
+            disabled={uploadingImage}
+          >
             {profileImage ? (
               <Image source={{ uri: profileImage }} style={styles.profileImage} />
             ) : (
@@ -77,10 +172,22 @@ const ProfileScreen = () => {
                 <Icon name="account" size={60} color="#ccc" />
               </View>
             )}
+            
+            {/* Show loading indicator while uploading */}
+            {uploadingImage && (
+              <View style={styles.loadingOverlay}>
+                <ActivityIndicator size="large" color="#007BFF" />
+              </View>
+            )}
+            
             <View style={styles.editIconContainer}>
               <Icon name="camera" size={18} color="#fff" />
             </View>
           </TouchableOpacity>
+          
+          {uploadingImage && (
+            <Text style={styles.uploadingText}>Uploading...</Text>
+          )}
         </View>
 
         {/* User Information */}
@@ -132,19 +239,28 @@ const ProfileScreen = () => {
 
           {/* Additional Options */}
           <View style={styles.optionsSection}>
-            <TouchableOpacity style={styles.optionItem}>
+            <TouchableOpacity 
+              style={styles.optionItem}
+              onPress={() => navigation.navigate('SettingsScreen' as never)}
+            >
               <Ionicons name="settings-outline" size={20} color="#666" />
               <Text style={styles.optionText}>Settings</Text>
               <Ionicons name="chevron-forward" size={20} color="#ccc" />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.optionItem}>
+            <TouchableOpacity 
+              style={styles.optionItem}
+              onPress={() => navigation.navigate('HelpSupport' as never)}
+            >
               <Ionicons name="help-circle-outline" size={20} color="#666" />
               <Text style={styles.optionText}>Help & Support</Text>
               <Ionicons name="chevron-forward" size={20} color="#ccc" />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.optionItem}>
+            <TouchableOpacity 
+              style={styles.optionItem}
+              onPress={() => navigation.navigate('CommunityGuidelinesScreen' as never)}
+            >
               <Ionicons name="document-text-outline" size={20} color="#666" />
               <Text style={styles.optionText}>Terms & Privacy</Text>
               <Ionicons name="chevron-forward" size={20} color="#ccc" />
@@ -230,6 +346,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 3,
     borderColor: '#fff',
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  uploadingText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#007BFF',
+    fontWeight: '500',
   },
   userInfoSection: {
     paddingHorizontal: 16,
