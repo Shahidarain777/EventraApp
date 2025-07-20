@@ -4,6 +4,7 @@ import HomeScreen from '../screens/HomeScreen';
 import ProfileScreen from '../screens/ ProfileScreen';
 import CreateEventScreen from '../screens/CreateEventScreen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import SearchScreen from '../screens/SearchScreen';
 
 
 const Tab = createBottomTabNavigator();
@@ -47,6 +48,16 @@ const TabNavigator = () => {
       <Tab.Screen 
         name="Profile" 
         component={ProfileScreen} 
+      />
+      <Tab.Screen 
+        name="Search" 
+        component={SearchScreen} 
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="search-outline" color={color} size={size} />
+          ),
+          tabBarLabel: 'Search',
+        }}
       />
     </Tab.Navigator>
   );
