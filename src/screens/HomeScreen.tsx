@@ -376,7 +376,7 @@ const HomeScreen = () => {
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
       <View style={styles.header}>
         <Text style={styles.homeText}>Home</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Main', { screen: 'CreateEvent' })}>
+        <TouchableOpacity onPress={() => navigation.navigate('CreateEvent')}>
           <Text style={styles.createEventText}>Create Event</Text>
         </TouchableOpacity>
       </View>

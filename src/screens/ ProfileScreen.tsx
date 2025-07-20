@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -10,13 +10,14 @@ import {
   Alert,
   ActivityIndicator
 } from 'react-native';
-import { logout } from '../redux/slices/authSlice';
+import { logout, updateProfileImage, fetchUserProfileImage } from '../redux/slices/authSlice';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { launchImageLibrary } from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import api from '../api/axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
@@ -25,9 +26,55 @@ const ProfileScreen = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation();
   const user = useAppSelector((state) => state.auth.user);
-  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const token = useSelector((state: RootState) => state.auth.token);
+
+  // Load profile image from database and AsyncStorage on component mount
+  useEffect(() => {
+    loadProfileImage();
+  }, [user?.id]);
+
+  const loadProfileImage = async () => {
+    if (!user?.id) return;
+
+    try {
+      // First, try to fetch from database
+      const result = await dispatch(fetchUserProfileImage(user.id));
+      
+      if (result.payload) {
+        // Save to AsyncStorage for offline access
+        await saveProfileImageToStorage(result.payload as string);
+      } else {
+        // Fallback: load from AsyncStorage if database call fails
+        await loadProfileImageFromStorage();
+      }
+    } catch (error) {
+      console.log('Failed to fetch profile image from database, trying AsyncStorage:', error);
+      // Fallback: load from AsyncStorage
+      await loadProfileImageFromStorage();
+    }
+  };
+
+  const loadProfileImageFromStorage = async () => {
+    try {
+      const savedProfileImage = await AsyncStorage.getItem(`profileImage_${user?.id}`);
+      if (savedProfileImage && user && !user.profileImage) {
+        dispatch(updateProfileImage(savedProfileImage));
+      }
+    } catch (error) {
+      console.log('Failed to load profile image from storage:', error);
+    }
+  };
+
+  const saveProfileImageToStorage = async (imageUrl: string) => {
+    try {
+      if (user?.id) {
+        await AsyncStorage.setItem(`profileImage_${user.id}`, imageUrl);
+      }
+    } catch (error) {
+      console.log('Failed to save profile image to storage:', error);
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -41,7 +88,17 @@ const ProfileScreen = () => {
         {
           text: 'Logout',
           style: 'destructive',
-          onPress: () => dispatch(logout()),
+          onPress: async () => {
+            // Clear profile image from storage on logout
+            try {
+              if (user?.id) {
+                await AsyncStorage.removeItem(`profileImage_${user.id}`);
+              }
+            } catch (error) {
+              console.log('Failed to clear profile image from storage:', error);
+            }
+            dispatch(logout());
+          },
         },
       ]
     );
@@ -92,7 +149,7 @@ const ProfileScreen = () => {
           });
 
           // Upload image to your API
-          const response = await api.post('/api/upload-image', formData, {
+          const response = await api.post('/upload_image', formData, {
             headers: {
               'Content-Type': 'multipart/form-data',
               Authorization: `Bearer ${token}`,  // Use token here
@@ -103,10 +160,10 @@ const ProfileScreen = () => {
           if (response.data?.image?.url) {
             // Update profile image state with the uploaded image URL
             const imageUrl = `${api.defaults.baseURL?.replace('/api', '')}${response.data.image.url}`;
-            setProfileImage(imageUrl);
             
-            // Optional: Update user profile with the new image URL
-            //await updateUserProfileImage(response.data.image.url);
+            // Update Redux state and save to AsyncStorage
+            dispatch(updateProfileImage(imageUrl));
+            await saveProfileImageToStorage(imageUrl);
             
             Alert.alert('Success', 'Profile image updated successfully!');
           } else {
@@ -165,8 +222,8 @@ const ProfileScreen = () => {
             onPress={handleProfileImagePick}
             disabled={uploadingImage}
           >
-            {profileImage ? (
-              <Image source={{ uri: profileImage }} style={styles.profileImage} />
+            {user?.profileImage ? (
+              <Image source={{ uri: user.profileImage }} style={styles.profileImage} />
             ) : (
               <View style={styles.placeholderImage}>
                 <Icon name="account" size={60} color="#ccc" />

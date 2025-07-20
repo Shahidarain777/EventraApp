@@ -20,6 +20,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import UserSearchBox from '../components/UserSearchBox';
 import DatePickerRow from '../components/DatePickerRow';
 import ImageUploadCard from '../components/ImageUploadCard';
+import RNPickerSelect from 'react-native-picker-select';
 // import AddressPicker from '../components/AddressPicker';
 // @ts-ignore
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -92,8 +93,11 @@ const CreateEventScreen = () => {
   const [visibility, setVisibility] = useState('public');
   const [approvalRequired, setApprovalRequired] = useState('no');
   const [capacity, setCapacity] = useState('');
+  const [capacityStep, setCapacityStep] = useState(1);
   const [isPaid, setIsPaid] = useState(false);
   const [joiningFee, setJoiningFee] = useState('');
+  const [currency, setCurrency] = useState('PKR');
+  const [amountStep, setAmountStep] = useState(1);
   const [date, setDate] = useState({ start: new Date(), end: new Date() });
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
@@ -251,7 +255,7 @@ const CreateEventScreen = () => {
         onChangeText={setTitle}
       />
 
-      <Text style={styles.label}>Category</Text>
+      {/* <Text style={styles.label}>Category</Text>
       <TextInput
         style={styles.input}
         placeholder="Category"
@@ -288,7 +292,48 @@ const CreateEventScreen = () => {
         >
           <Text style={styles.categoryChipText}>Other</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
+<Text style={styles.label}>Category</Text>
+<RNPickerSelect
+  placeholder={{
+    label: 'Select a category...',
+    value: null,
+    color: '#9EA0A4',
+  }}
+  style={{
+    inputIOS: styles.input, // iOS styling
+    inputAndroid: styles.input, // Android styling
+    placeholder: {
+      color: '#888',
+    },
+  }}
+  onValueChange={(value) => {
+    if (value === 'Other') {
+      setShowOtherCategory(true);
+      setCategory('');
+      setOtherCategory('');
+    } else {
+      setShowOtherCategory(false);
+      setCategory(value || '');
+    }
+  }}
+  value={showOtherCategory ? 'Other' : category}
+  items={[
+    ...categoriesPreset.map(cat => ({ label: cat, value: cat })),
+    { label: 'Other', value: 'Other' },
+  ]}
+/>
+
+{showOtherCategory && (
+  <TextInput
+    style={styles.input}
+    placeholder="Other Category"
+    placeholderTextColor="#888"
+    value={otherCategory}
+    onChangeText={setOtherCategory}
+  />
+)}
+
 
       <Text style={styles.label}>Description</Text>
       <TextInput
@@ -412,14 +457,36 @@ const CreateEventScreen = () => {
       </View>
 
       <Text style={styles.label}>Capacity</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Max attendees"
-        placeholderTextColor="#888"
-        value={capacity}
-        onChangeText={setCapacity}
-        keyboardType="numeric"
-      />
+      <View style={styles.feeInputRow}>
+        <TouchableOpacity
+          style={styles.stepBtn}
+          onPress={() => {
+            const val = Math.max(0, (parseInt(capacity) || 0) - capacityStep);
+            setCapacity(val.toString());
+          }}
+        >
+          <Text style={styles.stepBtnText}>-</Text>
+        </TouchableOpacity>
+        <TextInput
+          style={[styles.feeInput, { textAlign: 'center', minWidth: 60 }]}
+          placeholder="Max attendees"
+          placeholderTextColor="#888"
+          value={capacity}
+          onChangeText={text => {
+            if (/^\d*$/.test(text)) setCapacity(text);
+          }}
+          keyboardType="numeric"
+        />
+        <TouchableOpacity
+          style={styles.stepBtn}
+          onPress={() => {
+            const val = (parseInt(capacity) || 0) + capacityStep;
+            setCapacity(val.toString());
+          }}
+        >
+          <Text style={styles.stepBtnText}>+</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={{ width: '100%', marginBottom: 10 }}>
         <Text style={styles.label}>Start Date - End Date</Text>
@@ -445,17 +512,42 @@ const CreateEventScreen = () => {
       </View>
       {isPaid && (
         <View style={styles.feeInputRow}>
-          <View style={styles.currencyBox}>
-            <Text style={styles.currencyText}>PKR</Text>
+          {/* Currency Dropdown */}
+          <TouchableOpacity style={styles.currencyBox} onPress={() => setCurrency(currency === 'PKR' ? 'USD' : 'PKR')}>
+            <Text style={styles.currencyText}>{currency}</Text>
+          </TouchableOpacity>
+          {/* Amount Input with Stepper Dropdown */}
+          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', minWidth: 0 }}>
+            <TouchableOpacity
+              style={styles.stepBtn}
+              onPress={() => {
+                const val = Math.max(0, (parseInt(joiningFee) || 0) - amountStep);
+                setJoiningFee(val.toString());
+              }}
+            >
+              <Text style={styles.stepBtnText}>-</Text>
+            </TouchableOpacity>
+            <TextInput
+              style={[styles.feeInput, { textAlign: 'center', minWidth: 60 }]}
+              placeholder="Amount"
+              placeholderTextColor="#888"
+              value={joiningFee}
+              onChangeText={text => {
+                // Only allow numbers
+                if (/^\d*$/.test(text)) setJoiningFee(text);
+              }}
+              keyboardType="numeric"
+            />
+            <TouchableOpacity
+              style={styles.stepBtn}
+              onPress={() => {
+                const val = (parseInt(joiningFee) || 0) + amountStep;
+                setJoiningFee(val.toString());
+              }}
+            >
+              <Text style={styles.stepBtnText}>+</Text>
+            </TouchableOpacity>
           </View>
-          <TextInput
-            style={styles.feeInput}
-            placeholder="Amount"
-            placeholderTextColor="#888"
-            value={joiningFee}
-            onChangeText={setJoiningFee}
-            keyboardType="numeric"
-          />
         </View>
       )}
 
@@ -557,7 +649,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    marginBottom: 0,
+    marginBottom: 14,
     borderWidth: 1,
     borderColor: '#e0e0e0',
     color: '#222',
@@ -565,18 +657,18 @@ const styles = StyleSheet.create({
   },
   textarea: {
     width: '100%',
-    backgroundColor: '#f7faff', // subtle blue for textarea
+    backgroundColor: '#f7f7f7', // match event title input box color
     borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    fontSize: 15,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
     marginBottom: 14,
     borderWidth: 1,
     borderColor: '#e0e0e0',
     minHeight: 70,
     maxHeight: 120,
     color: '#222',
-    fontWeight: '400',
+    fontWeight: '500',
   },
   categoryListRow: {
     flexDirection: 'row',
@@ -788,6 +880,43 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#222',
     fontWeight: '500',
+  },
+  stepBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#eaf0fa',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 4,
+    borderWidth: 1,
+    borderColor: '#dbe6fa',
+  },
+  stepBtnText: {
+    color: '#2788ff',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  stepDropdownBox: {
+    flexDirection: 'row',
+    marginLeft: 8,
+  },
+  stepDropdownItem: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: '#f7f7f7',
+    marginRight: 2,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  stepDropdownItemSelected: {
+    backgroundColor: '#2788ff',
+  },
+  stepDropdownText: {
+    color: '#222',
+    fontWeight: '500',
+    fontSize: 15,
   },
   error: {
     color: '#d9534f',

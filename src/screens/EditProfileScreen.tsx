@@ -17,13 +17,14 @@ import { useNavigation } from '@react-navigation/native';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { launchImageLibrary } from 'react-native-image-picker';
 import api from '../api/axios';
-// import { RootState } from '../redux/store';
+import { RootState } from '../redux/store';
 
 const EditProfileScreen = () => {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
-  const token = useAppSelector(state => state.auth.token);  // <-- Added token from redux here
+  // const token = useAppSelector(state => state.auth.token);  // <-- Added token from redux here
+  const token = useAppSelector((state: RootState) => state.auth.token);
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -71,7 +72,8 @@ const EditProfileScreen = () => {
             name: asset.fileName || `profile_${Date.now()}.jpg`,
           } as any);
 
-          const response = await api.post('/api/upload-image', formData, {
+          // Upload image to your API
+          const response = await api.post('/upload_image', formData, {
             headers: {
               'Content-Type': 'multipart/form-data',
               Authorization: `Bearer ${token}`,  // Use token here

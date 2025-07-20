@@ -118,7 +118,6 @@ const likeEventAPI = async (eventId: string | number) => {
     { headers: { Authorization: `Bearer ${token}` } }
   );
 };
-
 const getLikeCountAPI = async (eventId: string | number) => {
   const token = store.getState().auth.token;
   const res = await api.get(`/event_likes?eventId=${Number(eventId)}`, {
