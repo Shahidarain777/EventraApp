@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { KeyboardAvoidingView, Platform } from 'react-native';
 import {
   View,
   Text,
@@ -18,23 +19,23 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList, RootStackParamList } from '../types/navigations';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { loginUser } from '../redux/slices/authSlice';
-// import {Signup} from '../redux/slices/authSlice'; // Import Signup action if needed
+import CheckBox from '@react-native-community/checkbox';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 type RootNav = NativeStackNavigationProp<RootStackParamList, 'Auth'>;
-// Replace 'Login' with the actual screen name key from your AuthStackParamList
 type SignUpNav = NativeStackNavigationProp<AuthStackParamList, 'Signup'>;
-
 
 const LoginScreen = () => {
   const navigation = useNavigation<RootNav>();
-    const navi = useNavigation<SignUpNav>();
-  
+  const navi = useNavigation<SignUpNav>();
 
   const dispatch = useAppDispatch();
   const { loading, error } = useAppSelector((state) => state.auth);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [savePassword, setSavePassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -54,57 +55,83 @@ const LoginScreen = () => {
   return (
     <LinearGradient colors={["#4F8CFF", "#A6C8FF"]} style={styles.container}>
       <SafeAreaView style={{ flex: 1, width: '100%' }}>
-        <View style={styles.logoContainer}>
-          <Image source={require('../../assets/EventraLogo.png')} style={styles.logoRect} resizeMode="contain" />
-        </View>
-        <View style={styles.formSimpleCentered}>
-          <Text style={styles.loginTitle}>Login</Text>
-          <TextInput
-            placeholder="Email"
-            placeholderTextColor="#8fa1c7"
-            style={styles.inputSimpleCentered}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            value={email}
-            onChangeText={setEmail}
-            selectionColor="#4F8CFF"
-          />
-          <TextInput
-            placeholder="Password"
-            placeholderTextColor="#8fa1c7"
-            style={styles.inputSimpleCentered}
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-            selectionColor="#4F8CFF"
-          />
-          <View style={styles.loginOptionsRow}>
-            <TouchableOpacity>
-              <Text style={styles.loginOptionText}>Forgot password?</Text>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1, width: '100%' }}
+        >
+          <View style={styles.logoContainer}>
+            <Image source={require('../../assets/EventraLogo.png')} style={styles.logoRect} resizeMode="contain" />
+          </View>
+          <View style={styles.formSimpleCentered}>
+            <Text style={styles.loginTitle}>Login</Text>
+            <View style={styles.inputRow}>
+              <Ionicons name="mail-outline" size={22} color="#8fa1c7" style={styles.icon} />
+              <TextInput
+                style={styles.inputRowInput}
+                placeholder="Email"
+                placeholderTextColor="#8fa1c7"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                selectionColor="#4F8CFF"
+              />
+            </View>
+            <View style={styles.inputRow}>
+              <Ionicons name="lock-closed-outline" size={22} color="#8fa1c7" style={styles.icon} />
+              <TextInput
+                style={styles.inputRowInput}
+                placeholder="Password"
+                placeholderTextColor="#8fa1c7"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+                selectionColor="#4F8CFF"
+              />
+              <TouchableOpacity onPress={() => setShowPassword((prev) => !prev)}>
+                <Ionicons
+                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  size={22}
+                  color="#8fa1c7"
+                  style={styles.icon}
+                />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.loginOptionsRow}>
+              <TouchableOpacity onPress={() => navi.navigate('ForgotPasswordScreen')}>
+                <Text style={[styles.loginOptionText, { textDecorationLine: 'underline' }]}>Forgot password?</Text>
+              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <CheckBox
+                  value={savePassword}
+                  onValueChange={setSavePassword}
+                  tintColors={{ true: '#2772feff', false: '#C7D3EA' }}
+                  style={{ marginRight: -19, marginTop: -2 }}
+                />
+                <Text style={styles.loginOptionText}>Save password</Text>
+              </View>
+            </View>
+            {error && <Text style={styles.error}>{error}</Text>}
+            <TouchableOpacity style={styles.loginBtnSimple} onPress={handleLogin} disabled={loading}>
+              {loading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.loginBtnTextSimple}>Login</Text>
+              )}
             </TouchableOpacity>
-            <TouchableOpacity>
-              <Text style={styles.loginOptionText}>Save password</Text>
+            <TouchableOpacity style={styles.googleBtnSimple} onPress={() => Alert.alert('Google Login', 'Google login pressed')}>
+              <Image source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png' }} style={styles.googleIconSimple} />
+              <Text style={styles.googleBtnTextSimple}>Continue with Google</Text>
             </TouchableOpacity>
           </View>
-          {error && <Text style={styles.error}>{error}</Text>}
-          <TouchableOpacity style={styles.loginBtnSimple} onPress={handleLogin} disabled={loading}>
-            {loading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.loginBtnTextSimple}>Login</Text>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.googleBtnSimple} onPress={() => Alert.alert('Google Login', 'Google login pressed')}>
-            <Image source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png' }} style={styles.googleIconSimple} />
-            <Text style={styles.googleBtnTextSimple}>Continue with Google</Text>
-          </TouchableOpacity>
-        </View>
+          
+        </KeyboardAvoidingView>
         <View style={styles.signupContainer}>
-          <Text style={styles.signupText}>Don't have an account? </Text>
-          <Pressable onPress={() => navi.navigate('Signup')}>
-            <Text style={styles.signupLink}>Signup</Text>
-          </Pressable>
-        </View>
+            <Text style={styles.signupText}>Don't have an account? </Text>
+            <Pressable onPress={() => navi.navigate('Signup')}>
+              <Text style={styles.signupLink}>Signup</Text>
+            </Pressable>
+          </View>
       </SafeAreaView>
     </LinearGradient>
   );
@@ -123,11 +150,13 @@ const styles = StyleSheet.create({
   },
 
 
-    logoContainer: {
+  logoContainer: {
     width: '100%',
     alignItems: 'center',
-    marginTop: 100,
-    marginBottom: 14,
+    marginTop: 60,
+    marginBottom: 10,
+    minHeight: 80,
+    justifyContent: 'center',
   },
   logoRect: {
     width: 260,
@@ -142,10 +171,10 @@ const styles = StyleSheet.create({
   formSimpleCentered: {
     width: '90%',
     alignSelf: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     flex: 1,
-    marginTop: -200,//to near with logo.
+    marginTop: 0,
   },
   inputSimpleCentered: {
     width: '100%',
@@ -160,6 +189,33 @@ const styles = StyleSheet.create({
     borderColor: '#C7D3EA',
     fontWeight: '400',
     opacity: 0.95,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    backgroundColor: '#f7f7f7',
+    borderRadius: 10,
+    paddingVertical: -20,
+    paddingHorizontal: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    opacity: 0.95,
+  },
+  icon: {
+    marginLeft: 8,
+    marginRight: 8,
+  },
+  inputRowInput: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    color: '#1a1a1a',
+    fontSize: 18,
+    borderWidth: 0,
+    fontWeight: '400',
+    paddingVertical: 12,
+    paddingHorizontal: 4,
   },
   loginBtnSimple: {
     width: '100%',
@@ -190,7 +246,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
     opacity: 0.95,
-    textDecorationLine: 'underline',
+    //textDecorationLine: 'underline',
     marginLeft:16,
     marginRight:20,
   },

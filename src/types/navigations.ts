@@ -18,6 +18,7 @@ export type AuthStackParamList = {
   SplashTransition: undefined;
   Login: undefined;
   Signup: undefined;
+  ForgotPasswordScreen: undefined;
 };
 
 export type TabParamList = {

@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import { AuthStackParamList } from '../types/navigations';
 import IntroScreen from '../screens/IntroScreen';
 import SplashTransitionScreen from '../screens/SplashTransitionScreen';
@@ -16,6 +17,7 @@ const AuthNavigator = () => {
       <Stack.Screen name="SplashTransition" component={SplashTransitionScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />
+      <Stack.Screen name="ForgotPasswordScreen" component={ForgotPasswordScreen} />
     </Stack.Navigator>
   );
 };
