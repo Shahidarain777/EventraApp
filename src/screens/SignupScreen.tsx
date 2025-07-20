@@ -17,6 +17,7 @@ import api from '../api/axios';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const SignupScreen = () => {
   const navigation = useNavigation();
@@ -24,6 +25,7 @@ const SignupScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [bio, setBio] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [country, setCountry] = useState('');
@@ -81,40 +83,93 @@ const SignupScreen = () => {
                 <Image source={require('../../assets/EventraLogo.png')} style={styles.logoRect} resizeMode="contain" />
               </View>
               <Text style={styles.loginTitle}>Signup</Text>
-              <TextInput
+              {/* <TextInput
                 placeholder="Name"
                 placeholderTextColor="#8fa1c7"
                 style={styles.loginInput}
                 value={name}
                 onChangeText={setName}
-              />
-              <TextInput
-                placeholder="Email"
-                placeholderTextColor="#8fa1c7"
-                style={styles.loginInput}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                value={email}
-                onChangeText={setEmail}
-              />
-              <TextInput
+              /> */}
+
+              <View style={styles.inputRow}>
+                <Ionicons name="person-outline" size={22} color="#8fa1c7" style={styles.icon} />
+                <TextInput
+                  style={styles.inputRowInput}
+                  placeholder="Name"
+                  placeholderTextColor="#8fa1c7"
+                  value={name}
+                  onChangeText={setName}
+                  selectionColor="#4F8CFF"
+                />
+              </View>
+
+              <View style={styles.inputRow}>
+                <Ionicons name="mail-outline" size={22} color="#8fa1c7" style={styles.icon} />
+                <TextInput
+                  style={styles.inputRowInput}
+                  placeholder="Email"
+                  placeholderTextColor="#8fa1c7"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  selectionColor="#4F8CFF"
+                />
+              </View>
+              {/* <TextInput
                 placeholder="Password"
                 placeholderTextColor="#8fa1c7"
                 style={styles.loginInput}
                 secureTextEntry
                 value={password}
                 onChangeText={setPassword}
-              />
-              <TextInput
+              /> */}
+
+                <View style={styles.inputRow}>
+                <Ionicons name="lock-closed-outline" size={22} color="#8fa1c7" style={styles.icon} />
+                <TextInput
+                  style={styles.inputRowInput}
+                  placeholder="Password"
+                  placeholderTextColor="#8fa1c7"
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={setPassword}
+                  selectionColor="#4F8CFF"
+                />
+                <TouchableOpacity onPress={() => setShowPassword((prev) => !prev)}>
+                  <Ionicons
+                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={22}
+                    color="#8fa1c7"
+                    style={styles.icon}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {/* <TextInput
                 placeholder="Bio (optional)"
                 placeholderTextColor="#8fa1c7"
                 style={styles.loginInput}
                 value={bio}
                 onChangeText={setBio}
                 multiline
-                numberOfLines={3}
+                numberOfLines={1}
                 maxLength={120}
-              />
+              /> */}
+
+              <View style={styles.inputRow}>
+                <Ionicons name="description-outline" size={22} color="#8fa1c7" style={styles.icon} />
+                <TextInput
+                  style={styles.inputRowInput}
+                  placeholder="Bio (optional)"
+                  placeholderTextColor="#8fa1c7"
+                  value={bio}
+                  onChangeText={setBio}
+                  multiline
+                  numberOfLines={2}
+                  maxLength={120}
+                />
+              </View>
               <View style={styles.addressRowFlat}>
                 <View style={styles.addressCol}>
                   <AddressPicker
@@ -192,22 +247,34 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textDecorationLine: 'underline',
   },
-  // avatar: {
-  //   width: 90,
-  //   height: 90,
-  //   borderRadius: 45,
-  //   borderWidth: 2,
-  //   borderColor: '#EAF0FA',
-  //   marginBottom: 10,
-  //   alignSelf: 'center',
-  //   backgroundColor: '#f4f7fb',
-  //   justifyContent: 'center',
-  //   alignItems: 'center',
-  //   shadowColor: '#4F8CFF',
-  //   shadowOpacity: 0.08,
-  //   shadowRadius: 6,
-  //   elevation: 2,
-  // },
+
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    backgroundColor: '#f7f7f7',
+    borderRadius: 10,
+    paddingVertical: -20,
+    paddingHorizontal: 8,
+    marginBottom: -5,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    opacity: 0.95,
+  },
+  icon: {
+    marginLeft: 8,
+    marginRight: 8,
+  },
+  inputRowInput: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    color: '#1a1a1a',
+    fontSize: 18,
+    borderWidth: 0,
+    fontWeight: '400',
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+  },
   addressRowFlat: {
     width: '100%',
     flexDirection: 'row',
@@ -279,7 +346,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 15,
     alignItems: 'center',
-    marginTop: 18,
+    marginTop: 90,
     marginBottom: 10,
     elevation: 2,
   },
@@ -287,7 +354,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     marginBottom: 18,
-    marginTop: 2,
+    marginTop: 10,
     paddingBottom: 8,
   },
   loginLinkBottomText: {

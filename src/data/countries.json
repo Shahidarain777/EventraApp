@@ -1,43 +1,182 @@
 [
   {
-    "name": "Pakistan",
-    "states": [
-      {
-        "name": "Punjab",
-        "cities": ["Lahore", "Rawalpindi", "Faisalabad", "Multan"]
-      },
-      {
-        "name": "Sindh",
-        "cities": ["Karachi", "Hyderabad", "Sukkur", "Larkana"]
-      },
-      {
-        "name": "Khyber Pakhtunkhwa",
-        "cities": ["Peshawar", "Abbottabad", "Mardan", "Swat"]
-      },
-      {
-        "name": "Balochistan",
-        "cities": ["Quetta", "Gwadar", "Turbat", "Khuzdar"]
-      }
-    ]
-  },
+  "name": "Pakistan",
+  "states": [
+    {
+      "name": "Punjab",
+      "cities": [
+        "Lahore", "Faisalabad", "Rawalpindi", "Gujranwala", "Multan",
+        "Bahawalpur", "Sargodha", "Sialkot", "Sheikhupura", "Rahim Yar Khan",
+        "Jhang", "Dera Ghazi Khan", "Gujrat", "Sahiwal", "Wah Cantonment",
+        "Kasur", "Okara", "Chiniot", "Kamoke", "Hafizabad", "Sadiqabad",
+        "Burewala", "Khanewal", "Muzaffargarh", "Mandi Bahauddin", "Jhelum",
+        "Khanpur", "Pakpattan", "Daska", "Gojra", "Muridke", "Bahawalnagar",
+        "Samundri", "Jaranwala", "Chishtian", "Attock", "Vehari", "Kot Abdul Malik",
+        "Ferozewala", "Chakwal", "Kamalia", "Ahmedpur East", "Kot Addu",
+        "Wazirabad", "Layyah", "Leiah", "Lodhran", "Mailsi", "Malakwal",
+        "Mianwali", "Minchinabad", "Mirpur Batoro", "Murree", "Narowal",
+        "Phalia", "Pasrur", "Pind Dadan Khan", "Qadirpur Ran", "Rabwah",
+        "Raiwind", "Renala Khurd", "Rojhan", "Shakargarh", "Talagang",
+        "Toba Tek Singh", "Wazirabad", "Yazman", "Zafarwal"
+      ]
+    },
+    {
+      "name": "Sindh",
+      "cities": [
+        "Karachi",
+        "Hyderabad",
+        "Sukkur",
+        "Larkana",
+        "Mirpurkhas",
+        "Nawabshah",
+        "Khairpur",
+        "Thatta",
+        "Jacobabad",
+        "Shikarpur",
+        "Dadu",
+        "Badin",
+        "Umerkot",
+        "Ghotki",
+        "Tando Adam",
+        "Tando Allahyar",
+        "Tando Muhammad Khan",
+        "Kotri",
+        "Kot Laloo",
+        "Jamshoro",
+        "Matiari",
+        "Qambar Shahdadkot",
+        "Sehwan",
+        "Hala",
+        "Mehar",
+        "Kandhkot",
+        "Rohri",
+        "Ratodero",
+        "Nasirabad",
+        "Tharparkar (Mithi)",
+        "Sanghar",
+        "Shahdadpur",
+        "Kandiaro",
+        "Daharki",
+        "Pano Aqil",
+        "Kunri",
+        "Mirpur Mathelo",
+        "Chachro",
+        "Diplo",
+        "Tando Bago",
+        "Bulri Shah Karim",
+        "Hingorja"
+      ]
+    },
+    {
+      "name": "Khyber Pakhtunkhwa",
+      "cities": [
+        "Peshawar",
+        "Abbottabad",
+        "Mardan",
+        "Swat",
+        "Kohat",
+        "Dera Ismail Khan",
+        "Charsadda",
+        "Haripur",
+        "Nowshera",
+        "Bannu",
+        "Mansehra",
+        "Hangu",
+        "Chitral",
+        "Tank",
+        "Shangla",
+        "Karak",
+        "Battagram",
+        "Torghar",
+        "Lower Dir",
+        "Upper Dir",
+        "Malakand",
+        "Swabi",
+        "Buner",
+        "Lakki Marwat",
+        "Kohistan",
+        "Mingora",
+        "Parachinar",
+        "Kohat",
+        "Timergara",
+        "Balakot",
+        "Saidu Sharif",
+        "Charsadda",
+        "Dargai",
+        "Shabqadar",
+        "Garhi Dupatta",
+        "Batkhela",
+        "Bajaur",
+        "Kurram",
+        "Orakzai",
+        "North Waziristan",
+        "South Waziristan",
+        "Jamrud"
+      ]
+    },
+    {
+      "name": "Balochistan",
+      "cities": [
+        "Quetta",
+        "Gwadar",
+        "Turbat",
+        "Khuzdar",
+        "Zhob",
+        "Sibi",
+        "Lasbela",
+        "Dera Bugti",
+        "Panjgur",
+        "Kharan",
+        "Chaman",
+        "Loralai",
+        "Mastung",
+        "Awaran",
+        "Nushki",
+        "Kalat",
+        "Washuk",
+        "Kech",
+        "Jaffarabad",
+        "Barkhan",
+        "Kohlu",
+        "Sherani",
+        "Musakhel",
+        "Harnai",
+        "Duki",
+        "Bolan",
+        "Gawadar",
+        "Dalbandin",
+        "Chagai",
+        "Pishin",
+        "Killa Saifullah",
+        "Zhob",
+        "Ormara",
+        "Pasni",
+        "Naseerabad",
+        "Jhal Magsi",
+        "Dera Allah Yar",
+        "Sohbatpur"
+      ]
+    }
+  ]
+},
   {
     "name": "India",
     "states": [
       {
         "name": "Maharashtra",
-        "cities": ["Mumbai", "Pune", "Nagpur", "Nashik"]
+        "cities": ["Mumbai", "Pune", "Nagpur", "Nashik", "Aurangabad"]
       },
       {
         "name": "Punjab",
-        "cities": ["Amritsar", "Ludhiana", "Jalandhar", "Patiala"]
+        "cities": ["Amritsar", "Ludhiana", "Jalandhar", "Patiala", "Bathinda"]
       },
       {
         "name": "Uttar Pradesh",
-        "cities": ["Lucknow", "Kanpur", "Agra", "Varanasi"]
+        "cities": ["Lucknow", "Kanpur", "Agra", "Varanasi", "Noida"]
       },
       {
         "name": "West Bengal",
-        "cities": ["Kolkata", "Howrah", "Durgapur", "Siliguri"]
+        "cities": ["Kolkata", "Howrah", "Durgapur", "Siliguri", "Asansol"]
       }
     ]
   },
@@ -46,19 +185,61 @@
     "states": [
       {
         "name": "California",
-        "cities": ["Los Angeles", "San Francisco", "San Diego", "Sacramento"]
+        "cities": ["Los Angeles", "San Francisco", "San Diego", "Sacramento", "San Jose"]
       },
       {
         "name": "Texas",
-        "cities": ["Houston", "Dallas", "Austin", "San Antonio"]
+        "cities": ["Houston", "Dallas", "Austin", "San Antonio", "Fort Worth"]
       },
       {
         "name": "New York",
-        "cities": ["New York City", "Buffalo", "Rochester", "Albany"]
+        "cities": ["New York City", "Buffalo", "Rochester", "Albany", "Syracuse"]
       },
       {
         "name": "Florida",
-        "cities": ["Miami", "Orlando", "Tampa", "Jacksonville"]
+        "cities": ["Miami", "Orlando", "Tampa", "Jacksonville", "Tallahassee"]
+      }
+    ]
+  },
+  {
+    "name": "United Kingdom",
+    "states": [
+      {
+        "name": "England",
+        "cities": ["London", "Manchester", "Birmingham", "Liverpool", "Leeds"]
+      },
+      {
+        "name": "Scotland",
+        "cities": ["Edinburgh", "Glasgow", "Aberdeen", "Dundee", "Inverness"]
+      },
+      {
+        "name": "Wales",
+        "cities": ["Cardiff", "Swansea", "Newport", "Bangor", "Wrexham"]
+      },
+      {
+        "name": "Northern Ireland",
+        "cities": ["Belfast", "Derry", "Lisburn", "Newry", "Armagh"]
+      }
+    ]
+  },
+  {
+    "name": "Australia",
+    "states": [
+      {
+        "name": "New South Wales",
+        "cities": ["Sydney", "Newcastle", "Wollongong", "Parramatta", "Penrith"]
+      },
+      {
+        "name": "Victoria",
+        "cities": ["Melbourne", "Geelong", "Ballarat", "Bendigo", "Shepparton"]
+      },
+      {
+        "name": "Queensland",
+        "cities": ["Brisbane", "Gold Coast", "Cairns", "Townsville", "Toowoomba"]
+      },
+      {
+        "name": "Western Australia",
+        "cities": ["Perth", "Fremantle", "Bunbury", "Geraldton", "Albany"]
       }
     ]
   }
