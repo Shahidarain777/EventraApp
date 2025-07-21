@@ -8,6 +8,8 @@ import {
   Animated,
   TouchableWithoutFeedback,
   Alert,
+  Modal,
+  TextInput,
   Share
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -23,11 +25,11 @@ type NavigationProp = StackNavigationProp<RootStackParamList, 'EventDetailScreen
 type EventCardProps = {
   
   event: Event;
-  onJoin: (id: string) => void;
+  //onJoin: (id: string) => void;
   showJoin?: boolean;
-  onLike: (id: string) => void;
-  onComment: (id: string) => void;
-  onShare?: (event: Event) => void;
+  //onLike: (id: string) => void;
+  //onComment: (id: string) => void;
+  //onShare?: (event: Event) => void;
   showActions?: boolean;
 };
 
@@ -36,40 +38,90 @@ const DOUBLE_TAP_DELAY = 300;
 const EventCard = ({
   
   event,
-  onJoin,
+  //onJoin,
   showJoin = true,
-  onLike,
-  onComment,
-  onShare,
+  //onLike,
+  //onComment,
+ // onShare,
   showActions = true,
 }: EventCardProps) => {
   const dispatch = useDispatch<AppDispatch>();
   // State for double tap functionality - track last tap time per event
-    const [lastTapTimes, setLastTapTimes] = useState<{[key: string]: number}>({});
-    const DOUBLE_TAP_DELAY = 300; // milliseconds
-    
-    // State for heart animation
-    const [showHeartAnimation, setShowHeartAnimation] = useState<{[key: string]: boolean}>({});
-    const [heartAnimations, setHeartAnimations] = useState<{[key: string]: Animated.Value}>({});
-    
-    // State for comment modal
-    const [commentModalVisible, setCommentModalVisible] = useState(false);
-    const [selectedEventId, setSelectedEventId] = useState<string>('');
-    const [commentText, setCommentText] = useState('');
+  const [lastTapTimes, setLastTapTimes] = useState<{[key: string]: number}>({});
+  const DOUBLE_TAP_DELAY = 300; // milliseconds
+  
+  // State for heart animation
+  const [showHeartAnimation, setShowHeartAnimation] = useState<{[key: string]: boolean}>({});
+  const [heartAnimations, setHeartAnimations] = useState<{[key: string]: Animated.Value}>({});
+  
+  // State for comment modal
+  const [commentModalVisible, setCommentModalVisible] = useState(false);
+  const [selectedEventId, setSelectedEventId] = useState<string>('');
+  const [commentText, setCommentText] = useState('');
   const [expanded, setExpanded] = useState(false);
   const [lastTap, setLastTap] = useState<number | null>(null);
   const [showHeart, setShowHeart] = useState(false);
   const heartAnimation = new Animated.Value(0);
   const isLong = event.description && event.description.length > 100;
   const navigation = useNavigation<NavigationProp>();
-  const handleDoubleTap = () => {
-    const now = Date.now();
-    if (lastTap && now - lastTap < DOUBLE_TAP_DELAY) {
-      onLike && onLike(event.id);
-      triggerHeartAnimation();
-    }
-    setLastTap(now);
-  };
+  // const handleDoubleTap = () => {
+  //   const now = Date.now();
+  //   if (lastTap && now - lastTap < DOUBLE_TAP_DELAY) {
+  //     onLike && onLike(event.id);
+  //     triggerHeartAnimation();
+  //   }
+  //   setLastTap(now);
+  // };
+
+  const handleDoubleTap = (eventId: string) => {
+      const now = Date.now();
+      const lastTap = lastTapTimes[eventId];
+      
+      if (lastTap && (now - lastTap) < DOUBLE_TAP_DELAY) {
+        // Double tap detected
+        handleLikeEvent(eventId);
+        
+        // Trigger heart animation
+        if (!heartAnimations[eventId]) {
+          setHeartAnimations(prev => ({
+            ...prev,
+            [eventId]: new Animated.Value(0)
+          }));
+        }
+        
+        setShowHeartAnimation(prev => ({
+          ...prev,
+          [eventId]: true
+        }));
+        
+        // Animate the heart
+        const animation = heartAnimations[eventId] || new Animated.Value(0);
+        animation.setValue(0);
+        
+        Animated.sequence([
+          Animated.timing(animation, {
+            toValue: 1,
+            duration: 200,
+            useNativeDriver: true,
+          }),
+          Animated.timing(animation, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          })
+        ]).start(() => {
+          setShowHeartAnimation(prev => ({
+            ...prev,
+            [eventId]: false
+          }));
+        });
+      }
+      
+      setLastTapTimes(prev => ({
+        ...prev,
+        [eventId]: now
+      }));
+    };
 
   const handleLikeEvent = (eventId: string) => {
       // Dispatch the like action
@@ -79,27 +131,27 @@ const EventCard = ({
   const handleCommentPress = (eventId: string) => {
       setSelectedEventId(eventId);
       setCommentModalVisible(true);
-    };
+  };
   
-    const handleCommentSubmit = async () => {
-      if (!commentText.trim()) {
-        Alert.alert('Error', 'Please enter a comment');
-        return;
-      }
-  
-      try {
-        await dispatch(addComment({
-          eventId: selectedEventId,
-          comment: commentText.trim()
-        })).unwrap();
-        
-        setCommentText('');
-        setCommentModalVisible(false);
-        Alert.alert('Success', 'Comment added successfully!');
-      } catch (error) {
-        Alert.alert('Error', 'Failed to add comment. Please try again.');
-      }
-    };
+  const handleCommentSubmit = async () => {
+    if (!commentText.trim()) {
+      Alert.alert('Error', 'Please enter a comment');
+      return;
+    }
+
+    try {
+      await dispatch(addComment({
+        eventId: selectedEventId,
+        comment: commentText.trim()
+      })).unwrap();
+      
+      setCommentText('');
+      setCommentModalVisible(false);
+      Alert.alert('Success', 'Comment added successfully!');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to add comment. Please try again.');
+    }
+  };
   
     const handleCommentCancel = () => {
       setCommentText('');
@@ -202,7 +254,7 @@ const EventCard = ({
 
   return (
     
-    <TouchableWithoutFeedback onPress={handleDoubleTap}>
+    <TouchableWithoutFeedback onPress={handleDoubleTap.bind(null, event.id)}>
       <View style={styles.eventCard}>
         <View style={styles.eventHeader}>
           <Text style={styles.organizerName}>{event.organizer}</Text>
@@ -287,10 +339,52 @@ const EventCard = ({
         </View>
       </View>
     </TouchableWithoutFeedback>
-
-    
-
   );
+{/* Comment Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={commentModalVisible}
+        onRequestClose={handleCommentCancel}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.commentModalContainer}>
+            <View style={styles.commentModalHeader}>
+              <Text style={styles.commentModalTitle}>Add Comment</Text>
+              <TouchableOpacity onPress={handleCommentCancel}>
+                <Icon name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            
+            <TextInput
+              style={styles.commentInput}
+              placeholder="Write your comment here..."
+              value={commentText}
+              onChangeText={setCommentText}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+              autoFocus
+            />
+            
+            <View style={styles.commentModalActions}>
+              <TouchableOpacity 
+                style={styles.cancelButton} 
+                onPress={handleCommentCancel}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.submitButton} 
+                onPress={handleCommentSubmit}
+              >
+                <Text style={styles.submitButtonText}>Post Comment</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
 };
 
 export default EventCard;
@@ -449,5 +543,75 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     fontSize: 15,
+  },
+
+  // Comment Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  commentModalContainer: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    maxHeight: '70%',
+  },
+  commentModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  commentModalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#111',
+  },
+  commentInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 20,
+    minHeight: 100,
+    fontSize: 16,
+    backgroundColor: '#ffffffff',
+    color: '#000',
+  },
+  commentModalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginRight: 10,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#666',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  submitButton: {
+    flex: 1,
+    backgroundColor: '#007BFF',
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginLeft: 10,
+    alignItems: 'center',
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

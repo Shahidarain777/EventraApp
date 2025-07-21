@@ -68,9 +68,9 @@ const SearchScreen = () => {
             renderItem={({ item }) => (
               <EventCard
                 event={item}
-                onJoin={() => {}}
-                onLike={() => {}}
-                onComment={() => {}}
+                //onJoin={() => {}}
+                //onLike={() => {}}
+                //onComment={() => {}}
               />
             )}
             ListEmptyComponent={<Text style={styles.emptyText}>No events found.</Text>}

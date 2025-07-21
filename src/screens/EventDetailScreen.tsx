@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import EventCard, { EventType } from '../components/EventCard';
+import EventCard from '../components/EventCard';
+import { Event } from '../redux/slices/eventSlice';
 import { RouteProp } from '@react-navigation/native';
 import DueDate from '../components/DueDate';
 
 type EventDetailScreenProps = {
-  route: RouteProp<{ params: { event: EventType } }, 'params'>;
+  route: RouteProp<{ params: { event: Event } }, 'params'>;
 };
 
 const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
@@ -15,7 +16,7 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
       <EventCard event={event} showJoin={false} />
       <View style={styles.detailsBox}>
         <Text style={styles.sectionTitle}>Location</Text>
-        <Text style={styles.detailText}>{event.city || event.location?.city || 'N/A'}</Text>
+        {/* <Text style={styles.detailText}>{event.location?.city || 'N/A'}</Text> */}
         <Text style={styles.sectionTitle}>Fee</Text>
         <Text style={styles.detailText}>{event.price && event.price !== 'Free' ? `$${event.price}` : 'Free'}</Text>
         <Text style={styles.sectionTitle}>Host</Text>
