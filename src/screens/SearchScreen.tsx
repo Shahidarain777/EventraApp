@@ -68,9 +68,8 @@ const SearchScreen = () => {
             renderItem={({ item }) => (
               <EventCard
                 event={item}
-                //onJoin={() => {}}
-                //onLike={() => {}}
-                //onComment={() => {}}
+                showJoin={true}
+                showActions={true}
               />
             )}
             ListEmptyComponent={<Text style={styles.emptyText}>No events found.</Text>}
@@ -93,12 +92,12 @@ const styles = StyleSheet.create({
   searchBarRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EAF0FA',
-    borderRadius: 10,
+    backgroundColor: '#ffffffff',
+    borderRadius: 30,
     paddingVertical: 2,
     paddingHorizontal: 14,
-    margin: 10,
-    marginTop: 10,
+    margin: 0,
+    marginTop: 0,
     borderWidth: 1,
     borderColor: '#2266e4ff',
   },

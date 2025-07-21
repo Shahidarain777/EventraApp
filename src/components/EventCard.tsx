@@ -56,7 +56,6 @@ const EventCard = ({
   
   // State for comment modal
   const [commentModalVisible, setCommentModalVisible] = useState(false);
-  const [selectedEventId, setSelectedEventId] = useState<string>('');
   const [commentText, setCommentText] = useState('');
   const [expanded, setExpanded] = useState(false);
   const [lastTap, setLastTap] = useState<number | null>(null);
@@ -123,28 +122,35 @@ const EventCard = ({
       }));
     };
 
-  const handleLikeEvent = (eventId: string) => {
-      // Dispatch the like action
-      dispatch(likeEvent(eventId));
+  const [localLikes, setLocalLikes] = useState(event.likes);
+  const [localIsLiked, setLocalIsLiked] = useState(event.isLiked);
+
+  const handleLikeEvent = async (eventId: string) => {
+    try {
+      await dispatch(likeEvent(eventId)).unwrap();
+      setLocalIsLiked((prev) => !prev);
+      setLocalLikes((prev) => prev + (localIsLiked ? -1 : 1));
+    } catch (error) {
+      Alert.alert('Error', 'Failed to like event.');
+    }
   };
 
-  const handleCommentPress = (eventId: string) => {
-      setSelectedEventId(eventId);
+  const handleCommentPress = () => {
       setCommentModalVisible(true);
   };
   
+  const [localComments, setLocalComments] = useState(event.comments);
   const handleCommentSubmit = async () => {
     if (!commentText.trim()) {
       Alert.alert('Error', 'Please enter a comment');
       return;
     }
-
     try {
       await dispatch(addComment({
-        eventId: selectedEventId,
+        eventId: event.id,
         comment: commentText.trim()
       })).unwrap();
-      
+      setLocalComments((prev) => prev + 1);
       setCommentText('');
       setCommentModalVisible(false);
       Alert.alert('Success', 'Comment added successfully!');
@@ -253,94 +259,92 @@ const EventCard = ({
   };
 
   return (
-    
-    <TouchableWithoutFeedback onPress={handleDoubleTap.bind(null, event.id)}>
-      <View style={styles.eventCard}>
-        <View style={styles.eventHeader}>
-          <Text style={styles.organizerName}>{event.organizer}</Text>
-          <View style={styles.categoryPrice}>
-            <Text style={styles.categoryText}>{event.category}</Text>
-            <Text style={styles.priceText}> · {event.price}</Text>
+    <>
+      <TouchableWithoutFeedback onPress={handleDoubleTap.bind(null, event.id)}>
+        <View style={styles.eventCard}>
+          <View style={styles.eventHeader}>
+            <Text style={styles.organizerName}>{event.organizer}</Text>
+            <View style={styles.categoryPrice}>
+              <Text style={styles.categoryText}>{event.category}</Text>
+              <Text style={styles.priceText}> · {event.price}</Text>
+            </View>
           </View>
-        </View>
-        <View style={styles.imageContainer}>
-          {renderImageGrid(event.images || [event.image])}
-          {showHeart && (
-            <Animated.View
-              style={[
-                styles.heartAnimationContainer,
-                {
-                  opacity: heartAnimation,
-                  transform: [
-                    {
-                      scale: heartAnimation.interpolate({
-                        inputRange: [0, 0.5, 1],
-                        outputRange: [0.5, 1.2, 0.8],
-                      }),
-                    },
-                  ],
-                },
-              ]}
-            >
-              <Icon name="heart" size={80} color="#FF4A6D" />
-            </Animated.View>
-          )}
-        </View>
-        <View style={styles.eventContent}>
-          <Text style={styles.eventTitle} numberOfLines={1}>
-            {event.title}
-          </Text>
-          <View>
-            <Text style={styles.eventDescription} numberOfLines={expanded ? undefined : 2}>
-              {event.description}
-            </Text>
-            {isLong && (
-              <TouchableOpacity onPress={() => setExpanded((e) => !e)}>
-                <Text style={styles.seeMoreText}>{expanded ? 'see less' : 'see more'}</Text>
-              </TouchableOpacity>
+          <View style={styles.imageContainer}>
+            {renderImageGrid(event.images || [event.image])}
+            {showHeart && (
+              <Animated.View
+                style={[
+                  styles.heartAnimationContainer,
+                  {
+                    opacity: heartAnimation,
+                    transform: [
+                      {
+                        scale: heartAnimation.interpolate({
+                          inputRange: [0, 0.5, 1],
+                          outputRange: [0.5, 1.2, 0.8],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              >
+                <Icon name="heart" size={80} color="#FF4A6D" />
+              </Animated.View>
             )}
           </View>
-          {showActions && (
-            <View style={styles.eventActions}>
-            <View style={styles.socialActions}>
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={() => handleLikeEvent(event.id)}
-              >
-                <Icon 
-                  name={event.isLiked ? "heart" : "heart-outline"} 
-                  size={22} 
-                  color={event.isLiked ? "#FF4A6D" : "#666"} 
-                />
-                <Text style={styles.actionCount}>{event.likes}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={() => handleCommentPress(event.id)}
-              >
-                <Icon name="comment-text-outline" size={22} color="#666" />
-                <Text style={styles.actionCount}>{event.comments}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={() => handleShareEvent(event)}
-              >
-                <Icon name="share-variant-outline" size={22} color="#666" />
-              </TouchableOpacity>
+          <View style={styles.eventContent}>
+            <Text style={styles.eventTitle} numberOfLines={1}>
+              {event.title}
+            </Text>
+            <View>
+              <Text style={styles.eventDescription} numberOfLines={expanded ? undefined : 2}>
+                {event.description}
+              </Text>
+              {isLong && (
+                <TouchableOpacity onPress={() => setExpanded((e) => !e)}>
+                  <Text style={styles.seeMoreText}>{expanded ? 'see less' : 'see more'}</Text>
+                </TouchableOpacity>
+              )}
             </View>
-            <TouchableOpacity 
-              style={styles.joinButton}
-              onPress={() => navigation.navigate('EventDetailScreen', { event })}
-            >
-              <Text style={styles.joinButtonText}>Join</Text>
-            </TouchableOpacity>
+            {showActions && (
+              <View style={styles.eventActions}>
+                <View style={styles.socialActions}>
+                  <TouchableOpacity 
+                    style={styles.actionButton}
+                    onPress={() => handleLikeEvent(event.id)}
+                  >
+                    <Icon 
+                      name={localIsLiked ? "heart" : "heart-outline"} 
+                      size={22} 
+                      color={localIsLiked ? "#FF4A6D" : "#666"} 
+                    />
+                    <Text style={styles.actionCount}>{localLikes}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.actionButton}
+                    onPress={handleCommentPress}
+                  >
+                    <Icon name="comment-text-outline" size={22} color="#666" />
+                    <Text style={styles.actionCount}>{localComments}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.actionButton}
+                    onPress={() => handleShareEvent(event)}
+                  >
+                    <Icon name="share-variant-outline" size={22} color="#666" />
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity 
+                  style={styles.joinButton}
+                  onPress={() => navigation.navigate('EventDetailScreen', { event })}
+                >
+                  <Text style={styles.joinButtonText}>Join</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
-          )}
         </View>
-      </View>
-    </TouchableWithoutFeedback>
-  );
-{/* Comment Modal */}
+      </TouchableWithoutFeedback>
       <Modal
         animationType="slide"
         transparent={true}
@@ -355,7 +359,6 @@ const EventCard = ({
                 <Icon name="close" size={24} color="#666" />
               </TouchableOpacity>
             </View>
-            
             <TextInput
               style={styles.commentInput}
               placeholder="Write your comment here..."
@@ -366,7 +369,6 @@ const EventCard = ({
               textAlignVertical="top"
               autoFocus
             />
-            
             <View style={styles.commentModalActions}>
               <TouchableOpacity 
                 style={styles.cancelButton} 
@@ -384,6 +386,8 @@ const EventCard = ({
           </View>
         </View>
       </Modal>
+    </>
+  );
 
 };
 
