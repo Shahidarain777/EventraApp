@@ -14,13 +14,18 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { Event } from '../redux/slices/eventSlice';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../types/navigations';
 
+type NavigationProp = StackNavigationProp<RootStackParamList, 'EventDetailScreen'>;
 const SearchScreen = () => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
   // Fetch events from Redux state
   const events = useSelector((state: RootState) => state.events.events);
+  const navigation = useNavigation<NavigationProp>();
 
   const handleSearch = () => {
     setLoading(true);
@@ -60,7 +65,14 @@ const SearchScreen = () => {
           <FlatList
             data={results}
             keyExtractor={(_, index) => index.toString()}
-            renderItem={({ item }) => <EventCard event={item} />}
+            renderItem={({ item }) => (
+              <EventCard
+                event={item}
+                onJoin={() => {}}
+                onLike={() => {}}
+                onComment={() => {}}
+              />
+            )}
             ListEmptyComponent={<Text style={styles.emptyText}>No events found.</Text>}
             contentContainerStyle={{ paddingBottom: 32 }}
           />

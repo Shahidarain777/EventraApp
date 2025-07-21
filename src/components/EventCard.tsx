@@ -4,90 +4,296 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image
+  Image,
+  Animated,
+  TouchableWithoutFeedback,
+  Alert,
+  Share
 } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+// import { Event } from '../redux/slices/eventSlice';
+import { RootState, AppDispatch } from '../redux/store';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../types/navigations';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { fetchEvents, likeEvent, addComment, Event } from '../redux/slices/eventSlice';
+type NavigationProp = StackNavigationProp<RootStackParamList, 'EventDetailScreen'>;
 
-export type EventType = {
-  title: string;
-  description: string;
-  price?: string;
-  organizer?: string;
-  date?: string;
-  endDate?: string;
-  category?: string;
-  country?: string;
-  state?: string;
-  city?: string;
-  latitude?: string;
-  longitude?: string;
-  visibility?: string;
-  approvalRequired?: string;
-  capacity?: string;
-  subLeader?: string;
-  financeManager?: string;
-  images?: string[];
-  // New format fields
-  location?: {
-    city?: string;
-    state?: string;
-    country?: string;
-    latitude?: string;
-    longitude?: string;
-  };
-  dateTime?: {
-    start?: string;
-    end?: string;
-  };
-};
-
-export type EventCardProps = {
-  event: EventType;
-  onJoin?: () => void;
+type EventCardProps = {
+  
+  event: Event;
+  onJoin: (id: string) => void;
   showJoin?: boolean;
+  onLike: (id: string) => void;
+  onComment: (id: string) => void;
+  onShare?: (event: Event) => void;
+  showActions?: boolean;
 };
 
+const DOUBLE_TAP_DELAY = 300;
 
-const EventCard = ({ event, onJoin, showJoin = true }: EventCardProps) => {
+const EventCard = ({
+  
+  event,
+  onJoin,
+  showJoin = true,
+  onLike,
+  onComment,
+  onShare,
+  showActions = true,
+}: EventCardProps) => {
+  const dispatch = useDispatch<AppDispatch>();
+  // State for double tap functionality - track last tap time per event
+    const [lastTapTimes, setLastTapTimes] = useState<{[key: string]: number}>({});
+    const DOUBLE_TAP_DELAY = 300; // milliseconds
+    
+    // State for heart animation
+    const [showHeartAnimation, setShowHeartAnimation] = useState<{[key: string]: boolean}>({});
+    const [heartAnimations, setHeartAnimations] = useState<{[key: string]: Animated.Value}>({});
+    
+    // State for comment modal
+    const [commentModalVisible, setCommentModalVisible] = useState(false);
+    const [selectedEventId, setSelectedEventId] = useState<string>('');
+    const [commentText, setCommentText] = useState('');
   const [expanded, setExpanded] = useState(false);
+  const [lastTap, setLastTap] = useState<number | null>(null);
+  const [showHeart, setShowHeart] = useState(false);
+  const heartAnimation = new Animated.Value(0);
   const isLong = event.description && event.description.length > 100;
-  return (
-    <View style={styles.eventCard}>
-      <View style={styles.eventHeader}>
-        <Text style={styles.organizerName}>{event.organizer || 'Host'}</Text>
-        <View style={styles.categoryPrice}>
-          <Text style={styles.categoryText}>{event.category}</Text>
-          <Text style={styles.priceText}>{event.price ? ` · ${event.price}` : ''}</Text>
+  const navigation = useNavigation<NavigationProp>();
+  const handleDoubleTap = () => {
+    const now = Date.now();
+    if (lastTap && now - lastTap < DOUBLE_TAP_DELAY) {
+      onLike && onLike(event.id);
+      triggerHeartAnimation();
+    }
+    setLastTap(now);
+  };
+
+  const handleLikeEvent = (eventId: string) => {
+      // Dispatch the like action
+      dispatch(likeEvent(eventId));
+  };
+
+  const handleCommentPress = (eventId: string) => {
+      setSelectedEventId(eventId);
+      setCommentModalVisible(true);
+    };
+  
+    const handleCommentSubmit = async () => {
+      if (!commentText.trim()) {
+        Alert.alert('Error', 'Please enter a comment');
+        return;
+      }
+  
+      try {
+        await dispatch(addComment({
+          eventId: selectedEventId,
+          comment: commentText.trim()
+        })).unwrap();
+        
+        setCommentText('');
+        setCommentModalVisible(false);
+        Alert.alert('Success', 'Comment added successfully!');
+      } catch (error) {
+        Alert.alert('Error', 'Failed to add comment. Please try again.');
+      }
+    };
+  
+    const handleCommentCancel = () => {
+      setCommentText('');
+      setCommentModalVisible(false);
+    };
+  
+    const handleShareEvent = async (event: Event) => {
+      try {
+        const shareMessage = `🎉 Check out this event: ${event.title}\n\n📝 ${event.description}\n\n📅 Date: ${event.date}\n💰 Price: ${event.price}\n👨‍💼 Organizer: ${event.organizer}\n\nJoin us for an amazing experience!`;
+        
+        const result = await Share.share({
+          message: shareMessage,
+          title: event.title,
+        });
+  
+        if (result.action === Share.sharedAction) {
+          // Successfully shared
+          console.log('Event shared successfully');
+        }
+      } catch (error) {
+        console.error('Error sharing event:', error);
+        Alert.alert('Error', 'Failed to share event. Please try again.');
+      }
+    };
+  
+
+  const triggerHeartAnimation = () => {
+    setShowHeart(true);
+    heartAnimation.setValue(0);
+    Animated.sequence([
+      Animated.timing(heartAnimation, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(heartAnimation, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setShowHeart(false));
+  };
+
+  const renderImageGrid = (images: string[]) => {
+    if (!images || images.length === 0) {
+      return (
+        <Image
+          source={require('../../assets/EventraLogo.png')}
+          style={styles.eventImage}
+          resizeMode="cover"
+        />
+      );
+    }
+    if (images.length === 1) {
+      return (
+        <Image
+          source={{ uri: images[0] }}
+          style={styles.eventImage}
+          resizeMode="cover"
+          defaultSource={require('../../assets/EventraLogo.png')}
+        />
+      );
+    }
+    if (images.length === 2) {
+      return (
+        <View style={styles.imageGrid}>
+          <Image source={{ uri: images[0] }} style={styles.imageGridHalf} resizeMode="cover" />
+          <Image source={{ uri: images[1] }} style={styles.imageGridHalf} resizeMode="cover" />
+        </View>
+      );
+    }
+    if (images.length === 3) {
+      return (
+        <View style={styles.imageGrid}>
+          <Image source={{ uri: images[0] }} style={styles.imageGridHalf} resizeMode="cover" />
+          <View style={styles.imageGridColumn}>
+            <Image source={{ uri: images[1] }} style={styles.imageGridQuarter} resizeMode="cover" />
+            <Image source={{ uri: images[2] }} style={styles.imageGridQuarter} resizeMode="cover" />
+          </View>
+        </View>
+      );
+    }
+    return (
+      <View style={styles.imageGrid}>
+        <Image source={{ uri: images[0] }} style={styles.imageGridHalf} resizeMode="cover" />
+        <View style={styles.imageGridColumn}>
+          <Image source={{ uri: images[1] }} style={styles.imageGridQuarter} resizeMode="cover" />
+          <View style={styles.imageGridQuarterContainer}>
+            <Image source={{ uri: images[2] }} style={styles.imageGridQuarter} resizeMode="cover" />
+            {images.length > 3 && (
+              <View style={styles.moreImagesOverlay}>
+                <Text style={styles.moreImagesText}>+{images.length - 3}</Text>
+              </View>
+            )}
+          </View>
         </View>
       </View>
-      <View style={{ position: 'relative' }}>
-        <Image 
-          source={{ uri: event.images && event.images.length > 0 ? event.images[0] : '' }} 
-          style={styles.eventImage} 
-          resizeMode="cover" 
-          defaultSource={require('../../assets/EventraLogo.png')} 
-        />
-      </View>
-      <View style={styles.eventContent}>
-        <Text style={styles.eventTitle} numberOfLines={1} ellipsizeMode="tail">{event.title}</Text>
-        <View>
-          <Text style={styles.eventDescription} numberOfLines={expanded ? undefined : 2}>
-            {event.description}
-          </Text>
-          {isLong && (
-            <TouchableOpacity onPress={() => setExpanded(e => !e)}>
-              <Text style={styles.seeMoreText}>{expanded ? 'see less' : 'see more'}</Text>
-            </TouchableOpacity>
+    );
+  };
+
+  return (
+    
+    <TouchableWithoutFeedback onPress={handleDoubleTap}>
+      <View style={styles.eventCard}>
+        <View style={styles.eventHeader}>
+          <Text style={styles.organizerName}>{event.organizer}</Text>
+          <View style={styles.categoryPrice}>
+            <Text style={styles.categoryText}>{event.category}</Text>
+            <Text style={styles.priceText}> · {event.price}</Text>
+          </View>
+        </View>
+        <View style={styles.imageContainer}>
+          {renderImageGrid(event.images || [event.image])}
+          {showHeart && (
+            <Animated.View
+              style={[
+                styles.heartAnimationContainer,
+                {
+                  opacity: heartAnimation,
+                  transform: [
+                    {
+                      scale: heartAnimation.interpolate({
+                        inputRange: [0, 0.5, 1],
+                        outputRange: [0.5, 1.2, 0.8],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            >
+              <Icon name="heart" size={80} color="#FF4A6D" />
+            </Animated.View>
           )}
         </View>
-        {showJoin && onJoin && (
-          <TouchableOpacity style={styles.joinButton} onPress={onJoin}>
-            <Text style={styles.joinButtonText}>Join</Text>
-          </TouchableOpacity>
-        )}
+        <View style={styles.eventContent}>
+          <Text style={styles.eventTitle} numberOfLines={1}>
+            {event.title}
+          </Text>
+          <View>
+            <Text style={styles.eventDescription} numberOfLines={expanded ? undefined : 2}>
+              {event.description}
+            </Text>
+            {isLong && (
+              <TouchableOpacity onPress={() => setExpanded((e) => !e)}>
+                <Text style={styles.seeMoreText}>{expanded ? 'see less' : 'see more'}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          {showActions && (
+            <View style={styles.eventActions}>
+            <View style={styles.socialActions}>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => handleLikeEvent(event.id)}
+              >
+                <Icon 
+                  name={event.isLiked ? "heart" : "heart-outline"} 
+                  size={22} 
+                  color={event.isLiked ? "#FF4A6D" : "#666"} 
+                />
+                <Text style={styles.actionCount}>{event.likes}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => handleCommentPress(event.id)}
+              >
+                <Icon name="comment-text-outline" size={22} color="#666" />
+                <Text style={styles.actionCount}>{event.comments}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => handleShareEvent(event)}
+              >
+                <Icon name="share-variant-outline" size={22} color="#666" />
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity 
+              style={styles.joinButton}
+              onPress={() => navigation.navigate('EventDetailScreen', { event })}
+            >
+              <Text style={styles.joinButtonText}>Join</Text>
+            </TouchableOpacity>
+          </View>
+          )}
+        </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
+
+    
+
   );
 };
+
+export default EventCard;
 
 const styles = StyleSheet.create({
   eventCard: {
@@ -132,10 +338,61 @@ const styles = StyleSheet.create({
   },
   eventImage: {
     width: '100%',
-    height: 160,
-    marginTop: 10,
-    marginBottom: 40,
-    backgroundColor: '#f0f0f0', // Placeholder color before image loads
+    height: 250,
+    marginTop: 0,
+    marginBottom: 4,
+    backgroundColor: '#f0f0f0',
+  },
+  imageContainer: {
+    position: 'relative',
+  },
+  heartAnimationContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -40,
+    marginLeft: -40,
+    zIndex: 10,
+    pointerEvents: 'none',
+  },
+  imageGrid: {
+    flexDirection: 'row',
+    height: 250,
+    marginTop: 0,
+    marginBottom: 4,
+  },
+  imageGridHalf: {
+    width: '50%',
+    height: 250,
+    backgroundColor: '#f0f0f0',
+  },
+  imageGridColumn: {
+    flex: 1,
+    flexDirection: 'column',
+  },
+  imageGridQuarter: {
+    width: '100%',
+    height: 125,
+    backgroundColor: '#f0f0f0',
+  },
+  imageGridQuarterContainer: {
+    position: 'relative',
+    height: 125,
+  },
+  moreImagesOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  moreImagesText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   eventContent: {
     paddingHorizontal: 16,
@@ -150,19 +407,43 @@ const styles = StyleSheet.create({
   eventDescription: {
     fontSize: 14,
     color: '#444',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   seeMoreText: {
     color: '#007BFF',
     fontSize: 14,
+    fontWeight: '500',
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  eventActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  socialActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 20,
+    paddingVertical: 5,
+    paddingHorizontal: 2,
+  },
+  actionCount: {
+    marginLeft: 6,
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
   },
   joinButton: {
     backgroundColor: '#2196F3',
     paddingVertical: 7,
     paddingHorizontal: 32,
     borderRadius: 18,
-    alignSelf: 'flex-start',
-    marginTop: 8,
   },
   joinButtonText: {
     color: '#fff',
@@ -170,5 +451,3 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
 });
-
-export default EventCard;
