@@ -1,17 +1,14 @@
 import React from 'react';
 import { Text } from 'react-native';
-import { EventType } from './EventCard';
+import { Event } from '../redux/slices/eventSlice';
 
 interface DueDateProps {
-  event: EventType;
+  event: Event;
   styles: any;
 }
 
 const DueDate: React.FC<DueDateProps> = ({ event, styles }) => {
-  // Support both flat and nested date fields
-  const hasFlatDates = event.date && event.endDate;
-  const hasNestedDates = event.dateTime && event.dateTime.start && event.dateTime.end;
-  if (!hasFlatDates && !hasNestedDates) {
+  if (!event.date) {
     return (
       <>
         <Text style={styles.sectionTitle}>Due Date</Text>
@@ -19,11 +16,9 @@ const DueDate: React.FC<DueDateProps> = ({ event, styles }) => {
       </>
     );
   }
-  const startDate = new Date(event.dateTime?.start ?? event.date ?? '');
-  const endDate = new Date(event.dateTime?.end ?? event.endDate ?? '');
+  const startDate = new Date(event.date);
   const now = new Date();
   if (now < startDate) {
-    // Event not started yet
     const diffMs = startDate.getTime() - now.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -42,8 +37,7 @@ const DueDate: React.FC<DueDateProps> = ({ event, styles }) => {
         </>
       );
     }
-  } else if (now >= startDate && now <= endDate) {
-    // Event in progress
+  } else if (now.toDateString() === startDate.toDateString()) {
     return (
       <>
         <Text style={styles.sectionTitle}>Due Date</Text>
@@ -51,7 +45,6 @@ const DueDate: React.FC<DueDateProps> = ({ event, styles }) => {
       </>
     );
   } else {
-    // Event ended
     return (
       <>
         <Text style={styles.sectionTitle}>Due Date</Text>
