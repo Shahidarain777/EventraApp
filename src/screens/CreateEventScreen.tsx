@@ -25,7 +25,7 @@ import RNPickerSelect from 'react-native-picker-select';
 // @ts-ignore
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { Modal } from 'react-native';
+import { Modal } from 'react-native'; 
 import MapView, { Marker, MapPressEvent } from 'react-native-maps';
 import LocationPickerModal from '../components/LocationPickerModal';
 

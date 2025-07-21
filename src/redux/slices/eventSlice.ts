@@ -15,6 +15,17 @@ export interface Event {
   comments: number;
   category: string;
   isLiked?: boolean;
+  visibility?: string;
+  approvalRequired?: string;
+  capacity?: number | string;
+  location?: {
+    city?: string;
+    state?: string;
+    country?: string;
+    address?: string;
+    latitude?: number | string;
+    longitude?: number | string;
+  };
 }
 
 interface EventState {

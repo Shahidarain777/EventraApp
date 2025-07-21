@@ -16,13 +16,23 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
       <EventCard event={event} showJoin={false} />
       <View style={styles.detailsBox}>
         <Text style={styles.sectionTitle}>Location</Text>
-        {/* <Text style={styles.detailText}>{event.location?.city || 'N/A'}</Text> */}
+        { <Text style={styles.detailText}>{event.location?.city || 'N/A'}</Text> }
         <Text style={styles.sectionTitle}>Fee</Text>
-        <Text style={styles.detailText}>{event.price && event.price !== 'Free' ? `$${event.price}` : 'Free'}</Text>
+        <Text style={styles.detailText}>{event.price && event.price !== 'Free' ? `${event.price}` : 'Free'}</Text>
         <Text style={styles.sectionTitle}>Host</Text>
         <Text style={styles.detailText}>{event.organizer || 'N/A'}</Text>
         <Text style={styles.sectionTitle}>Type</Text>
         <Text style={styles.detailText}>{event.category || 'N/A'}</Text>
+
+        {/* New fields below existing info */}
+        <Text style={styles.sectionTitle}>Approval Required</Text>
+        <Text style={styles.detailText}>{event.approvalRequired === 'yes' ? 'Yes' : 'No'}</Text>
+        <Text style={styles.sectionTitle}>Visibility</Text>
+        <Text style={styles.detailText}>{event.visibility === 'private' ? 'Private' : 'Public'}</Text>
+        <Text style={styles.sectionTitle}>Capacity</Text>
+        <Text style={styles.detailText}>
+          {event.capacity && !isNaN(Number(event.capacity)) ? Number(event.capacity) : 'N/A'}
+        </Text>
 
         {/* Days/Hours left/status logic using reusable component */}
         <DueDate event={event} styles={styles} />
