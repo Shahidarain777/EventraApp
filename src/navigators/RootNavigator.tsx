@@ -21,8 +21,8 @@ const RootNavigator = () => {
       {token ? (
         <>
           <Stack.Screen name="Main" component={TabNavigator} />
-          <Stack.Screen name="EventDetailScreen" component={require('../screens/EventDetailScreen').default} />
           <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
+          <Stack.Screen name="EventDetailScreen" component={require('../screens/EventDetailScreen').default} /> 
           <Stack.Screen name="FAQScreen" component={FAQScreen} />
           <Stack.Screen name="ReportProblemScreen" component={ReportProblemScreen} />
           <Stack.Screen name="CommunityGuidelinesScreen" component={CommunityGuidelinesScreen} />

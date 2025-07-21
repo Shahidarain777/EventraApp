@@ -10,7 +10,10 @@ export interface Event {
   image: string; // Keep for backward compatibility
   images?: string[]; // New field for multiple images
   organizer: string;
-  date: string;
+  dateTime: {
+    start: string;
+    end: string;
+  };
   likes: number;
   comments: number;
   category: string;
@@ -59,7 +62,10 @@ export const mockEvents: Event[] = [
       'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3'
     ],
     organizer: 'Asad Raza',
-    date: '2024-07-15',
+    dateTime: {
+      start: '2024-07-15T09:00:00Z',
+      end: '2024-07-15T17:00:00Z'
+    },
     likes: 124,
     comments: 23,
     category: 'Conference',
@@ -76,7 +82,10 @@ export const mockEvents: Event[] = [
       'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3'
     ],
     organizer: 'Sarah Johnson',
-    date: '2024-07-20',
+    dateTime: {
+      start: '2024-07-15T09:00:00Z',
+      end: '2024-07-15T17:00:00Z'
+    },
     likes: 45,
     comments: 12,
     category: 'Business',
@@ -92,7 +101,10 @@ export const mockEvents: Event[] = [
       'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3'
     ],
     organizer: 'Michael Chen',
-    date: '2024-07-25',
+    dateTime: {
+      start: '2024-07-15T09:00:00Z',
+      end: '2024-07-15T17:00:00Z'
+    },
     likes: 78,
     comments: 8,
     category: 'Arts',
@@ -111,7 +123,10 @@ export const mockEvents: Event[] = [
       'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?ixlib=rb-4.0.3'
     ],
     organizer: 'Food Lovers Inc',
-    date: '2024-08-01',
+    dateTime: {
+      start: '2024-07-15T09:00:00Z',
+      end: '2024-07-15T17:00:00Z'
+    },
     likes: 156,
     comments: 34,
     category: 'Food',
@@ -164,6 +179,39 @@ export const fetchEvents = createAsyncThunk<
               end: event.endDate || undefined,
             };
 
+        // Location mapping
+        let location = undefined;
+        if (event.location && typeof event.location === 'object') {
+          location = {
+            city: event.location.city || event.location.town || event.location.village || '',
+            state: event.location.state || '',
+            country: event.location.country || '',
+            address: event.location.address || event.location.street || event.location.fullAddress || '',
+            latitude: event.location.latitude,
+            longitude: event.location.longitude,
+          };
+        } else if (event.venue && typeof event.venue === 'object') {
+          location = {
+            city: event.venue.city || '',
+            state: event.venue.state || '',
+            country: event.venue.country || '',
+            address: event.venue.address || '',
+            latitude: event.venue.latitude,
+            longitude: event.venue.longitude,
+          };
+        } else if (event.venueInfo && typeof event.venueInfo === 'object') {
+          location = {
+            city: event.venueInfo.city || '',
+            state: event.venueInfo.state || '',
+            country: event.venueInfo.country || '',
+            address: event.venueInfo.address || '',
+            latitude: event.venueInfo.latitude,
+            longitude: event.venueInfo.longitude,
+          };
+        } else if (event.location && typeof event.location === 'string') {
+          location = { address: event.location };
+        }
+
         return {
           id: event._id || event.id,
           title: event.title,
@@ -186,7 +234,14 @@ export const fetchEvents = createAsyncThunk<
           likes: event.likes || 0,
           comments: event.comments || 0,
           category: event.categoryInfo?.name || 'Event',
-          isLiked: event.isLiked || false
+          isLiked: event.isLiked || false,
+          capacity:
+            event.capacity !== undefined && event.capacity !== null && event.capacity !== '' && event.capacity !== 'N/A' && !isNaN(Number(event.capacity))
+              ? Number(event.capacity)
+              : event.maxAttendees !== undefined && event.maxAttendees !== null && event.maxAttendees !== '' && event.maxAttendees !== 'N/A' && !isNaN(Number(event.maxAttendees))
+                ? Number(event.maxAttendees)
+                : undefined,
+          location,
         };
       });
     }

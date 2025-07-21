@@ -159,8 +159,8 @@ const HomeScreen = () => {
 
   const handleShareEvent = async (event: Event) => {
     try {
-      const shareMessage = `🎉 Check out this event: ${event.title}\n\n📝 ${event.description}\n\n📅 Date: ${event.date}\n💰 Price: ${event.price}\n👨‍💼 Organizer: ${event.organizer}\n\nJoin us for an amazing experience!`;
-      
+      const shareMessage = `🎉 Check out this event: ${event.title}\n\n📝 ${event.description}\n\n📅 Date: ${event.dateTime.start} - ${event.dateTime.end}\n💰 Price: ${event.price}\n👨‍💼 Organizer: ${event.organizer}\n\nJoin us for an amazing experience!`;
+
       const result = await Share.share({
         message: shareMessage,
         title: event.title,
@@ -357,7 +357,7 @@ const HomeScreen = () => {
             </View>
             <TouchableOpacity 
               style={styles.joinButton}
-              onPress={() => navigation.navigate('EventDetailScreen', { event: item })}
+            onPress={() => navigation.navigate('EventDetailScreen', { event: item })}
             >
               <Text style={styles.joinButtonText}>Join</Text>
             </TouchableOpacity>

@@ -16,7 +16,13 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
       <EventCard event={event} showJoin={false} />
       <View style={styles.detailsBox}>
         <Text style={styles.sectionTitle}>Location</Text>
-        { <Text style={styles.detailText}>{event.location?.city || 'N/A'}</Text> }
+        <Text style={styles.detailText}>
+          {event.location && (event.location.city || event.location.state || event.location.country || event.location.address) ?
+            [event.location.city, event.location.state, event.location.country, event.location.address]
+              .filter(Boolean)
+              .join(', ')
+            : 'N/A'}
+        </Text>
         <Text style={styles.sectionTitle}>Fee</Text>
         <Text style={styles.detailText}>{event.price && event.price !== 'Free' ? `${event.price}` : 'Free'}</Text>
         <Text style={styles.sectionTitle}>Host</Text>

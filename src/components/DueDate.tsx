@@ -8,7 +8,9 @@ interface DueDateProps {
 }
 
 const DueDate: React.FC<DueDateProps> = ({ event, styles }) => {
-  if (!event.date) {
+  const eventStartDateString = event.dateTime?.start;
+  
+  if (!eventStartDateString) {
     return (
       <>
         <Text style={styles.sectionTitle}>Due Date</Text>
@@ -16,28 +18,29 @@ const DueDate: React.FC<DueDateProps> = ({ event, styles }) => {
       </>
     );
   }
-  const startDate = new Date(event.date);
+
+  const startDate = new Date(eventStartDateString);
+  const endOfStartDate = new Date(startDate);
+  endOfStartDate.setHours(23, 59, 59, 999);
+
   const now = new Date();
+
   if (now < startDate) {
     const diffMs = startDate.getTime() - now.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    if (diffDays > 0) {
-      return (
-        <>
-          <Text style={styles.sectionTitle}>Due Date</Text>
+
+    return (
+      <>
+        <Text style={styles.sectionTitle}>Due Date</Text>
+        {diffDays > 0 ? (
           <Text style={styles.detailText}>{diffDays} day{diffDays > 1 ? 's' : ''} left</Text>
-        </>
-      );
-    } else {
-      return (
-        <>
-          <Text style={styles.sectionTitle}>Due Date</Text>
+        ) : (
           <Text style={styles.detailText}>{diffHours} hour{diffHours !== 1 ? 's' : ''} left</Text>
-        </>
-      );
-    }
-  } else if (now.toDateString() === startDate.toDateString()) {
+        )}
+      </>
+    );
+  } else if (now <= endOfStartDate) {
     return (
       <>
         <Text style={styles.sectionTitle}>Due Date</Text>

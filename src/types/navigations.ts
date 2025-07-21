@@ -12,7 +12,6 @@ export type RootStackParamList = {
   BlockedUsers: undefined;
 };
 
-
 export type AuthStackParamList = {
   Intro: undefined;
   SplashTransition: undefined;
