@@ -4,13 +4,14 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
+  //Image,
   Animated,
   TouchableWithoutFeedback,
   Alert,
   Modal,
   TextInput,
-  Share
+  Share,
+  ScrollView
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 // import { Event } from '../redux/slices/eventSlice';
@@ -20,6 +21,7 @@ import { RootStackParamList } from '../types/navigations';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { fetchEvents, likeEvent, addComment, Event } from '../redux/slices/eventSlice';
+import ImageGrid from '../components/ImageGrid';
 type NavigationProp = StackNavigationProp<RootStackParamList, 'EventDetailScreen'>;
 
 type EventCardProps = {
@@ -63,14 +65,7 @@ const EventCard = ({
   const heartAnimation = new Animated.Value(0);
   const isLong = event.description && event.description.length > 100;
   const navigation = useNavigation<NavigationProp>();
-  // const handleDoubleTap = () => {
-  //   const now = Date.now();
-  //   if (lastTap && now - lastTap < DOUBLE_TAP_DELAY) {
-  //     onLike && onLike(event.id);
-  //     triggerHeartAnimation();
-  //   }
-  //   setLastTap(now);
-  // };
+
 
   const handleDoubleTap = (eventId: string) => {
       const now = Date.now();
@@ -122,7 +117,7 @@ const EventCard = ({
       }));
     };
 
-  const [localLikes, setLocalLikes] = useState(event.likes);
+  const [localLikes, setLocalLikes] = useState(event.noOfLikes);
   const [localIsLiked, setLocalIsLiked] = useState(event.isLiked);
 
   const handleLikeEvent = async (eventId: string) => {
@@ -139,7 +134,7 @@ const EventCard = ({
       setCommentModalVisible(true);
   };
   
-  const [localComments, setLocalComments] = useState(event.comments);
+  const [localComments, setLocalComments] = useState(event.noOfComments);
   const handleCommentSubmit = async () => {
     if (!commentText.trim()) {
       Alert.alert('Error', 'Please enter a comment');
@@ -147,7 +142,7 @@ const EventCard = ({
     }
     try {
       await dispatch(addComment({
-        eventId: event.id,
+        eventId: event.eventId,
         comment: commentText.trim()
       })).unwrap();
       setLocalComments((prev) => prev + 1);
@@ -166,7 +161,7 @@ const EventCard = ({
   
     const handleShareEvent = async (event: Event) => {
       try {
-        const shareMessage = `🎉 Check out this event: ${event.title}\n\n📝 ${event.description}\n\n📅 Date: ${event.dateTime.start} - ${event.dateTime.end}\n💰 Price: ${event.price}\n👨‍💼 Organizer: ${event.organizer}\n\nJoin us for an amazing experience!`;
+        const shareMessage = `🎉 Check out this event: ${event.title}\n\n📝 ${event.description}\n\n📅 Date: ${event.dateTime.start} - ${event.dateTime.end}\n💰 Price: ${event.price}\n👨‍💼 Organizer: ${event.hostName}\n\nJoin us for an amazing experience!`;
 
         const result = await Share.share({
           message: shareMessage,
@@ -201,76 +196,19 @@ const EventCard = ({
     ]).start(() => setShowHeart(false));
   };
 
-  const renderImageGrid = (images: string[]) => {
-    if (!images || images.length === 0) {
-      return (
-        <Image
-          source={require('../../assets/EventraLogo.png')}
-          style={styles.eventImage}
-          resizeMode="cover"
-        />
-      );
-    }
-    if (images.length === 1) {
-      return (
-        <Image
-          source={{ uri: images[0] }}
-          style={styles.eventImage}
-          resizeMode="cover"
-          defaultSource={require('../../assets/EventraLogo.png')}
-        />
-      );
-    }
-    if (images.length === 2) {
-      return (
-        <View style={styles.imageGrid}>
-          <Image source={{ uri: images[0] }} style={styles.imageGridHalf} resizeMode="cover" />
-          <Image source={{ uri: images[1] }} style={styles.imageGridHalf} resizeMode="cover" />
-        </View>
-      );
-    }
-    if (images.length === 3) {
-      return (
-        <View style={styles.imageGrid}>
-          <Image source={{ uri: images[0] }} style={styles.imageGridHalf} resizeMode="cover" />
-          <View style={styles.imageGridColumn}>
-            <Image source={{ uri: images[1] }} style={styles.imageGridQuarter} resizeMode="cover" />
-            <Image source={{ uri: images[2] }} style={styles.imageGridQuarter} resizeMode="cover" />
-          </View>
-        </View>
-      );
-    }
-    return (
-      <View style={styles.imageGrid}>
-        <Image source={{ uri: images[0] }} style={styles.imageGridHalf} resizeMode="cover" />
-        <View style={styles.imageGridColumn}>
-          <Image source={{ uri: images[1] }} style={styles.imageGridQuarter} resizeMode="cover" />
-          <View style={styles.imageGridQuarterContainer}>
-            <Image source={{ uri: images[2] }} style={styles.imageGridQuarter} resizeMode="cover" />
-            {images.length > 3 && (
-              <View style={styles.moreImagesOverlay}>
-                <Text style={styles.moreImagesText}>+{images.length - 3}</Text>
-              </View>
-            )}
-          </View>
-        </View>
-      </View>
-    );
-  };
-
   return (
     <>
-      <TouchableWithoutFeedback onPress={handleDoubleTap.bind(null, event.id)}>
+      <TouchableWithoutFeedback onPress={handleDoubleTap.bind(null, event.eventId)}>
         <View style={styles.eventCard}>
           <View style={styles.eventHeader}>
-            <Text style={styles.organizerName}>{event.organizer}</Text>
-            <View style={styles.categoryPrice}>
-              <Text style={styles.categoryText}>{event.category}</Text>
+            <Text style={styles.organizerName}>{event.hostName}</Text>
+            <View style={styles.categoryInfoPrice}>
+              <Text style={styles.categoryInfoText}>{event.categoryInfo.name}</Text>
               <Text style={styles.priceText}> · {event.price}</Text>
             </View>
           </View>
           <View style={styles.imageContainer}>
-            {renderImageGrid(event.images || [event.image])}
+            <ImageGrid imageUrl={event.imageUrl || [event.imageUrl]} />
             {showHeart && (
               <Animated.View
                 style={[
@@ -311,7 +249,7 @@ const EventCard = ({
                 <View style={styles.socialActions}>
                   <TouchableOpacity 
                     style={styles.actionButton}
-                    onPress={() => handleLikeEvent(event.id)}
+                    onPress={() => handleLikeEvent(event.eventId)}
                   >
                     <Icon 
                       name={localIsLiked ? "heart" : "heart-outline"} 
@@ -354,10 +292,25 @@ const EventCard = ({
         <View style={styles.modalOverlay}>
           <View style={styles.commentModalContainer}>
             <View style={styles.commentModalHeader}>
-              <Text style={styles.commentModalTitle}>Add Comment</Text>
+              <Text style={styles.commentModalTitle}>Comments</Text>
               <TouchableOpacity onPress={handleCommentCancel}>
                 <Icon name="close" size={24} color="#666" />
               </TouchableOpacity>
+            </View>
+            {/* Show all comments */}
+            <View style={{ maxHeight: 180, marginBottom: 10 }}>
+              {event.comments && event.comments.length > 0 ? (
+                <ScrollView>
+                  {event.comments.map((c, idx) => (
+                    <View key={idx} style={{ marginBottom: 10, backgroundColor: '#f7f7f7', borderRadius: 8, padding: 8 }}>
+                      <Text style={{ fontWeight: 'bold', color: '#2788ff' }}>{c.userName}</Text>
+                      <Text style={{ color: '#222' }}>{c.message}</Text>
+                    </View>
+                  ))}
+                </ScrollView>
+              ) : (
+                <Text style={{ color: '#888', marginBottom: 10 }}>No comments yet.</Text>
+              )}
             </View>
             <TextInput
               style={styles.commentInput}
@@ -421,11 +374,11 @@ const styles = StyleSheet.create({
     color: '#444',
     fontWeight: '500',
   },
-  categoryPrice: {
+  categoryInfoPrice: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  categoryText: {
+  categoryInfoText: {
     fontSize: 14,
     color: '#555',
   },

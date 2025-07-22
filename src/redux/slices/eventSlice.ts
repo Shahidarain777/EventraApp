@@ -1,26 +1,29 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../api/axios';
-import store from '../store';
 
 export interface Event {
   id: string;
+  eventId: string;
   title: string;
   description: string;
   price: string;
-  image: string; // Keep for backward compatibility
-  images?: string[]; // New field for multiple images
-  organizer: string;
+  imageUrl: string[];
+  hostName: string;
   dateTime: {
     start: string;
     end: string;
   };
-  likes: number;
-  comments: number;
-  category: string;
+  noOfLikes: number;
+  comments: { userName: string; message: string }[];
+  noOfComments: number;
+  categoryInfo: {
+    name: string;
+    status: string;
+  };
   isLiked?: boolean;
   visibility?: string;
   approvalRequired?: string;
-  capacity?: number | string;
+  maxAttendees?: number | string;
   location?: {
     city?: string;
     state?: string;
@@ -49,110 +52,10 @@ const initialState: EventState = {
   likingEventId: null,
 };
 
-export const mockEvents: Event[] = [
-  {
-    id: '1',
-    title: 'Summer Tech Conference 2024',
-    description: 'Join us for an evening of tech talks and networking. Explore the latest trends in AI and web development.',
-    price: '$99',
-    image: 'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?ixlib=rb-4.0.3',
-    images: [
-      'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?ixlib=rb-4.0.3',
-      'https://images.unsplash.com/photo-1511578314322-379afb476865?ixlib=rb-4.0.3',
-      'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3'
-    ],
-    organizer: 'Asad Raza',
-    dateTime: {
-      start: '2024-07-15T09:00:00Z',
-      end: '2024-07-15T17:00:00Z'
-    },
-    likes: 124,
-    comments: 23,
-    category: 'Conference',
-    isLiked: false
-  },
-  {
-    id: '2',
-    title: 'Business Networking Event',
-    description: 'Connect with like-minded professionals and expand your business network.',
-    price: 'Free',
-    image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?ixlib=rb-4.0.3',
-    images: [
-      'https://images.unsplash.com/photo-1511578314322-379afb476865?ixlib=rb-4.0.3',
-      'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3'
-    ],
-    organizer: 'Sarah Johnson',
-    dateTime: {
-      start: '2024-07-15T09:00:00Z',
-      end: '2024-07-15T17:00:00Z'
-    },
-    likes: 45,
-    comments: 12,
-    category: 'Business',
-    isLiked: false
-  },
-  {
-    id: '3',
-    title: 'Art Gallery Opening',
-    description: 'Discover amazing artwork from local artists at this exclusive gallery opening.',
-    price: '$25',
-    image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3',
-    images: [
-      'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3'
-    ],
-    organizer: 'Michael Chen',
-    dateTime: {
-      start: '2024-07-15T09:00:00Z',
-      end: '2024-07-15T17:00:00Z'
-    },
-    likes: 78,
-    comments: 8,
-    category: 'Arts',
-    isLiked: false
-  },
-  {
-    id: '4',
-    title: 'Food Festival Downtown',
-    description: 'Taste delicious food from around the world at our annual food festival.',
-    price: '$15',
-    image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?ixlib=rb-4.0.3',
-    images: [
-      'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?ixlib=rb-4.0.3',
-      'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?ixlib=rb-4.0.3',
-      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-4.0.3',
-      'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?ixlib=rb-4.0.3'
-    ],
-    organizer: 'Food Lovers Inc',
-    dateTime: {
-      start: '2024-07-15T09:00:00Z',
-      end: '2024-07-15T17:00:00Z'
-    },
-    likes: 156,
-    comments: 34,
-    category: 'Food',
-    isLiked: false
-  }
-];
-
-// 🔧 API Service Functions
-const likeEventAPI = async (eventId: string | number) => {
-  const token = store.getState().auth.token;
-  console.log('Token used for like request:', token);
-  await api.post(
-    '/event_likes',
-    { eventId: Number(eventId) },
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-};
-const getLikeCountAPI = async (eventId: string | number) => {
-  const token = store.getState().auth.token;
-  const res = await api.get(`/event_likes?eventId=${Number(eventId)}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return res.data.count || 0;
+const likeEventAPI = async (eventId: string) => {
+  await api.post('/event_likes', { eventId });
 };
 
-// 🔄 Thunks
 export const fetchEvents = createAsyncThunk<
   Event[],
   void,
@@ -160,160 +63,46 @@ export const fetchEvents = createAsyncThunk<
 >('events/fetchEvents', async (_, { rejectWithValue }) => {
   try {
     const response = await api.get('/events');
-    console.log('API Response:', response.data);
-
     if (response.data?.events?.length > 0) {
-      return response.data.events.map((event: any) => {
-        let organizerName = 'Event Host';
-        if (event.hostName) organizerName = event.hostName;
-        else if (event.host?.name) organizerName = event.host.name;
-        else if (event.organizer) organizerName = event.organizer;
-        else if (event.hostDetails?.name) organizerName = event.hostDetails.name;
-        else if (event.createdBy?.name) organizerName = event.createdBy.name;
-
-        // Always provide a dateTime object
-        const dateTime = event.dateTime && event.dateTime.start && event.dateTime.end
-          ? event.dateTime
-          : {
-              start: event.date || undefined,
-              end: event.endDate || undefined,
-            };
-
-        // Location mapping
-        let location = undefined;
-        if (event.location && typeof event.location === 'object') {
-          location = {
-            city: event.location.city || event.location.town || event.location.village || '',
-            state: event.location.state || '',
-            country: event.location.country || '',
-            address: event.location.address || event.location.street || event.location.fullAddress || '',
-            latitude: event.location.latitude,
-            longitude: event.location.longitude,
-          };
-        } else if (event.venue && typeof event.venue === 'object') {
-          location = {
-            city: event.venue.city || '',
-            state: event.venue.state || '',
-            country: event.venue.country || '',
-            address: event.venue.address || '',
-            latitude: event.venue.latitude,
-            longitude: event.venue.longitude,
-          };
-        } else if (event.venueInfo && typeof event.venueInfo === 'object') {
-          location = {
-            city: event.venueInfo.city || '',
-            state: event.venueInfo.state || '',
-            country: event.venueInfo.country || '',
-            address: event.venueInfo.address || '',
-            latitude: event.venueInfo.latitude,
-            longitude: event.venueInfo.longitude,
-          };
-        } else if (event.location && typeof event.location === 'string') {
-          location = { address: event.location };
-        }
-
-        return {
-          id: event._id || event.id,
-          title: event.title,
-          description: event.description,
-          price: event.isPaid ? `$${event.price}` : 'Free',
-          image: Array.isArray(event.imageUrl)
-            ? event.imageUrl[0]
-            : event.imageUrl || 'https://via.placeholder.com/300x200?text=Event',
-          images: Array.isArray(event.imageUrl) 
-            ? event.imageUrl 
-            : event.imageUrl 
-              ? [event.imageUrl] 
-              : ['https://via.placeholder.com/300x200?text=Event'],
-          organizer: organizerName,
-          date: event.dateTime?.start
-            ? new Date(event.dateTime.start).toLocaleDateString()
-            : 'TBD',
-          endDate: event.dateTime?.end || event.endDate,
-          dateTime,
-          likes: event.likes || 0,
-          comments: event.comments || 0,
-          category: event.categoryInfo?.name || 'Event',
-          isLiked: event.isLiked || false,
-          capacity:
-            event.capacity !== undefined && event.capacity !== null && event.capacity !== '' && event.capacity !== 'N/A' && !isNaN(Number(event.capacity))
-              ? Number(event.capacity)
-              : event.maxAttendees !== undefined && event.maxAttendees !== null && event.maxAttendees !== '' && event.maxAttendees !== 'N/A' && !isNaN(Number(event.maxAttendees))
-                ? Number(event.maxAttendees)
-                : undefined,
-          location,
-        };
-      });
+      return response.data.events;
     }
-
-    console.log('No events returned from API, using mock data');
-    return mockEvents;
+    return [];
   } catch (error: any) {
-    console.error('Error fetching events:', error);
-    return mockEvents;
-  }
-});
-
-export const fetchEventById = createAsyncThunk<
-  Event,
-  string,
-  { rejectValue: string }
->('events/fetchEventById', async (eventId, { rejectWithValue }) => {
-  try {
-    const response = await api.get(`/events/${eventId}`);
-    const event = response.data;
-    // Always provide a dateTime object
-    const dateTime = event.dateTime && event.dateTime.start && event.dateTime.end
-      ? event.dateTime
-      : {
-          start: event.date || undefined,
-          end: event.endDate || undefined,
-        };
-    return {
-      ...event,
-      endDate: event.dateTime?.end || event.endDate,
-      dateTime,
-    };
-  } catch (error: any) {
-    const message = error.response?.data?.message || error.message || 'Failed to fetch event';
-    return rejectWithValue(message);
+    return rejectWithValue('Failed to fetch events');
   }
 });
 
 export const likeEvent = createAsyncThunk<
-  { eventId: string; likes: number; isLiked: boolean },
+  { eventId: string; noOfLikes: number; isLiked: boolean },
   string,
   { rejectValue: string; state: { events: EventState } }
->('events/likeEvent', async (eventId, { rejectWithValue, getState }) => {
+>('events/likeEvent', async (eventId, { getState, rejectWithValue }) => {
   try {
     const events = getState().events.events;
-    const event = events.find(e => e.id === eventId);
+    const event = events.find(e => e.eventId === eventId);
     const currentLikeStatus = event?.isLiked || false;
 
     if (currentLikeStatus) {
-      console.log('Event already liked, not sending request');
       return {
         eventId,
-        likes: event?.likes || 0,
+        noOfLikes: event?.noOfLikes ?? 0,
         isLiked: true
       };
     }
 
     await likeEventAPI(eventId);
-    const updatedLikes = await getLikeCountAPI(eventId);
 
     return {
       eventId,
-      likes: updatedLikes,
+      noOfLikes: (event?.noOfLikes ?? 0) + 1,
       isLiked: true
     };
-  } catch (error: any) {
-    console.error('Error in likeEvent thunk:', error);
+  } catch {
     const events = getState().events.events;
-    const event = events.find(e => e.id === eventId);
+    const event = events.find(e => e.eventId === eventId);
     return {
       eventId,
-      likes: (event?.likes || 0) + 1,
+      noOfLikes: (event?.noOfLikes ?? 0) + 1,
       isLiked: true
     };
   }
@@ -327,30 +116,24 @@ export const createEvent = createAsyncThunk<
   try {
     const response = await api.post('/events', eventData);
     return response.data;
-  } catch (error: any) {
-    const message = error.response?.data?.message || error.message || 'Failed to create event';
-    return rejectWithValue(message);
+  } catch {
+    return rejectWithValue('Failed to create event');
   }
 });
 
 export const addComment = createAsyncThunk<
-  { eventId: string; comment: string },
-  { eventId: string; comment: string },
+  { eventId: string | undefined; comment: string },
+  { eventId: string | undefined; comment: string },
   { rejectValue: string }
 >('events/addComment', async ({ eventId, comment }, { rejectWithValue }) => {
   try {
-    const response = await api.post('/event_comments', {
-      eventId,
-      comment
-    });
-    return { eventId, comment };
-  } catch (error: any) {
-    const message = error.response?.data?.message || error.message || 'Failed to add comment';
-    return rejectWithValue(message);
+    const response = await api.post('/event_comments', { eventId, comment });
+    return response.data;
+  } catch {
+    return rejectWithValue('Failed to add comment');
   }
 });
 
-// 🔥 Slice
 const eventSlice = createSlice({
   name: 'events',
   initialState,
@@ -375,22 +158,8 @@ const eventSlice = createSlice({
       .addCase(fetchEvents.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-        state.events = mockEvents;
+        state.events = [];
       })
-
-      .addCase(fetchEventById.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchEventById.fulfilled, (state, action) => {
-        state.loading = false;
-        state.event = action.payload;
-      })
-      .addCase(fetchEventById.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      })
-
       .addCase(likeEvent.pending, (state, action) => {
         state.likeStatus = 'loading';
         state.likingEventId = action.meta.arg;
@@ -398,15 +167,14 @@ const eventSlice = createSlice({
       .addCase(likeEvent.fulfilled, (state, action) => {
         state.likeStatus = 'succeeded';
         state.likingEventId = null;
-
-        const { eventId, likes, isLiked } = action.payload;
+        const { eventId, noOfLikes, isLiked } = action.payload;
         const event = state.events.find(event => event.id === eventId);
         if (event) {
-          event.likes = likes;
+          event.noOfLikes = noOfLikes;
           event.isLiked = isLiked;
         }
         if (state.event && state.event.id === eventId) {
-          state.event.likes = likes;
+          state.event.noOfLikes = noOfLikes;
           state.event.isLiked = isLiked;
         }
       })
@@ -414,7 +182,6 @@ const eventSlice = createSlice({
         state.likeStatus = 'failed';
         state.likingEventId = null;
       })
-
       .addCase(createEvent.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -427,18 +194,14 @@ const eventSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-
-      .addCase(addComment.pending, (state) => {
-        // Optional: Add loading state for comments if needed
-      })
       .addCase(addComment.fulfilled, (state, action) => {
         const { eventId } = action.payload;
         const event = state.events.find(event => event.id === eventId);
         if (event) {
-          event.comments += 1;
+          event.noOfComments += 1;
         }
         if (state.event && state.event.id === eventId) {
-          state.event.comments += 1;
+          state.event.noOfComments += 1;
         }
       })
       .addCase(addComment.rejected, (state, action) => {
@@ -447,6 +210,5 @@ const eventSlice = createSlice({
   },
 });
 
-// ✅ Exports
 export const { clearEventError, clearCurrentEvent } = eventSlice.actions;
 export default eventSlice.reducer;

@@ -30,6 +30,7 @@ import MapView, { Marker, MapPressEvent } from 'react-native-maps';
 import LocationPickerModal from '../components/LocationPickerModal';
 
 import axios from '../api/axios'; // If not already imported
+import api from '../api/axios';
 
 
 type User = { id: string; username: string };
@@ -156,75 +157,72 @@ const CreateEventScreen = () => {
     if (isPaid && !joiningFee) return setError('Joining fee required for paid event');
     setUploading(true);
 
-    // Use FormData for image upload
-    const formData = new FormData();
-    formData.append('title', title);
-    formData.append('description', description);
-    formData.append('price', isPaid ? joiningFee : 'Free');
-    formData.append('organizer', ''); // Set organizer if needed
-    formData.append('category', showOtherCategory ? otherCategory : category);
-    formData.append('isLiked', 'false');
-    formData.append('country', country);
-    formData.append('state', state);
-    formData.append('city', city);
-    formData.append('latitude', latitude);
-    formData.append('longitude', longitude);
-    formData.append('visibility', visibility);
-    formData.append('approvalRequired', approvalRequired);
-    formData.append('capacity', capacity);
-    formData.append('subLeader', subLeader);
-    formData.append('financeManager', financeManager);
-    // Add dateTime as a nested object (stringified)
-    formData.append('dateTime', JSON.stringify({
-      start: date.start.toISOString(),
-      end: date.end.toISOString(),
-    }));
-    // For backward compatibility, also include flat fields
-    formData.append('date', date.start.toISOString());
-    formData.append('endDate', date.end.toISOString());
-    if (images[0]) {
-      formData.append('image', {
-        uri: images[0],
-        type: 'image/jpeg',
-        name: 'event.jpg',
-      });
-    }
 
-    try {
-      // Replace '/events' with your actual backend endpoint
-      const res = await axios.post('/events', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      setUploading(false);
-      if (res.status === 201 || res.status === 200) {
-        // If you want to immediately show the event detail, pass the event object with dateTime
-        if (res.data && res.data._id) {
-          // Use navigation.navigate with the correct params object for type safety
-          // @ts-ignore
-          navigation.navigate({
-            name: 'EventDetailScreen',
-            params: {
-              event: {
-                ...res.data,
-                dateTime: {
-                  start: date.start.toISOString(),
-                  end: date.end.toISOString(),
-                },
-              },
-            },
-          });
-        } else {
-          navigation.goBack();
-        }
-      } else {
-        setError('Failed to create event');
-      }
-    } catch (err: any) {
-      setUploading(false);
-      setError(err.message || 'Failed to create event');
-    }
+
+
+    // ...body is now built dynamically below...
+// let body={
+// "title": "Full-Stack Coding Bootcamp",
+// "description": "An intensive coding bootcamp covering React, Node.js, and MongoDB.",
+// "location": {
+// "city": "Karachi",
+// "state": "Sindh",
+// "country": "Pakistan",
+// "address": "Tech Hub, Shahrah-e-Faisal",
+// "latitude": 24.8607,
+// "longitude": 67.0011
+// },
+// "categoryId": "3",
+// "dateTime": {
+// "start": "2025-08-01T09:00:00Z",
+// "end": "2025-08-05T17:00:00Z"
+// },
+// "isPaid": true,
+// "price": 15000,
+// "maxAttendees": 50,
+// "isLimited": true,
+// "imageUrl": [
+// "https://unsplash.com/photos/person-typing-on-laptop-in-coding-environment"
+// ],
+// "approvalRequired": "yes"
+// }
+
+    // setError('');
+    // if (!title.trim()) return setError('Event title is required');
+    // if (!category.trim() && !otherCategory.trim()) return setError('Category is required');
+    // if (!description.trim()) return setError('Description is required');
+    // if (!date.start || !date.end) return setError('Start and End date required');
+    // if (isPaid && !joiningFee) return setError('Joining fee required for paid event');
+    // setUploading(true);
+
+    // Build event body from user input
+    const body = {
+      title: title.trim(),
+      description: description.trim(),
+      "location": {
+      "city": "Karachi",
+      "state": "Sindh",
+      "country": "Pakistan",
+      "address": "Tech Hub, Shahrah-e-Faisal",
+      "latitude": 24.8607,
+      "longitude": 67.0011
+      },
+      categoryId: category || otherCategory,
+      dateTime: {
+        start: date.start ? date.start.toISOString() : undefined,
+        end: date.end ? date.end.toISOString() : undefined,
+      },
+      isPaid: isPaid,
+      price: isPaid ? parseFloat(joiningFee) : 0,
+      maxAttendees: capacity ? parseInt(capacity) : undefined,
+      isLimited: !!capacity,
+      imageUrl: images.length > 0 ? images : [],
+      approvalRequired: approvalRequired,
+      //subLeader: subLeader.trim(),
+      //financeManager: financeManager.trim(),
+      //visibility: visibility,
+      //currency: currency,
+    };
   };
  
   return (
@@ -239,11 +237,17 @@ const CreateEventScreen = () => {
       {/* Card style for event images upload at top */}
       <View style={styles.imageCard}>
         <Text style={styles.eventImagesLabel}>Event Images</Text>
-        <ImageUploadCard
-          images={images}
-          onAdd={handleImagePick}
-          onRemove={idx => setImages(prev => prev.filter((_, i) => i !== idx))}
-        />
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.imagePreviewRow}
+        >
+          <ImageUploadCard
+            images={images}
+            onAdd={handleImagePick}
+            onRemove={idx => setImages(prev => prev.filter((_, i) => i !== idx))}
+          />
+        </ScrollView>
       </View>
 
       <Text style={styles.label}>Event Title</Text>
@@ -254,45 +258,6 @@ const CreateEventScreen = () => {
         value={title}
         onChangeText={setTitle}
       />
-
-      {/* <Text style={styles.label}>Category</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Category"
-        placeholderTextColor="#888"
-        value={showOtherCategory ? otherCategory : category}
-        onChangeText={text => {
-          if (showOtherCategory) {
-            setOtherCategory(text);
-          } else {
-            handleCategoryChange(text);
-          }
-        }}
-      />
-      <View style={styles.categoryListRow}>
-        {categoriesPreset.map((cat) => (
-          <TouchableOpacity
-            key={cat}
-            style={[styles.categoryChip, (category === cat && !showOtherCategory) && styles.categoryChipSelected]}
-            onPress={() => {
-              setShowOtherCategory(false);
-              handleCategoryChange(cat);
-            }}
-          >
-            <Text style={styles.categoryChipText}>{cat}</Text>
-          </TouchableOpacity>
-        ))}
-        <TouchableOpacity
-          style={[styles.categoryChip, showOtherCategory && styles.categoryChipSelected]}
-          onPress={() => {
-            setShowOtherCategory(true);
-            setCategory('');
-            setOtherCategory('');
-          }}
-        >
-          <Text style={styles.categoryChipText}>Other</Text>
-        </TouchableOpacity>
-      </View> */}
 <Text style={styles.label}>Category</Text>
 <RNPickerSelect
   placeholder={{
@@ -346,37 +311,23 @@ const CreateEventScreen = () => {
         numberOfLines={3}
       />
 
-      {/* User search boxes for Sub Leader and Finance Manager */}
-      <View>
-        <UserSearchBox
-          label="Sub Leader"
-          value={subLeader}
-          setValue={setSubLeader}
-          type="subLeader"
-          userSearchType={userSearchType}
-          setUserSearchType={setUserSearchType}
-          showUserDropdown={showUserDropdown}
-          setShowUserDropdown={setShowUserDropdown}
-          userQuery={userQuery}
-          setUserQuery={setUserQuery}
-          userResults={userResults}
-          styles={styles}
-        />
-        <UserSearchBox
-          label="Finance Manager"
-          value={financeManager}
-          setValue={setFinanceManager}
-          type="financeManager"
-          userSearchType={userSearchType}
-          setUserSearchType={setUserSearchType}
-          showUserDropdown={showUserDropdown}
-          setShowUserDropdown={setShowUserDropdown}
-          userQuery={userQuery}
-          setUserQuery={setUserQuery}
-          userResults={userResults}
-          styles={styles}
-        />
-      </View>
+      {/* Sub Leader and Finance Manager as simple input boxes */}
+      <Text style={styles.label}>Sub Leader</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Sub Leader"
+        placeholderTextColor="#888"
+        value={subLeader}
+        onChangeText={setSubLeader}
+      />
+      <Text style={styles.label}>Finance Manager</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Finance Manager"
+        placeholderTextColor="#888"
+        value={financeManager}
+        onChangeText={setFinanceManager}
+      />
 
       <Text style={styles.label}>Event Location</Text>
       <TouchableOpacity
@@ -588,10 +539,12 @@ const styles = StyleSheet.create({
   },
   imagePreviewRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
-    flexWrap: 'wrap',
+    minHeight: 80,
+    maxHeight: 90,
+    // No flexWrap, keep in one row
+    paddingRight: 12,
   },
   imagePreviewBox: {
     position: 'relative',

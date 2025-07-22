@@ -33,8 +33,8 @@ const SearchScreen = () => {
     const filtered = events.filter(event => {
       return (
         (event.title && event.title.toLowerCase().includes(q)) ||
-        (event.organizer && event.organizer.toLowerCase().includes(q)) ||
-        (event.category && event.category.toLowerCase().includes(q))
+        (event.hostName && event.hostName.toLowerCase().includes(q)) ||
+        (event.categoryInfo.name && event.categoryInfo.name.toLowerCase().includes(q))
       );
     });
     setResults(filtered);

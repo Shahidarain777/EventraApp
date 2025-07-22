@@ -26,9 +26,9 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
         <Text style={styles.sectionTitle}>Fee</Text>
         <Text style={styles.detailText}>{event.price && event.price !== 'Free' ? `${event.price}` : 'Free'}</Text>
         <Text style={styles.sectionTitle}>Host</Text>
-        <Text style={styles.detailText}>{event.organizer || 'N/A'}</Text>
+        <Text style={styles.detailText}>{event.hostName || 'N/A'}</Text>
         <Text style={styles.sectionTitle}>Type</Text>
-        <Text style={styles.detailText}>{event.category || 'N/A'}</Text>
+        <Text style={styles.detailText}>{event.categoryInfo.name || 'N/A'}</Text>
 
         {/* New fields below existing info */}
         <Text style={styles.sectionTitle}>Approval Required</Text>
@@ -37,7 +37,7 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
         <Text style={styles.detailText}>{event.visibility === 'private' ? 'Private' : 'Public'}</Text>
         <Text style={styles.sectionTitle}>Capacity</Text>
         <Text style={styles.detailText}>
-          {event.capacity && !isNaN(Number(event.capacity)) ? Number(event.capacity) : 'N/A'}
+          {event.maxAttendees && !isNaN(Number(event.maxAttendees)) ? Number(event.maxAttendees) : 'N/A'}
         </Text>
 
         {/* Days/Hours left/status logic using reusable component */}
