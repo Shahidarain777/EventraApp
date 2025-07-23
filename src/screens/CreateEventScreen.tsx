@@ -16,6 +16,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../redux/store';
 import { createEvent } from '../redux/slices/eventSlice';
+import { fetchCategories } from '../redux/slices/categorySlice';
+import { addCategory } from '../redux/slices/categorySlice';
 import { launchImageLibrary } from 'react-native-image-picker';
 import UserSearchBox from '../components/UserSearchBox';
 import DatePickerRow from '../components/DatePickerRow';
@@ -38,16 +40,7 @@ type User = { id: string; username: string };
 
 
 
-export const categoriesPreset = [
-  'Technology',
-  'Health & Wellness',
-  'Education',
-  'Sports & Fitness',
-  'Business & Networking',
-  'Arts & Culture',
-  'Food & Drink',
-  'Music & Entertainment',
-];
+
 
 const CreateEventScreen = () => {
 
@@ -79,10 +72,18 @@ const CreateEventScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
   const eventError = useSelector((state: RootState) => state.events.error);
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('');
+  const [categoryId, setCategoryId] = useState<string | null>(null);
 // Removed unused categoryOptions state
   const [showOtherCategory, setShowOtherCategory] = useState(false);
   const [otherCategory, setOtherCategory] = useState('');
+  // Categories from Redux
+  const { categories, loading: categoriesLoading, error: categoriesError } = useSelector((state: RootState) => state.categories);
+
+  React.useEffect(() => {
+    if (!categories || categories.length === 0) {
+      dispatch(fetchCategories());
+    }
+  }, [dispatch]);
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -106,13 +107,15 @@ const CreateEventScreen = () => {
   const [mapModalVisible, setMapModalVisible] = useState(false);
   const [pickedLocation, setPickedLocation] = useState<{latitude: number, longitude: number} | null>(null);
 
-  const handleCategoryChange = (text: string) => {
-    setCategory(text);
-    if (!categoriesPreset.includes(text) && text.length > 0) {
+
+  const handleCategoryChange = (value: string | null) => {
+    if (value === 'Other') {
       setShowOtherCategory(true);
+      setCategoryId(null);
+      setOtherCategory('');
     } else {
       setShowOtherCategory(false);
-      setOtherCategory('');
+      setCategoryId(value);
     }
   };
 
@@ -151,63 +154,45 @@ const CreateEventScreen = () => {
   const handleSubmit = async () => {
     setError('');
     if (!title.trim()) return setError('Event title is required');
-    if (!category.trim() && !otherCategory.trim()) return setError('Category is required');
+    if (!categoryId && !otherCategory.trim()) return setError('Category is required');
     if (!description.trim()) return setError('Description is required');
     if (!date.start || !date.end) return setError('Start and End date required');
     if (isPaid && !joiningFee) return setError('Joining fee required for paid event');
     setUploading(true);
 
-
-
-
-    // ...body is now built dynamically below...
-// let body={
-// "title": "Full-Stack Coding Bootcamp",
-// "description": "An intensive coding bootcamp covering React, Node.js, and MongoDB.",
-// "location": {
-// "city": "Karachi",
-// "state": "Sindh",
-// "country": "Pakistan",
-// "address": "Tech Hub, Shahrah-e-Faisal",
-// "latitude": 24.8607,
-// "longitude": 67.0011
-// },
-// "categoryId": "3",
-// "dateTime": {
-// "start": "2025-08-01T09:00:00Z",
-// "end": "2025-08-05T17:00:00Z"
-// },
-// "isPaid": true,
-// "price": 15000,
-// "maxAttendees": 50,
-// "isLimited": true,
-// "imageUrl": [
-// "https://unsplash.com/photos/person-typing-on-laptop-in-coding-environment"
-// ],
-// "approvalRequired": "yes"
-// }
-
-    // setError('');
-    // if (!title.trim()) return setError('Event title is required');
-    // if (!category.trim() && !otherCategory.trim()) return setError('Category is required');
-    // if (!description.trim()) return setError('Description is required');
-    // if (!date.start || !date.end) return setError('Start and End date required');
-    // if (isPaid && !joiningFee) return setError('Joining fee required for paid event');
-    // setUploading(true);
+    let finalCategoryId = categoryId;
+    // Alert.alert((finalCategoryId));
+    // If user entered a new category, add it to DB and get its id
+    if (!categoryId && otherCategory.trim()) {
+      try {
+        const result = await dispatch(addCategory({ categoryName: otherCategory.trim() })).unwrap();
+        if (result.categoryId) {
+          finalCategoryId = result.categoryId.toString();
+        } else {
+          setUploading(false);
+          setError('Failed to get new category ID from server');
+          return;
+        }
+      } catch (e) {
+        setUploading(false);
+        setError('Failed to add new category');
+        return;
+      }
+    }
 
     // Build event body from user input
     const body = {
       title: title.trim(),
       description: description.trim(),
-      "location": {
-      "city": "Karachi",
-      "state": "Sindh",
-      "country": "Pakistan",
-      "address": "Tech Hub, Shahrah-e-Faisal",
-      "latitude": 24.8607,
-      "longitude": 67.0011
+      location: {
+        city: "Karachi",
+        state: "Sindh",
+        country: "Pakistan",
+        address: "Tech Hub, Shahrah-e-Faisal",
+        latitude: 24.8607,
+        longitude: 67.0011
       },
-      categoryId: category || otherCategory,
+      categoryId: finalCategoryId,
       dateTime: {
         start: date.start ? date.start.toISOString() : undefined,
         end: date.end ? date.end.toISOString() : undefined,
@@ -223,6 +208,17 @@ const CreateEventScreen = () => {
       //visibility: visibility,
       //currency: currency,
     };
+    // Direct API call for event creation (not using Redux eventslice)
+    try {
+      await api.post('/events', body);
+      setUploading(false);
+      Alert.alert('Success', 'Event created successfully!', [
+        { text: 'OK', onPress: () => navigation.goBack() }
+      ]);
+    } catch (e: any) {
+      setUploading(false);
+      setError(e?.response?.data?.message || 'Failed to create event');
+    }
   };
  
   return (
@@ -258,46 +254,38 @@ const CreateEventScreen = () => {
         value={title}
         onChangeText={setTitle}
       />
-<Text style={styles.label}>Category</Text>
-<RNPickerSelect
-  placeholder={{
-    label: 'Select a category...',
-    value: null,
-    color: '#9EA0A4',
-  }}
-  style={{
-    inputIOS: styles.input, // iOS styling
-    inputAndroid: styles.input, // Android styling
-    placeholder: {
-      color: '#888',
-    },
-  }}
-  onValueChange={(value) => {
-    if (value === 'Other') {
-      setShowOtherCategory(true);
-      setCategory('');
-      setOtherCategory('');
-    } else {
-      setShowOtherCategory(false);
-      setCategory(value || '');
-    }
-  }}
-  value={showOtherCategory ? 'Other' : category}
-  items={[
-    ...categoriesPreset.map(cat => ({ label: cat, value: cat })),
-    { label: 'Other', value: 'Other' },
-  ]}
-/>
-
-{showOtherCategory && (
-  <TextInput
-    style={styles.input}
-    placeholder="Other Category"
-    placeholderTextColor="#888"
-    value={otherCategory}
-    onChangeText={setOtherCategory}
-  />
-)}
+      <Text style={styles.label}>Category</Text>
+      <RNPickerSelect
+        placeholder={{
+          label: categoriesLoading ? 'Loading categories...' : 'Select a category...',
+          value: null,
+          color: '#9EA0A4',
+        }}
+        style={{
+          inputIOS: styles.input,
+          inputAndroid: styles.input,
+          placeholder: { color: '#888' },
+        }}
+        onValueChange={handleCategoryChange}
+        value={showOtherCategory ? 'Other' : categoryId}
+        items={
+          [
+            ...(categories || [])
+              .filter(cat => cat.status === 'approve')
+              .map(cat => ({ label: cat.categoryName, value: cat.categoryId.toString() })),
+            { label: 'Other', value: 'Other' },
+          ]
+        }
+      />
+      {showOtherCategory && (
+        <TextInput
+          style={styles.input}
+          placeholder="Other Category"
+          placeholderTextColor="#888"
+          value={otherCategory}
+          onChangeText={setOtherCategory}
+        />
+      )}
 
 
       <Text style={styles.label}>Description</Text>
