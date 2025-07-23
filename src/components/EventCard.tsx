@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  //Image,
   Animated,
   TouchableWithoutFeedback,
   Alert,
@@ -14,127 +13,71 @@ import {
   ScrollView
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-// import { Event } from '../redux/slices/eventSlice';
 import { RootState, AppDispatch } from '../redux/store';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types/navigations';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { fetchEvents, likeEvent, addComment, Event } from '../redux/slices/eventSlice';
+import { likeEvent, addComment, Event } from '../redux/slices/eventSlice';
 import ImageGrid from '../components/ImageGrid';
-type NavigationProp = StackNavigationProp<RootStackParamList, 'EventDetailScreen'>;
 
+type NavigationProp = StackNavigationProp<RootStackParamList, 'EventDetailScreen'>;
 type EventCardProps = {
-  
   event: Event;
-  //onJoin: (id: string) => void;
   showJoin?: boolean;
-  //onLike: (id: string) => void;
-  //onComment: (id: string) => void;
-  //onShare?: (event: Event) => void;
   showActions?: boolean;
 };
 
-const DOUBLE_TAP_DELAY = 300;
-
 const EventCard = ({
-  
   event,
-  //onJoin,
   showJoin = true,
-  //onLike,
-  //onComment,
- // onShare,
   showActions = true,
 }: EventCardProps) => {
   const dispatch = useDispatch<AppDispatch>();
-  // State for double tap functionality - track last tap time per event
-  const [lastTapTimes, setLastTapTimes] = useState<{[key: string]: number}>({});
-  const DOUBLE_TAP_DELAY = 300; // milliseconds
-  
-  // State for heart animation
-  const [showHeartAnimation, setShowHeartAnimation] = useState<{[key: string]: boolean}>({});
-  const [heartAnimations, setHeartAnimations] = useState<{[key: string]: Animated.Value}>({});
-  
-  // State for comment modal
   const [commentModalVisible, setCommentModalVisible] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [expanded, setExpanded] = useState(false);
-  const [lastTap, setLastTap] = useState<number | null>(null);
   const [showHeart, setShowHeart] = useState(false);
   const heartAnimation = new Animated.Value(0);
   const isLong = event.description && event.description.length > 100;
   const navigation = useNavigation<NavigationProp>();
 
+  // Get current user id as STRING!
+  const currentUserId = useSelector((state: RootState) => state.auth.user?._id?.toString() || '');
 
-  const handleDoubleTap = (eventId: string) => {
-      const now = Date.now();
-      const lastTap = lastTapTimes[eventId];
-      
-      if (lastTap && (now - lastTap) < DOUBLE_TAP_DELAY) {
-        // Double tap detected
-        handleLikeEvent(eventId);
-        
-        // Trigger heart animation
-        if (!heartAnimations[eventId]) {
-          setHeartAnimations(prev => ({
-            ...prev,
-            [eventId]: new Animated.Value(0)
-          }));
-        }
-        
-        setShowHeartAnimation(prev => ({
-          ...prev,
-          [eventId]: true
-        }));
-        
-        // Animate the heart
-        const animation = heartAnimations[eventId] || new Animated.Value(0);
-        animation.setValue(0);
-        
-        Animated.sequence([
-          Animated.timing(animation, {
-            toValue: 1,
-            duration: 200,
-            useNativeDriver: true,
-          }),
-          Animated.timing(animation, {
-            toValue: 0,
-            duration: 300,
-            useNativeDriver: true,
-          })
-        ]).start(() => {
-          setShowHeartAnimation(prev => ({
-            ...prev,
-            [eventId]: false
-          }));
-        });
-      }
-      
-      setLastTapTimes(prev => ({
-        ...prev,
-        [eventId]: now
-      }));
-    };
+  // DEBUG LOGGING
+  React.useEffect(() => {
+//     Alert.alert('currentUserId:', currentUserId);
+//     Alert.alert(
+//   'Debug Info',
+//   `currentUserId: ${currentUserId}\nlikedBy: ${JSON.stringify(event.likedBy)}`
+// );
+    // console.log(
+    //   'isLiked:',
+    //   Array.isArray(event.likedBy)
+    //     ? event.likedBy.some((u) => u.id?.toString() === currentUserId)
+    //     : false
+    // );
+  }, [event.likedBy, currentUserId]);
 
-  const [localLikes, setLocalLikes] = useState(event.noOfLikes);
-  const [localIsLiked, setLocalIsLiked] = useState(event.isLiked);
+  // Always compute isLiked from event.likedBy and current user id, both as string!
+  const isLiked = Array.isArray(event.likedBy)
+    ? event.likedBy.some((u) => u.id?.toString() === currentUserId)
+    : false;
 
-  const handleLikeEvent = async (eventId: string) => {
+  const handleLikeEvent = async (eventId: string | number) => {
     try {
       await dispatch(likeEvent(eventId)).unwrap();
-      setLocalIsLiked((prev) => !prev);
-      setLocalLikes((prev) => prev + (localIsLiked ? -1 : 1));
+      triggerHeartAnimation();
     } catch (error) {
       Alert.alert('Error', 'Failed to like event.');
     }
   };
 
   const handleCommentPress = () => {
-      setCommentModalVisible(true);
+    setCommentModalVisible(true);
   };
-  
-  const [localComments, setLocalComments] = useState(event.noOfComments);
+
   const handleCommentSubmit = async () => {
     if (!commentText.trim()) {
       Alert.alert('Error', 'Please enter a comment');
@@ -145,7 +88,6 @@ const EventCard = ({
         eventId: event.eventId,
         comment: commentText.trim()
       })).unwrap();
-      setLocalComments((prev) => prev + 1);
       setCommentText('');
       setCommentModalVisible(false);
       Alert.alert('Success', 'Comment added successfully!');
@@ -153,31 +95,30 @@ const EventCard = ({
       Alert.alert('Error', 'Failed to add comment. Please try again.');
     }
   };
-  
-    const handleCommentCancel = () => {
-      setCommentText('');
-      setCommentModalVisible(false);
-    };
-  
-    const handleShareEvent = async (event: Event) => {
-      try {
-        const shareMessage = `🎉 Check out this event: ${event.title}\n\n📝 ${event.description}\n\n📅 Date: ${event.dateTime.start} - ${event.dateTime.end}\n💰 Price: ${event.price}\n👨‍💼 Organizer: ${event.hostName}\n\nJoin us for an amazing experience!`;
 
-        const result = await Share.share({
-          message: shareMessage,
-          title: event.title,
-        });
-  
-        if (result.action === Share.sharedAction) {
-          // Successfully shared
-          console.log('Event shared successfully');
-        }
-      } catch (error) {
-        console.error('Error sharing event:', error);
-        Alert.alert('Error', 'Failed to share event. Please try again.');
+  const handleCommentCancel = () => {
+    setCommentText('');
+    setCommentModalVisible(false);
+  };
+
+  const handleShareEvent = async (event: Event) => {
+    try {
+      const shareMessage = `🎉 Check out this event: ${event.title}\n\n📝 ${event.description}\n\n📅 Date: ${event.dateTime.start} - ${event.dateTime.end}\n💰 Price: ${event.price}\n👨‍💼 Organizer: ${event.hostName}\n\nJoin us for an amazing experience!`;
+
+      const result = await Share.share({
+        message: shareMessage,
+        title: event.title,
+      });
+
+      if (result.action === Share.sharedAction) {
+        // Successfully shared
+        console.log('Event shared successfully');
       }
-    };
-  
+    } catch (error) {
+      console.error('Error sharing event:', error);
+      Alert.alert('Error', 'Failed to share event. Please try again.');
+    }
+  };
 
   const triggerHeartAnimation = () => {
     setShowHeart(true);
@@ -198,7 +139,7 @@ const EventCard = ({
 
   return (
     <>
-      <TouchableWithoutFeedback onPress={handleDoubleTap.bind(null, event.eventId)}>
+      <TouchableWithoutFeedback onPress={() => handleLikeEvent(event.eventId)}>
         <View style={styles.eventCard}>
           <View style={styles.eventHeader}>
             <Text style={styles.organizerName}>{event.hostName}</Text>
@@ -252,18 +193,18 @@ const EventCard = ({
                     onPress={() => handleLikeEvent(event.eventId)}
                   >
                     <Icon 
-                      name={localIsLiked ? "heart" : "heart-outline"} 
+                      name={isLiked ? "heart" : "heart-outline"} 
                       size={22} 
-                      color={localIsLiked ? "#FF4A6D" : "#666"} 
+                      color={isLiked ? "#FF4A6D" : "#666"} 
                     />
-                    <Text style={styles.actionCount}>{localLikes}</Text>
+                    <Text style={styles.actionCount}>{event.noOfLikes}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
                     style={styles.actionButton}
                     onPress={handleCommentPress}
                   >
                     <Icon name="comment-text-outline" size={22} color="#666" />
-                    <Text style={styles.actionCount}>{localComments}</Text>
+                    <Text style={styles.actionCount}>{event.noOfComments}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
                     style={styles.actionButton}
@@ -341,10 +282,13 @@ const EventCard = ({
       </Modal>
     </>
   );
-
 };
 
 export default EventCard;
+
+// (styles remain unchanged)
+
+// ...styles unchanged
 
 const styles = StyleSheet.create({
   eventCard: {

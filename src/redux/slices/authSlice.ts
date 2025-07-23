@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // User model
 interface User {
-  id: string;
+  _id: string;
   name: string;
   email: string;
   phone?: string; // Add phone number field

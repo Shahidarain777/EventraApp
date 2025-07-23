@@ -1,12 +1,13 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../api/axios';
 
+// --- Event Interface ---
 export interface Event {
   id: string;
-  eventId: string;
+  eventId: string | number;
   title: string;
   description: string;
-  price: string;
+  price: string | number;
   imageUrl: string[];
   hostName: string;
   dateTime: {
@@ -20,7 +21,8 @@ export interface Event {
     name: string;
     status: string;
   };
-  isLiked?: boolean;
+  likedBy?: { id: string | number; userName: string }[];
+  // isLiked not stored in backend, always derived
   visibility?: string;
   approvalRequired?: string;
   maxAttendees?: number | string;
@@ -52,10 +54,20 @@ const initialState: EventState = {
   likingEventId: null,
 };
 
-const likeEventAPI = async (eventId: string) => {
+const likeEventAPI = async (eventId: string | number) => {
   await api.post('/event_likes', { eventId });
 };
 
+function getCurrentUserId() {
+  try {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    return user?.id?.toString() || user?._id?.toString() || '';
+  } catch {
+    return '';
+  }
+}
+
+// FETCH EVENTS: attach isLiked for each event
 export const fetchEvents = createAsyncThunk<
   Event[],
   void,
@@ -63,8 +75,14 @@ export const fetchEvents = createAsyncThunk<
 >('events/fetchEvents', async (_, { rejectWithValue }) => {
   try {
     const response = await api.get('/events');
+    const userId = getCurrentUserId();
     if (response.data?.events?.length > 0) {
-      return response.data.events;
+      return response.data.events.map((event: Event) => ({
+        ...event,
+        isLiked: Array.isArray(event.likedBy)
+          ? event.likedBy.some((u) => u.id?.toString() === userId)
+          : false,
+      }));
     }
     return [];
   } catch (error: any) {
@@ -72,21 +90,27 @@ export const fetchEvents = createAsyncThunk<
   }
 });
 
+// LIKE EVENT: update likedBy and noOfLikes in Redux, backend must persist likedBy
 export const likeEvent = createAsyncThunk<
-  { eventId: string; noOfLikes: number; isLiked: boolean },
-  string,
+  { eventId: string | number; userId: string; noOfLikes: number },
+  string | number,
   { rejectValue: string; state: { events: EventState } }
 >('events/likeEvent', async (eventId, { getState, rejectWithValue }) => {
   try {
+    const userId = getCurrentUserId();
     const events = getState().events.events;
-    const event = events.find(e => e.eventId === eventId);
-    const currentLikeStatus = event?.isLiked || false;
+    const event = events.find(e => e.eventId.toString() === eventId.toString());
 
-    if (currentLikeStatus) {
+    // Only like if user hasn't already liked
+    const alreadyLiked = Array.isArray(event?.likedBy)
+      ? event.likedBy.some((u) => u.id?.toString() === userId)
+      : false;
+
+    if (alreadyLiked) {
       return {
         eventId,
+        userId,
         noOfLikes: event?.noOfLikes ?? 0,
-        isLiked: true
       };
     }
 
@@ -94,16 +118,18 @@ export const likeEvent = createAsyncThunk<
 
     return {
       eventId,
+      userId,
       noOfLikes: (event?.noOfLikes ?? 0) + 1,
-      isLiked: true
     };
   } catch {
+    // Optimistic fallback
+    const userId = getCurrentUserId();
     const events = getState().events.events;
-    const event = events.find(e => e.eventId === eventId);
+    const event = events.find(e => e.eventId.toString() === eventId.toString());
     return {
       eventId,
+      userId,
       noOfLikes: (event?.noOfLikes ?? 0) + 1,
-      isLiked: true
     };
   }
 });
@@ -122,8 +148,8 @@ export const createEvent = createAsyncThunk<
 });
 
 export const addComment = createAsyncThunk<
-  { eventId: string | undefined; comment: string },
-  { eventId: string | undefined; comment: string },
+  { eventId: string | number | undefined; comment: string },
+  { eventId: string | number | undefined; comment: string },
   { rejectValue: string }
 >('events/addComment', async ({ eventId, comment }, { rejectWithValue }) => {
   try {
@@ -162,20 +188,26 @@ const eventSlice = createSlice({
       })
       .addCase(likeEvent.pending, (state, action) => {
         state.likeStatus = 'loading';
-        state.likingEventId = action.meta.arg;
+        state.likingEventId = action.meta.arg as string;
       })
       .addCase(likeEvent.fulfilled, (state, action) => {
         state.likeStatus = 'succeeded';
         state.likingEventId = null;
-        const { eventId, noOfLikes, isLiked } = action.payload;
-        const event = state.events.find(event => event.id === eventId);
+        const { eventId, userId, noOfLikes } = action.payload;
+        const event = state.events.find(event => event.eventId.toString() === eventId.toString());
         if (event) {
+          if (!event.likedBy) event.likedBy = [];
+          if (!event.likedBy.some(u => u.id?.toString() === userId)) {
+            event.likedBy.push({ id: userId, userName: 'You' }); // Replace 'You' with actual userName if available
+          }
           event.noOfLikes = noOfLikes;
-          event.isLiked = isLiked;
         }
-        if (state.event && state.event.id === eventId) {
+        if (state.event && state.event.eventId.toString() === eventId.toString()) {
+          if (!state.event.likedBy) state.event.likedBy = [];
+          if (!state.event.likedBy.some(u => u.id?.toString() === userId)) {
+            state.event.likedBy.push({ id: userId, userName: 'You' });
+          }
           state.event.noOfLikes = noOfLikes;
-          state.event.isLiked = isLiked;
         }
       })
       .addCase(likeEvent.rejected, (state) => {
@@ -196,11 +228,11 @@ const eventSlice = createSlice({
       })
       .addCase(addComment.fulfilled, (state, action) => {
         const { eventId } = action.payload;
-        const event = state.events.find(event => event.id === eventId);
+        const event = state.events.find(event => event.eventId.toString() === eventId?.toString());
         if (event) {
           event.noOfComments += 1;
         }
-        if (state.event && state.event.id === eventId) {
+        if (state.event && state.event.eventId.toString() === eventId?.toString()) {
           state.event.noOfComments += 1;
         }
       })
