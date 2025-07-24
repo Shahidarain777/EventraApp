@@ -118,8 +118,21 @@ const EditProfileScreen = () => {
 
     setIsLoading(true);
     try {
-      // Simulate API call to update profile
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Prepare update payload (only allowed fields)
+      const updatePayload: any = {
+        name: formData.name,
+        email: formData.email,
+        bio: formData.bio,
+      };
+      if (profileImage) updatePayload.profileImage = profileImage;
+
+      // Call backend PUT /users/:id
+      if (!user?._id) throw new Error('User ID missing');
+      await api.put(`/users/${user._id}`, updatePayload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       Alert.alert(
         'Success',
@@ -127,6 +140,7 @@ const EditProfileScreen = () => {
         [{ text: 'OK', onPress: () => navigation.goBack() }]
       );
     } catch (error) {
+      console.error('Profile update error:', error);
       Alert.alert('Error', 'Failed to update profile. Please try again.');
     } finally {
       setIsLoading(false);
