@@ -34,7 +34,11 @@ const SearchScreen = () => {
       return (
         (event.title && event.title.toLowerCase().includes(q)) ||
         (event.hostName && event.hostName.toLowerCase().includes(q)) ||
-        (event.categoryInfo.name && event.categoryInfo.name.toLowerCase().includes(q))
+        (event.categoryInfo.name && event.categoryInfo.name.toLowerCase().includes(q)) ||
+        (event.location?.city && event.location.city.toLowerCase().includes(q)) ||
+        (event.location?.state && event.location.state.toLowerCase().includes(q)) ||
+        (event.location?.country && event.location.country.toLowerCase().includes(q)) ||
+        (event.location?.address && event.location.address.toLowerCase().includes(q))
       );
     });
     setResults(filtered);
