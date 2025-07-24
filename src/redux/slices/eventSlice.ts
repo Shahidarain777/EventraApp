@@ -19,6 +19,7 @@ export interface Event {
   noOfLikes: number;
   comments: { userName: string; message: string }[];
   noOfComments: number;
+  joinedCount: number;
   categoryInfo: {
     name: string;
     status: string;
@@ -35,6 +36,16 @@ export interface Event {
     latitude?: number | string;
     longitude?: number | string;
   };
+  subEvents?: Array<{
+    _id?: string;
+    subEventId?: string | number;
+    itemName: string;
+    isPaid: boolean;
+    fee: number;
+    maxAttendees: number;
+    joinedCount?: number;
+    userStatus?: 'not_joined' | 'payment_pending' | 'member' | 'approval_pending';
+  }>;
 }
 
 interface EventState {
