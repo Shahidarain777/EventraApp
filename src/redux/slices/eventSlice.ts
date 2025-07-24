@@ -8,8 +8,10 @@ export interface Event {
   title: string;
   description: string;
   price: string | number;
+  hostId: string | number;
   imageUrl: string[];
   hostName: string;
+  hostProfileImage: string;
   dateTime: {
     start: string;
     end: string;
@@ -22,7 +24,6 @@ export interface Event {
     status: string;
   };
   likedBy?: { id: string | number; userName: string }[];
-  // isLiked not stored in backend, always derived
   visibility?: string;
   approvalRequired?: string;
   maxAttendees?: number | string;

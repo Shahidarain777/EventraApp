@@ -1,10 +1,12 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
 import HomeScreen from '../screens/HomeScreen';
 import ProfileScreen from '../screens/ ProfileScreen';
 import CreateEventScreen from '../screens/CreateEventScreen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SearchScreen from '../screens/SearchScreen';
+import MyEventsScreen from '../screens/MyEventsScreen';
 
 
 const Tab = createBottomTabNavigator();
@@ -37,6 +39,16 @@ const TabNavigator = () => {
         component={HomeScreen} 
         options={{ headerShown: false }} 
       />
+      <Tab.Screen
+        name="MyEvents"
+        component={MyEventsScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="calendar-outline" color={color} size={size} />
+          ),
+          tabBarLabel: 'My Events',
+        }}
+      />
       <Tab.Screen 
         name="CreateEvent" 
         component={CreateEventScreen} 
@@ -44,10 +56,6 @@ const TabNavigator = () => {
           headerShown: false,
           tabBarLabel: 'Create Event'
         }}
-      />
-      <Tab.Screen 
-        name="Profile" 
-        component={ProfileScreen} 
       />
       <Tab.Screen 
         name="Search" 
@@ -58,6 +66,10 @@ const TabNavigator = () => {
           ),
           tabBarLabel: 'Search',
         }}
+      />
+      <Tab.Screen 
+        name="Profile" 
+        component={ProfileScreen} 
       />
     </Tab.Navigator>
   );

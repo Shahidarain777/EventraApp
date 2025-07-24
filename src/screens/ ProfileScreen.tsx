@@ -32,14 +32,14 @@ const ProfileScreen = () => {
   // Load profile image from database and AsyncStorage on component mount
   useEffect(() => {
     loadProfileImage();
-  }, [user?.id]);
+  }, [user?._id]);
 
   const loadProfileImage = async () => {
-    if (!user?.id) return;
+    if (!user?._id) return;
 
     try {
       // First, try to fetch from database
-      const result = await dispatch(fetchUserProfileImage(user.id));
+      const result = await dispatch(fetchUserProfileImage(user._id));
       
       if (result.payload) {
         // Save to AsyncStorage for offline access
@@ -57,7 +57,7 @@ const ProfileScreen = () => {
 
   const loadProfileImageFromStorage = async () => {
     try {
-      const savedProfileImage = await AsyncStorage.getItem(`profileImage_${user?.id}`);
+      const savedProfileImage = await AsyncStorage.getItem(`profileImage_${user?._id}`);
       if (savedProfileImage && user && !user.profileImage) {
         dispatch(updateProfileImage(savedProfileImage));
       }
@@ -68,8 +68,8 @@ const ProfileScreen = () => {
 
   const saveProfileImageToStorage = async (imageUrl: string) => {
     try {
-      if (user?.id) {
-        await AsyncStorage.setItem(`profileImage_${user.id}`, imageUrl);
+      if (user?._id) {
+        await AsyncStorage.setItem(`profileImage_${user._id}`, imageUrl);
       }
     } catch (error) {
       console.log('Failed to save profile image to storage:', error);
@@ -91,8 +91,8 @@ const ProfileScreen = () => {
           onPress: async () => {
             // Clear profile image from storage on logout
             try {
-              if (user?.id) {
-                await AsyncStorage.removeItem(`profileImage_${user.id}`);
+              if (user?._id) {
+                await AsyncStorage.removeItem(`profileImage_${user._id}`);
               }
             } catch (error) {
               console.log('Failed to clear profile image from storage:', error);

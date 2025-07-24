@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Image } from 'react-native';
 import {
   View,
   Text,
@@ -74,6 +75,13 @@ const EventCard = ({
     }
   };
 
+    const isEventEnded = (() => {
+    if (!event.dateTime?.end) return false;
+    // Make sure to parse the end date correctly. Adjust parsing if your date format is different.
+    const endDate = new Date(event.dateTime.end);
+    return endDate < new Date();
+  })();
+
   const handleCommentPress = () => {
     setCommentModalVisible(true);
   };
@@ -142,12 +150,28 @@ const EventCard = ({
       <TouchableWithoutFeedback onPress={() => handleLikeEvent(event.eventId)}>
         <View style={styles.eventCard}>
           <View style={styles.eventHeader}>
-            <Text style={styles.organizerName}>{event.hostName}</Text>
+            <View style={styles.hostRow}>
+              {event.hostProfileImage ? (
+                <View style={styles.hostImageWrapper}>
+                  <Image
+                    source={{ uri: event.hostProfileImage }}
+                    style={styles.hostImage}
+                  />
+                </View>
+              ) : (
+                <View style={styles.hostImagePlaceholder}>
+                  <Icon name="account-circle" size={32} color="#bbb" />
+                </View>
+              )}
+              <Text style={styles.organizerName}>{event.hostName}</Text>
+            </View>
+
             <View style={styles.categoryInfoPrice}>
               <Text style={styles.categoryInfoText}>{event.categoryInfo.name}</Text>
-              <Text style={styles.priceText}> · {event.price}</Text>
+              <Text style={styles.priceText}> · {event.price === 0 ? "Free" : event.price}</Text>
             </View>
           </View>
+
           <View style={styles.imageContainer}>
             <ImageGrid imageUrl={event.imageUrl || [event.imageUrl]} />
             {showHeart && (
@@ -214,10 +238,21 @@ const EventCard = ({
                   </TouchableOpacity>
                 </View>
                 <TouchableOpacity 
-                  style={styles.joinButton}
-                  onPress={() => navigation.navigate('EventDetailScreen', { event })}
+                  style={[
+                    styles.joinButton, 
+                    isEventEnded && { backgroundColor: '#cccccc' } // Greyed out if ended
+                  ]}
+                  onPress={() => {
+                    if (!isEventEnded) {
+                      navigation.navigate('EventDetailScreen', { event });
+                    }
+                  }}
+                  activeOpacity={isEventEnded ? 1 : 0.7}
+                  disabled={isEventEnded}
                 >
-                  <Text style={styles.joinButtonText}>Join</Text>
+                  <Text style={styles.joinButtonText}>
+                    {isEventEnded ? 'Event Ended' : 'Join'}
+                  </Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -286,11 +321,36 @@ const EventCard = ({
 
 export default EventCard;
 
-// (styles remain unchanged)
-
-// ...styles unchanged
-
 const styles = StyleSheet.create({
+  hostRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  hostImageWrapper: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginRight: 8,
+    backgroundColor: '#eee',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hostImage: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    resizeMode: 'cover',
+  },
+  hostImagePlaceholder: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#eee',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
   eventCard: {
     backgroundColor: '#fff',
     borderRadius: 6,
@@ -341,6 +401,8 @@ const styles = StyleSheet.create({
   imageContainer: {
     position: 'relative',
   },
+
+
   heartAnimationContainer: {
     position: 'absolute',
     top: '50%',
