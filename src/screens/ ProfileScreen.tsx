@@ -160,11 +160,25 @@ const ProfileScreen = () => {
           if (response.data?.image?.url) {
             // Update profile image state with the uploaded image URL
             const imageUrl = `${api.defaults.baseURL?.replace('/api', '')}${response.data.image.url}`;
-            
-            // Update Redux state and save to AsyncStorage
+
+            // 1. Update user profileImage in backend
+            try {
+              if (user?._id) {
+                await api.put(`/users/${user._id}`, { profileImage: imageUrl }, {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                });
+              }
+            } catch (err) {
+              console.error('Failed to update user profile image in backend:', err);
+              // Optionally show a warning, but continue
+            }
+
+            // 2. Update Redux state and save to AsyncStorage
             dispatch(updateProfileImage(imageUrl));
             await saveProfileImageToStorage(imageUrl);
-            
+
             Alert.alert('Success', 'Profile image updated successfully!');
           } else {
             throw new Error('Invalid response from server');
