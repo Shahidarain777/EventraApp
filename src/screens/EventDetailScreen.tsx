@@ -39,7 +39,10 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
         <Text style={styles.detailText}>
           {event.maxAttendees && !isNaN(Number(event.maxAttendees)) ? Number(event.maxAttendees) : 'N/A'}
         </Text>
-
+        <Text style={styles.sectionTitle}>Joined Count</Text>
+        <Text style={styles.detailText}>
+          {event.joinedCount && !isNaN(Number(event.joinedCount)) ? Number(event.joinedCount) : 'N/A'}
+        </Text>
         {/* Days/Hours left/status logic using reusable component */}
         <DueDate event={event} styles={styles} />
       </View>

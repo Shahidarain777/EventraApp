@@ -106,6 +106,14 @@ const CreateEventScreen = () => {
   const [error, setError] = useState('');
   const [mapModalVisible, setMapModalVisible] = useState(false);
   const [pickedLocation, setPickedLocation] = useState<{latitude: number, longitude: number} | null>(null);
+  
+  // Sub-events state
+  const [subEvents, setSubEvents] = useState<Array<{
+    itemName: string;
+    maxAttendees: string;
+    fee: string;
+    isPaid: boolean;
+  }>>([]);
 
 
   const handleCategoryChange = (value: string | null) => {
@@ -117,6 +125,26 @@ const CreateEventScreen = () => {
       setShowOtherCategory(false);
       setCategoryId(value);
     }
+  };
+
+  // Sub-events functions
+  const addSubEvent = () => {
+    setSubEvents(prev => [...prev, {
+      itemName: '',
+      maxAttendees: '',
+      fee: '',
+      isPaid: false
+    }]);
+  };
+
+  const removeSubEvent = (index: number) => {
+    setSubEvents(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const updateSubEvent = (index: number, field: string, value: string | boolean) => {
+    setSubEvents(prev => prev.map((event, i) => 
+      i === index ? { ...event, [field]: value } : event
+    ));
   };
 
   // Debounce image pick to prevent multiple triggers
@@ -158,6 +186,15 @@ const CreateEventScreen = () => {
     if (!description.trim()) return setError('Description is required');
     if (!date.start || !date.end) return setError('Start and End date required');
     if (isPaid && !joiningFee) return setError('Joining fee required for paid event');
+    
+    // Validate sub-events
+    for (let i = 0; i < subEvents.length; i++) {
+      const subEvent = subEvents[i];
+      if (!subEvent.itemName.trim()) return setError(`Sub-event ${i + 1}: Item name is required`);
+      if (!subEvent.maxAttendees) return setError(`Sub-event ${i + 1}: Max attendees is required`);
+      if (subEvent.isPaid && !subEvent.fee) return setError(`Sub-event ${i + 1}: Fee is required for paid sub-event`);
+    }
+    
     setUploading(true);
 
     let finalCategoryId = categoryId;
@@ -203,6 +240,12 @@ const CreateEventScreen = () => {
       isLimited: !!capacity,
       imageUrl: images.length > 0 ? images : [],
       approvalRequired: approvalRequired,
+      subEvents: subEvents.map(subEvent => ({
+        itemName: subEvent.itemName.trim(),
+        isPaid: subEvent.isPaid,
+        fee: subEvent.isPaid ? parseFloat(subEvent.fee) : 0,
+        maxAttendees: parseInt(subEvent.maxAttendees)
+      })),
       //subLeader: subLeader.trim(),
       //financeManager: financeManager.trim(),
       //visibility: visibility,
@@ -489,6 +532,72 @@ const CreateEventScreen = () => {
           </View>
         </View>
       )}
+
+      {/* Sub Events Section */}
+      <Text style={styles.label}>Sub Events</Text>
+      {subEvents.map((subEvent, index) => (
+        <View key={index} style={styles.subEventCard}>
+          <View style={styles.subEventHeader}>
+            <Text style={styles.subEventTitle}>Sub Event {index + 1}</Text>
+            <TouchableOpacity
+              style={styles.removeSubEventBtn}
+              onPress={() => removeSubEvent(index)}
+            >
+              <Ionicons name="close-circle" size={24} color="#d9534f" />
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.subEventRow}>
+            <View style={styles.subEventInputHalf}>
+              <Text style={styles.subEventLabel}>Max Attendees</Text>
+              <TextInput
+                style={styles.subEventInput}
+                placeholder="Max attendees"
+                placeholderTextColor="#888"
+                value={subEvent.maxAttendees}
+                onChangeText={(text) => {
+                  if (/^\d*$/.test(text)) {
+                    updateSubEvent(index, 'maxAttendees', text);
+                  }
+                }}
+                keyboardType="numeric"
+              />
+            </View>
+            <View style={styles.subEventInputHalf}>
+              <Text style={styles.subEventLabel}>Fee</Text>
+              <TextInput
+                style={styles.subEventInput}
+                placeholder="Fee"
+                placeholderTextColor="#888"
+                value={subEvent.fee}
+                onChangeText={(text) => {
+                  if (/^\d*$/.test(text)) {
+                    updateSubEvent(index, 'fee', text);
+                    updateSubEvent(index, 'isPaid', parseInt(text) > 0);
+                  }
+                }}
+                keyboardType="numeric"
+              />
+            </View>
+          </View>
+          
+          <View style={styles.subEventFullRow}>
+            <Text style={styles.subEventLabel}>Item Name</Text>
+            <TextInput
+              style={styles.subEventInputFull}
+              placeholder="e.g., Jazz Band, Food Stall"
+              placeholderTextColor="#888"
+              value={subEvent.itemName}
+              onChangeText={(text) => updateSubEvent(index, 'itemName', text)}
+            />
+          </View>
+        </View>
+      ))}
+      
+      <TouchableOpacity style={styles.addSubEventBtn} onPress={addSubEvent}>
+        <Ionicons name="add-circle" size={24} color="#007BFF" />
+        <Text style={styles.addSubEventBtnText}>Add Sub-Event</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={uploading}>
         {uploading ? (
@@ -864,5 +973,86 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontSize: 15,
     alignSelf: 'center',
+  },
+  // Sub Events Styles
+  subEventCard: {
+    width: '100%',
+    backgroundColor: '#f7f7f7',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  subEventHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  subEventTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  removeSubEventBtn: {
+    padding: 4,
+  },
+  subEventRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  subEventInputHalf: {
+    width: '48%',
+  },
+  subEventLabel: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  subEventInput: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 15,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    color: '#222',
+  },
+  subEventFullRow: {
+    width: '100%',
+  },
+  subEventInputFull: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 15,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    color: '#222',
+  },
+  addSubEventBtn: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f0f8ff',
+    borderRadius: 10,
+    paddingVertical: 12,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#007BFF',
+    borderStyle: 'dashed',
+  },
+  addSubEventBtnText: {
+    color: '#007BFF',
+    fontWeight: '600',
+    fontSize: 16,
+    marginLeft: 8,
   },
 });
