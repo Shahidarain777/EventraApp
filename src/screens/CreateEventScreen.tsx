@@ -15,65 +15,27 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../redux/store';
-import { createEvent } from '../redux/slices/eventSlice';
 import { fetchCategories } from '../redux/slices/categorySlice';
 import { addCategory } from '../redux/slices/categorySlice';
 import { launchImageLibrary } from 'react-native-image-picker';
-import UserSearchBox from '../components/UserSearchBox';
 import DatePickerRow from '../components/DatePickerRow';
 import ImageUploadCard from '../components/ImageUploadCard';
 import RNPickerSelect from 'react-native-picker-select';
-// import AddressPicker from '../components/AddressPicker';
-// @ts-ignore
-import DateTimePicker from '@react-native-community/datetimepicker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Modal } from 'react-native'; 
-import MapView, { Marker, MapPressEvent } from 'react-native-maps';
-import LocationPickerModal from '../components/LocationPickerModal';
 
-import axios from '../api/axios'; // If not already imported
+import LocationPickerModal from '../components/LocationPickerModal';
 import api from '../api/axios';
 
 
 type User = { id: string; username: string };
 
-
-
-
-
-
 const CreateEventScreen = () => {
-
-
-  // User search hooks (must be inside function component)
-  const [subLeader, setSubLeader] = useState('');
-  const [financeManager, setFinanceManager] = useState('');
-  const [userQuery, setUserQuery] = useState('');
-  const [userResults, setUserResults] = useState<User[]>([]);
-  const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [userSearchType, setUserSearchType] = useState<'subLeader' | 'financeManager' | null>(null);
-
-  React.useEffect(() => {
-    const fetchUsers = async () => {
-      if (userQuery.length < 2) {
-        setUserResults([]);
-        return;
-      }
-      try {
-        const res = await axios.get(`/users/search?query=${userQuery}`);
-        setUserResults(res.data || []);
-      } catch {
-        setUserResults([]);
-      }
-    };
-    fetchUsers();
-  }, [userQuery]);
   const navigation = useNavigation();
   const dispatch = useDispatch<AppDispatch>();
   const eventError = useSelector((state: RootState) => state.events.error);
   const [title, setTitle] = useState('');
   const [categoryId, setCategoryId] = useState<string | null>(null);
-// Removed unused categoryOptions state
   const [showOtherCategory, setShowOtherCategory] = useState(false);
   const [otherCategory, setOtherCategory] = useState('');
   // Categories from Redux
@@ -246,8 +208,6 @@ const CreateEventScreen = () => {
         fee: subEvent.isPaid ? parseFloat(subEvent.fee) : 0,
         maxAttendees: parseInt(subEvent.maxAttendees)
       })),
-      //subLeader: subLeader.trim(),
-      //financeManager: financeManager.trim(),
       //visibility: visibility,
       //currency: currency,
     };
@@ -340,24 +300,6 @@ const CreateEventScreen = () => {
         onChangeText={setDescription}
         multiline
         numberOfLines={3}
-      />
-
-      {/* Sub Leader and Finance Manager as simple input boxes */}
-      <Text style={styles.label}>Sub Leader</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Sub Leader"
-        placeholderTextColor="#888"
-        value={subLeader}
-        onChangeText={setSubLeader}
-      />
-      <Text style={styles.label}>Finance Manager</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Finance Manager"
-        placeholderTextColor="#888"
-        value={financeManager}
-        onChangeText={setFinanceManager}
       />
 
       <Text style={styles.label}>Event Location</Text>
