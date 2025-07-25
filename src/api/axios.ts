@@ -8,8 +8,8 @@ const getBaseUrl = () => {
     // For Android emulator, localhost won't work, use 10.0.2.2 which routes to host machine
     // For physical devices, use your computer's actual IP address detected by the setup script
     return __DEV__ 
-      ? 'http://192.168.105.129:3000/api'  // Development - detected IP from setup script
-      : 'http://192.168.105.129:3000/api'; // Production server
+      ? 'http://192.168.223.185:3000/api'  // Development - detected IP from setup script
+      : 'http://192.168.223.185:3000/api'; // Production server
   }
   return 'http://localhost:3000/api'; // iOS simulator or production
 };

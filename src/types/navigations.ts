@@ -5,6 +5,7 @@ export type RootStackParamList = {
   HelpSupport: undefined;
   FAQScreen: undefined;
   EventDetailScreen: { event: Event };
+  ManageEventScreen: { event: Event };
   ReportProblemScreen: undefined;
   CommunityGuidelinesScreen: undefined;
   SettingsScreen: undefined;

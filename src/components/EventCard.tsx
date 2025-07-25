@@ -22,7 +22,7 @@ import { useNavigation } from '@react-navigation/native';
 import { likeEvent, addComment, Event } from '../redux/slices/eventSlice';
 import ImageGrid from '../components/ImageGrid';
 
-type NavigationProp = StackNavigationProp<RootStackParamList, 'EventDetailScreen'>;
+type NavigationProp = StackNavigationProp<RootStackParamList>;
 type EventCardProps = {
   event: Event;
   showJoin?: boolean;
@@ -75,13 +75,7 @@ const EventCard = ({
     }
   };
 
-    const isEventEnded = (() => {
-    if (!event.dateTime?.end) return false;
-    // Make sure to parse the end date correctly. Adjust parsing if your date format is different.
-    const endDate = new Date(event.dateTime.end);
-    return endDate < new Date();
-  })();
-
+  // Ensure these functions are defined before usage
   const handleCommentPress = () => {
     setCommentModalVisible(true);
   };
@@ -103,6 +97,13 @@ const EventCard = ({
       Alert.alert('Error', 'Failed to add comment. Please try again.');
     }
   };
+
+  const isEventEnded = (() => {
+    if (!event.dateTime?.end) return false;
+    // Make sure to parse the end date correctly. Adjust parsing if your date format is different.
+    const endDate = new Date(event.dateTime.end);
+    return endDate < new Date();
+  })();
 
   const handleCommentCancel = () => {
     setCommentText('');
@@ -237,21 +238,48 @@ const EventCard = ({
                     <Icon name="share-variant-outline" size={22} color="#666" />
                   </TouchableOpacity>
                 </View>
-                <TouchableOpacity 
-                  style={[
-                    styles.joinButton, 
-                    isEventEnded && { backgroundColor: '#cccccc' } // Greyed out if ended
-                  ]}
+                <TouchableOpacity
+                  style={(() => {
+                    if (isEventEnded) return [styles.joinButton, { backgroundColor: '#cccccc' }];
+                    if (event.hostId?.toString() === currentUserId) return [styles.joinButton, { backgroundColor: '#22223b' }]; // Professional color
+                    const member = event.joinedMembers?.find(
+                      (m) => m.userId?.toString() === currentUserId
+                    );
+                    if (member) return [styles.joinButton, { backgroundColor: '#43a047' }]; // Green for status
+                    return [styles.joinButton, { backgroundColor: '#2196F3' }]; // Blue for join
+                  })()}
                   onPress={() => {
                     if (!isEventEnded) {
-                      navigation.navigate('EventDetailScreen', { event });
+                      if (event.hostId?.toString() === currentUserId) {
+                        navigation.navigate('ManageEventScreen', { event });
+                      } else {
+                        navigation.navigate('EventDetailScreen', { event });
+                      }
                     }
                   }}
                   activeOpacity={isEventEnded ? 1 : 0.7}
                   disabled={isEventEnded}
                 >
-                  <Text style={styles.joinButtonText}>
-                    {isEventEnded ? 'Event Ended' : 'Join'}
+                  <Text style={(() => {
+                    if (isEventEnded) return styles.joinButtonText;
+                    if (event.hostId?.toString() === currentUserId) return [styles.joinButtonText, { color: '#fff' }];
+                    const member = event.joinedMembers?.find(
+                      (m) => m.userId?.toString() === currentUserId
+                    );
+                    if (member) return [styles.joinButtonText, { color: '#fff' }];
+                    return styles.joinButtonText;
+                  })()}>
+                    {isEventEnded
+                      ? 'Event Ended'
+                      : event.hostId?.toString() === currentUserId
+                        ? 'Manage Event'
+                        : (() => {
+                            const member = event.joinedMembers?.find(
+                              (m) => m.userId?.toString() === currentUserId
+                            );
+                            return member ? member.status : 'Join';
+                          })()
+                    }
                   </Text>
                 </TouchableOpacity>
               </View>

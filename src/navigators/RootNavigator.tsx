@@ -10,6 +10,7 @@ import CommunityGuidelinesScreen from '../screens/CommunityGuidelinesScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import BlockedUsersScreen from '../screens/BlockedUsersScreen';
+import ManageEventScreen from '../screens/ManageEventScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -23,6 +24,7 @@ const RootNavigator = () => {
           <Stack.Screen name="Main" component={TabNavigator} />
           <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
           <Stack.Screen name="EventDetailScreen" component={require('../screens/EventDetailScreen').default} /> 
+          <Stack.Screen name="ManageEventScreen" component={ManageEventScreen} />
           <Stack.Screen name="FAQScreen" component={FAQScreen} />
           <Stack.Screen name="ReportProblemScreen" component={ReportProblemScreen} />
           <Stack.Screen name="CommunityGuidelinesScreen" component={CommunityGuidelinesScreen} />

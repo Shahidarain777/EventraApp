@@ -45,7 +45,7 @@ export interface Event {
     fee: number;
     maxAttendees: number;
     joinedCount?: number;
-    userStatus?: 'not_joined' | 'payment_pending' | 'member' | 'approval_pending';
+    // userStatus?: 'not_joined' | 'payment_pending' | 'member' | 'approval_pending';
   }>;
   // Add joinedMembers for now
   joinedMembers?: Array<{
