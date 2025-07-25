@@ -36,6 +36,7 @@ export interface Event {
     latitude?: number | string;
     longitude?: number | string;
   };
+
   subEvents?: Array<{
     _id?: string;
     subEventId?: string | number;
@@ -45,6 +46,13 @@ export interface Event {
     maxAttendees: number;
     joinedCount?: number;
     userStatus?: 'not_joined' | 'payment_pending' | 'member' | 'approval_pending';
+  }>;
+  // Add joinedMembers for now
+  joinedMembers?: Array<{
+    userId: string | number;
+    name: string;
+    status: string;
+    profileImage?: string;
   }>;
 }
 
