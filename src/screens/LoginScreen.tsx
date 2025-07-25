@@ -53,7 +53,7 @@ const LoginScreen = () => {
   };
 
   return (
-    <LinearGradient colors={["#4F8CFF", "#A6C8FF"]} style={styles.container}>
+    <LinearGradient colors={["#075cf8ff", "#4f89e6ff"]} style={styles.container}>
       <SafeAreaView style={{ flex: 1, width: '100%' }}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -105,7 +105,7 @@ const LoginScreen = () => {
                 <CheckBox
                   value={savePassword}
                   onValueChange={setSavePassword}
-                  tintColors={{ true: '#2772feff', false: '#C7D3EA' }}
+                  tintColors={{ true: '#0011ffff', false: '#C7D3EA' }}
                   style={{ marginRight: -19, marginTop: -2 }}
                 />
                 <Text style={styles.loginOptionText}>Save password</Text>
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#4F8CFF',
+    backgroundColor: '#0808f5ff',
     borderRadius: 10,
     paddingVertical: 14,
     width: '100%',
@@ -359,11 +359,11 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   signupText: {
-    color: '#222',
+    color: '#000000ff',
     fontSize: 17,
   },
   signupLink: {
-    color: '#4F8CFF',
+    color: '#0059ffff',
     fontWeight: 'bold',
     fontSize: 17,
     textDecorationLine: 'underline',

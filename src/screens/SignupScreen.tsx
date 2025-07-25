@@ -59,7 +59,7 @@ const SignupScreen = () => {
   };
 
   return (
-    <LinearGradient colors={["#4F8CFF", "#A6C8FF"]} style={styles.container}>
+    <LinearGradient colors={["#075cf8ff", "#4f89e6ff"]} style={styles.container}>
       <SafeAreaView style={{ flex: 1, width: '100%' }}>
         <View style={styles.flexContainer}>
           <ScrollView
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   loginLinkBlue: {
-    color: '#4F8CFF',
+    color: '#0059ffff',
     fontWeight: 'bold',
     textDecorationLine: 'underline',
   },

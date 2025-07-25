@@ -43,7 +43,7 @@ export default function SplashTransitionScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#4F8CFF',
+    backgroundColor: '#075cf8ff',
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -6,7 +6,7 @@ const { width } = Dimensions.get('window');
 
 export default function IntroScreen({ navigation }: any) {
   return (
-    <LinearGradient colors={["#4F8CFF", "#A6C8FF"]} style={styles.container}>
+    <LinearGradient colors={["#075cf8ff", "#2876f4ff"]} style={styles.container}>
       <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.header}>
           <Text style={styles.title}>
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   },
   subtitleBelow: {
     fontSize: 16,
-    color: 'rgba(34,34,34,0.5)',
+    color: 'rgba(255, 255, 255, 1)',
     textAlign: 'center',
     fontFamily: 'System',
     fontWeight: '400',
