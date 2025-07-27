@@ -164,7 +164,7 @@ const ManageEventScreen = () => {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Event Members</Text>
             <View style={styles.memberList}>
-              {members.map((member: any, idx: number) => (
+              {members.filter((member: any) => member.status === 'member').map((member: any, idx: number) => (
                 <View key={member.id || idx} style={styles.memberRow}>
                   <Image
                     source={member.profileImage ? { uri: member.profileImage } : require('../../assets/EventraLogo.png')}
