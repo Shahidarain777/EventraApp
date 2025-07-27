@@ -2,11 +2,44 @@ import React from 'react';
 //import { fetchEvents, Event } from '../redux/slices/eventSlice';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import api from '../api/axios';
 
 const ManageEventScreen = () => {
   const navigation = require('@react-navigation/native').useNavigation();
   const route = require('@react-navigation/native').useRoute();
   const { event } = route.params || {};
+  const token = require('react-redux').useSelector((state: any) => state.auth.token);
+
+  const handleCancelEvent = () => {
+    if (!event?.eventId) return Alert.alert('Error', 'No eventId found');
+    Alert.alert(
+      'Cancel Event',
+      'Are you sure you want to cancel this event? This action cannot be undone.',
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Yes',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const res = await api.delete('/events', {
+                headers: { Authorization: `Bearer ${token}` },
+                data: { eventId: Number(event.eventId) },
+              });
+              Alert.alert('Success', 'Event deleted successfully');
+              navigation.goBack();
+            } catch (err) {
+              const errorAny = err as any;
+              const errorMsg = errorAny && errorAny.response && errorAny.response.data && errorAny.response.data.message
+                ? errorAny.response.data.message
+                : 'Failed to delete event';
+              Alert.alert('Error', errorMsg);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -32,7 +65,7 @@ const ManageEventScreen = () => {
           <Button style={styles.approvalButton} text="Approval Pending" icon="time-outline" />
         </View>
         <View style={styles.row}>
-          <Button style={styles.cancelButton} text="Cancel Event" icon="close-circle-outline" />
+          <Button style={styles.cancelButton} text="Cancel Event" icon="close-circle-outline" onPress={handleCancelEvent} />
         </View>
       </View>
     </View>
