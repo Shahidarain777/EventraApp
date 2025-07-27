@@ -17,33 +17,31 @@ const ManageEventScreen = () => {
           <Button
             style={styles.editButton}
             text="Edit Event"
-            icon="pencil"
+            icon="create-outline"
             
             onPress={() => navigation.navigate('EditEventScreen', { event })}
           />
         </View>
         <View style={styles.row}>
-          <Button style={styles.memberButton} text="Member List" icon="account-group" />
+          <Button style={styles.memberButton} text="Member List" icon="people-outline" />
         </View>
         <View style={styles.row}>
-          <Button style={styles.paymentButton} text="Payment Verification Pending" icon="credit-card-clock" />
+          <Button style={styles.paymentButton} text="Payment Verification Pending" icon="card-outline" />
         </View>
         <View style={styles.row}>
-          <Button style={styles.approvalButton} text="Approval Pending" icon="account-clock" />
+          <Button style={styles.approvalButton} text="Approval Pending" icon="time-outline" />
         </View>
         <View style={styles.row}>
-          <Button style={styles.cancelButton} text="Cancel Event" icon="close-circle" />
+          <Button style={styles.cancelButton} text="Cancel Event" icon="close-circle-outline" />
         </View>
       </View>
     </View>
   );
 };
 
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
 const Button = ({ style, text, icon, onPress }: { style: any; text: string; icon: string; onPress?: () => void }) => (
   <TouchableOpacity style={[styles.button, style]} activeOpacity={0.85} onPress={onPress}>
-    <Icon name={icon} size={22} color={style.color || '#fff'} style={{ marginRight: 10 }} />
+    <Ionicons name={icon} size={22} color={style.color || '#fff'} style={{ marginRight: 10 }} />
     <Text style={[styles.buttonText, { color: style.color || '#fff' }]}>{text}</Text>
   </TouchableOpacity>
 );
