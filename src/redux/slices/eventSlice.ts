@@ -115,44 +115,67 @@ export const likeEvent = createAsyncThunk<
   { eventId: string | number; userId: string; noOfLikes: number },
   string | number,
   { rejectValue: string; state: { events: EventState } }
->('events/likeEvent', async (eventId, { getState, rejectWithValue }) => {
-  try {
-    const userId = getCurrentUserId();
-    const events = getState().events.events;
-    const event = events.find(e => e.eventId.toString() === eventId.toString());
+>(
+  'events/likeEvent',
+  async (eventId, { getState, rejectWithValue }) => {
+    try {
+      const userId = getCurrentUserId();
+      const events = getState().events.events;
+      const event = events.find(e => e.eventId.toString() === eventId.toString());
 
-    // Only like if user hasn't already liked
-    const alreadyLiked = Array.isArray(event?.likedBy)
-      ? event.likedBy.some((u) => u.id?.toString() === userId)
-      : false;
+      const alreadyLiked = Array.isArray(event?.likedBy)
+        ? event.likedBy.some((u) => u.id?.toString() === userId)
+        : false;
 
-    if (alreadyLiked) {
+      if (alreadyLiked) {
+        // UNLIKE: call DELETE API
+        await api.delete('/event_likes', {
+          headers: {}, // Add auth header if needed
+          data: { eventId },
+        });
+        return {
+          eventId,
+          userId,
+          noOfLikes: Math.max((event?.noOfLikes ?? 1) - 1, 0),
+        };
+      } else {
+        // LIKE: call POST API
+        try {
+          await api.post('/event_likes', { eventId });
+          return {
+            eventId,
+            userId,
+            noOfLikes: (event?.noOfLikes ?? 0) + 1,
+          };
+        } catch (err: any) {
+          // If 409, user already liked, so UNLIKE
+          if (err?.response?.status === 409) {
+            await api.delete('/event_likes', {
+              headers: {},
+              data: { eventId },
+            });
+            return {
+              eventId,
+              userId,
+              noOfLikes: Math.max((event?.noOfLikes ?? 1) - 1, 0),
+            };
+          }
+          throw err;
+        }
+      }
+    } catch {
+      // Optimistic fallback
+      const userId = getCurrentUserId();
+      const events = getState().events.events;
+      const event = events.find(e => e.eventId.toString() === eventId.toString());
       return {
         eventId,
         userId,
-        noOfLikes: event?.noOfLikes ?? 0,
+        noOfLikes: (event?.noOfLikes ?? 0),
       };
     }
-
-    await likeEventAPI(eventId);
-
-    return {
-      eventId,
-      userId,
-      noOfLikes: (event?.noOfLikes ?? 0) + 1,
-    };
-  } catch {
-    // Optimistic fallback
-    const userId = getCurrentUserId();
-    const events = getState().events.events;
-    const event = events.find(e => e.eventId.toString() === eventId.toString());
-    return {
-      eventId,
-      userId,
-      noOfLikes: (event?.noOfLikes ?? 0) + 1,
-    };
   }
-});
+);
 
 export const createEvent = createAsyncThunk<
   Event,
@@ -217,15 +240,23 @@ const eventSlice = createSlice({
         const event = state.events.find(event => event.eventId.toString() === eventId.toString());
         if (event) {
           if (!event.likedBy) event.likedBy = [];
-          if (!event.likedBy.some(u => u.id?.toString() === userId)) {
-            event.likedBy.push({ id: userId, userName: 'You' }); // Replace 'You' with actual userName if available
+          const idx = event.likedBy.findIndex(u => u.id?.toString() === userId);
+          if (idx === -1) {
+            // LIKE
+            event.likedBy.push({ id: userId, userName: 'You' });
+          } else {
+            // UNLIKE
+            event.likedBy.splice(idx, 1);
           }
           event.noOfLikes = noOfLikes;
         }
         if (state.event && state.event.eventId.toString() === eventId.toString()) {
           if (!state.event.likedBy) state.event.likedBy = [];
-          if (!state.event.likedBy.some(u => u.id?.toString() === userId)) {
+          const idx = state.event.likedBy.findIndex(u => u.id?.toString() === userId);
+          if (idx === -1) {
             state.event.likedBy.push({ id: userId, userName: 'You' });
+          } else {
+            state.event.likedBy.splice(idx, 1);
           }
           state.event.noOfLikes = noOfLikes;
         }

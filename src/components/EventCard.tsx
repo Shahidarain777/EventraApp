@@ -70,9 +70,10 @@ const EventCard = ({
   const handleLikeEvent = async (eventId: string | number) => {
     try {
       await dispatch(likeEvent(eventId)).unwrap();
-      triggerHeartAnimation();
+      // Only show heart animation when liking, not unliking
+      if (!isLiked) triggerHeartAnimation();
     } catch (error) {
-      Alert.alert('Error', 'Failed to like event.');
+      Alert.alert('Error', 'Failed to update like.');
     }
   };
 
@@ -223,7 +224,7 @@ const EventCard = ({
                       size={22} 
                       color={isLiked ? "#FF4A6D" : "#666"} 
                     />
-                    <Text style={styles.actionCount}>{event.noOfLikes}</Text>
+                    <Text style={styles.actionCount}>{Array.isArray(event.likedBy) ? event.likedBy.length : 0}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
                     style={styles.actionButton}
