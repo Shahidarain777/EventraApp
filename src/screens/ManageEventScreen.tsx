@@ -1,6 +1,6 @@
 import React from 'react';
 //import { fetchEvents, Event } from '../redux/slices/eventSlice';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Modal, Image, Pressable } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import api from '../api/axios';
 
@@ -9,6 +9,9 @@ const ManageEventScreen = () => {
   const route = require('@react-navigation/native').useRoute();
   const { event } = route.params || {};
   const token = require('react-redux').useSelector((state: any) => state.auth.token);
+  // joinedMembers is a property of event
+  const members = event && event.joinedMembers ? event.joinedMembers : [];
+  const [modalVisible, setModalVisible] = React.useState(false);
 
   const handleCancelEvent = () => {
     if (!event?.eventId) return Alert.alert('Error', 'No eventId found');
@@ -41,6 +44,14 @@ const ManageEventScreen = () => {
     );
   };
 
+  const handleMemberList = () => {
+    if (!members || members.length === 0) {
+      Alert.alert('No Members', 'No members have joined this event yet.');
+      return;
+    }
+    setModalVisible(true);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -55,12 +66,11 @@ const ManageEventScreen = () => {
             style={styles.editButton}
             text="Edit Event"
             icon="create-outline"
-            
             onPress={() => navigation.navigate('EditEventScreen', { event })}
           />
         </View>
         <View style={styles.row}>
-          <Button style={styles.memberButton} text="Member List" icon="people-outline" />
+          <Button style={styles.memberButton} text="Member List" icon="people-outline" onPress={handleMemberList} />
         </View>
         <View style={styles.row}>
           <Button style={styles.paymentButton} text="Payment Verification Pending" icon="card-outline" />
@@ -72,6 +82,42 @@ const ManageEventScreen = () => {
           <Button style={styles.cancelButton} text="Cancel Event" icon="close-circle-outline" onPress={handleCancelEvent} />
         </View>
       </View>
+
+      {/* Member List Modal */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Event Members</Text>
+            <View style={styles.memberList}>
+              {members.map((member: any, idx: number) => (
+                <View key={member.id || idx} style={styles.memberRow}>
+                  <Image
+                    source={member.profileImage ? { uri: member.profileImage } : require('../../assets/EventraLogo.png')}
+                    style={styles.profileImage}
+                  />
+                  <Text style={styles.memberName}>{member.name || 'No Name'}</Text>
+                  <View style={styles.iconGroup}>
+                    <Pressable style={styles.iconBtn}>
+                      <Ionicons name="checkmark-circle-outline" size={26} color="#43a047" />
+                    </Pressable>
+                    <Pressable style={styles.iconBtn}>
+                      <Ionicons name="close-circle-outline" size={26} color="#ed6462" />
+                    </Pressable>
+                  </View>
+                </View>
+              ))}
+            </View>
+            <TouchableOpacity style={styles.closeModalBtn} onPress={() => setModalVisible(false)}>
+              <Text style={styles.closeModalText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -84,6 +130,82 @@ const Button = ({ style, text, icon, onPress }: { style: any; text: string; icon
 );
 
 const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '88%',
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 22,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 6,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#005eff',
+    marginBottom: 18,
+  },
+  memberList: {
+    width: '100%',
+    marginBottom: 18,
+  },
+  memberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 14,
+    backgroundColor: '#f7faff',
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  profileImage: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    marginRight: 12,
+    backgroundColor: '#e0e7ef',
+  },
+  memberName: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#222',
+  },
+  iconGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 10,
+  },
+  iconBtn: {
+    marginHorizontal: 2,
+    padding: 2,
+  },
+  closeModalBtn: {
+    marginTop: 8,
+    backgroundColor: '#005eff',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 22,
+  },
+  closeModalText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
+  },
   container: {
     flex: 1,
     justifyContent: 'center',

@@ -242,7 +242,7 @@ const EventCard = ({
                 <TouchableOpacity
                   style={(() => {
                     if (isEventEnded) return [styles.joinButton, { backgroundColor: '#cccccc' }];
-                    if (event.hostId?.toString() === currentUserId) return [styles.joinButton, { backgroundColor: '#22223b' }]; // Professional color
+                    if (event.hostId?.toString() === currentUserId) return [styles.joinButton, { backgroundColor: '#4874e2ff' }]; // Professional color
                     const member = event.joinedMembers?.find(
                       (m) => m.userId?.toString() === currentUserId
                     );
