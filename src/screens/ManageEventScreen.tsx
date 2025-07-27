@@ -12,6 +12,8 @@ const ManageEventScreen = () => {
   // joinedMembers is a property of event
   const members = event && event.joinedMembers ? event.joinedMembers : [];
   const [modalVisible, setModalVisible] = React.useState(false);
+  const [approvalModalVisible, setApprovalModalVisible] = React.useState(false);
+  const [pendingMembers, setPendingMembers] = React.useState([]);
 
   const handleCancelEvent = () => {
     if (!event?.eventId) return Alert.alert('Error', 'No eventId found');
@@ -52,6 +54,39 @@ const ManageEventScreen = () => {
     setModalVisible(true);
   };
 
+  // Approval Pending logic
+  const handleApprovalPending = () => {
+    const pending = members.filter((m: any) => m.status === 'approval_pending');
+    // Alert.alert(members.length.toString(), `Total Members: ${members.length}`);
+    if (!pending || pending.length === 0) {
+      Alert.alert('No Pending Approvals', 'No members are pending approval.');
+      return;
+    }
+    setPendingMembers(pending);
+    setApprovalModalVisible(true);
+  };
+
+  const handleApproveMember = async (member: any) => {
+    try {
+      let newStatus = 'member';
+      if (event.price && event.price > 0) {
+        newStatus = 'payment_pending';
+      }
+      await api.put('/event_members', {
+        eventId: Number(event.eventId),
+        userId: member.userId,
+        status: newStatus,
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      Alert.alert('Success', `${member.name || 'Member'} status set to ${newStatus}.`);
+      // Optionally update local state
+      setPendingMembers((prev: any) => prev.filter((m: any) => m.userId !== member.userId));
+    } catch (err) {
+      Alert.alert('Error', 'Failed to approve member.');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -76,8 +111,43 @@ const ManageEventScreen = () => {
           <Button style={styles.paymentButton} text="Payment Verification Pending" icon="card-outline" />
         </View>
         <View style={styles.row}>
-          <Button style={styles.approvalButton} text="Approval Pending" icon="time-outline" />
+          <Button style={styles.approvalButton} text="Approval Pending" icon="time-outline" onPress={handleApprovalPending} />
         </View>
+      {/* Approval Pending Modal */}
+      <Modal
+        visible={approvalModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setApprovalModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Approval Pending Members</Text>
+            <View style={styles.memberList}>
+              {pendingMembers.map((member: any, idx: number) => (
+                <View key={member.id || idx} style={styles.memberRow}>
+                  <Image
+                    source={member.profileImage ? { uri: member.profileImage } : require('../../assets/EventraLogo.png')}
+                    style={styles.profileImage}
+                  />
+                  <Text style={styles.memberName}>{member.name || 'No Name'}</Text>
+                  <View style={styles.iconGroup}>
+                    <Pressable style={styles.iconBtn} onPress={() => handleApproveMember(member)}>
+                      <Ionicons name="checkmark-circle-outline" size={26} color="#43a047" />
+                    </Pressable>
+                    <Pressable style={styles.iconBtn}>
+                      <Ionicons name="close-circle-outline" size={26} color="#ed6462" />
+                    </Pressable>
+                  </View>
+                </View>
+              ))}
+            </View>
+            <TouchableOpacity style={styles.closeModalBtn} onPress={() => setApprovalModalVisible(false)}>
+              <Text style={styles.closeModalText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
         <View style={styles.row}>
           <Button style={styles.cancelButton} text="Cancel Event" icon="close-circle-outline" onPress={handleCancelEvent} />
         </View>
