@@ -17,7 +17,7 @@ export interface Event {
     end: string;
   };
   noOfLikes: number;
-  comments: { userName: string; message: string }[];
+  comments: { userName: string; message: string, profileImage: string }[];
   noOfComments: number;
   joinedCount: number;
   categoryInfo: {

@@ -13,7 +13,6 @@ import {
   Share,
   ScrollView
 } from 'react-native';
-// import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { RootState, AppDispatch } from '../redux/store';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -47,22 +46,20 @@ const EventCard = ({
   // Get current user id as STRING!
   const currentUserId = useSelector((state: RootState) => state.auth.user?._id?.toString() || '');
 
-  // DEBUG LOGGING
-  React.useEffect(() => {
-//     Alert.alert('currentUserId:', currentUserId);
-//     Alert.alert(
-//   'Debug Info',
-//   `currentUserId: ${currentUserId}\nlikedBy: ${JSON.stringify(event.likedBy)}`
-// );
-    // console.log(
-    //   'isLiked:',
-    //   Array.isArray(event.likedBy)
-    //     ? event.likedBy.some((u) => u.id?.toString() === currentUserId)
-    //     : false
-    // );
-  }, [event.likedBy, currentUserId]);
+//   React.useEffect(() => {
+// //     Alert.alert('currentUserId:', currentUserId);
+// //     Alert.alert(
+// //   'Debug Info',
+// //   `currentUserId: ${currentUserId}\nlikedBy: ${JSON.stringify(event.likedBy)}`
+// // );
+//     // console.log(
+//     //   'isLiked:',
+//     //   Array.isArray(event.likedBy)
+//     //     ? event.likedBy.some((u) => u.id?.toString() === currentUserId)
+//     //     : false
+//     // );
+//   }, [event.likedBy, currentUserId]);
 
-  // Always compute isLiked from event.likedBy and current user id, both as string!
   const isLiked = Array.isArray(event.likedBy)
     ? event.likedBy.some((u) => u.id?.toString() === currentUserId)
     : false;
@@ -70,7 +67,6 @@ const EventCard = ({
   const handleLikeEvent = async (eventId: string | number) => {
     try {
       await dispatch(likeEvent(eventId)).unwrap();
-      // Only show heart animation when liking, not unliking
       if (!isLiked) triggerHeartAnimation();
     } catch (error) {
       Alert.alert('Error', 'Failed to update like.');
@@ -102,7 +98,6 @@ const EventCard = ({
 
   const isEventEnded = (() => {
     if (!event.dateTime?.end) return false;
-    // Make sure to parse the end date correctly. Adjust parsing if your date format is different.
     const endDate = new Date(event.dateTime.end);
     return endDate < new Date();
   })();
@@ -150,7 +145,7 @@ const EventCard = ({
 
   return (
     <>
-      <TouchableWithoutFeedback onPress={() => handleLikeEvent(event.eventId)}>
+      {/* <TouchableWithoutFeedback> */}
         <View style={styles.eventCard}>
           <View style={styles.eventHeader}>
             <View style={styles.hostRow}>
@@ -288,7 +283,7 @@ const EventCard = ({
             )}
           </View>
         </View>
-      </TouchableWithoutFeedback>
+      {/* </TouchableWithoutFeedback> */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -296,50 +291,61 @@ const EventCard = ({
         onRequestClose={handleCommentCancel}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.commentModalContainer}>
-            <View style={styles.commentModalHeader}>
-              <Text style={styles.commentModalTitle}>Comments</Text>
+          <View style={styles.fbCommentModalContainer}>
+            <View style={styles.fbCommentModalHeader}>
+              <Text style={styles.fbCommentModalTitle}>Comments</Text>
               <TouchableOpacity onPress={handleCommentCancel}>
                 <Icon name="close" size={24} color="#666" />
               </TouchableOpacity>
             </View>
-            {/* Show all comments */}
-            <View style={{ maxHeight: 180, marginBottom: 10 }}>
+            <View style={styles.fbCommentsList}>
               {event.comments && event.comments.length > 0 ? (
                 <ScrollView>
                   {event.comments.map((c, idx) => (
-                    <View key={idx} style={{ marginBottom: 10, backgroundColor: '#f7f7f7', borderRadius: 8, padding: 8 }}>
-                      <Text style={{ fontWeight: 'bold', color: '#2788ff' }}>{c.userName}</Text>
-                      <Text style={{ color: '#222' }}>{c.message}</Text>
+                    <View key={idx} style={styles.fbCommentItem}>
+                      <View style={styles.fbCommentAvatar}>
+                        {c.profileImage ? (
+                          <Image
+                            source={{ uri: c.profileImage }}
+                            style={{ width: 32, height: 32, borderRadius: 16 }}
+                          />
+                        ) : (
+                          <Icon name="person-circle" size={32} color="#bbb" />
+                        )}
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.fbCommentUser}>{c.userName}</Text>
+                        <Text style={styles.fbCommentText}>{c.message}</Text>
+                      </View>
                     </View>
                   ))}
                 </ScrollView>
               ) : (
-                <Text style={{ color: '#888', marginBottom: 10 }}>No comments yet.</Text>
+                <Text style={styles.fbNoComments}>No comments yet.</Text>
               )}
             </View>
-            <TextInput
-              style={styles.commentInput}
-              placeholder="Write your comment here..."
-              value={commentText}
-              onChangeText={setCommentText}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-              autoFocus
-            />
-            <View style={styles.commentModalActions}>
-              <TouchableOpacity 
-                style={styles.cancelButton} 
-                onPress={handleCommentCancel}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+            <View style={styles.fbCommentInputRow}>
+              <TouchableOpacity>
+                <Icon name="camera" size={24} color="#666" style={{ marginRight: 8 }} />
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.submitButton} 
-                onPress={handleCommentSubmit}
-              >
-                <Text style={styles.submitButtonText}>Post Comment</Text>
+              <TouchableOpacity>
+                <Icon name="happy" size={24} color="#666" style={{ marginRight: 8 }} />
+              </TouchableOpacity>
+              <TouchableOpacity>
+                <Icon name="images" size={24} color="#666" style={{ marginRight: 8 }} />
+              </TouchableOpacity>
+              <TextInput
+                style={styles.fbCommentInput}
+                placeholder="Write a comment..."
+                value={commentText}
+                onChangeText={setCommentText}
+                multiline
+                numberOfLines={1}
+                textAlignVertical="center"
+                autoFocus
+              />
+              <TouchableOpacity style={styles.fbSendButton} onPress={handleCommentSubmit}>
+                <Icon name="send" size={24} color="#fff" />
               </TouchableOpacity>
             </View>
           </View>
@@ -544,67 +550,103 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
-  commentModalContainer: {
+  fbCommentModalContainer: {
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    maxHeight: '70%',
+    paddingHorizontal: 10,
+    paddingBottom: 0,
+    maxHeight: '80%',
+    width: '100%',
+    alignSelf: 'center',
   },
-  commentModalHeader: {
+  fbCommentModalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    paddingHorizontal: 10,
   },
-  commentModalTitle: {
+  fbCommentModalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#111',
   },
-  commentInput: {
+  fbCommentsList: {
+    maxHeight: 220,
+    marginBottom: 4,
+    paddingHorizontal: 2,
+  },
+  fbCommentItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+    backgroundColor: '#f7f7f7',
+    borderRadius: 8,
+    padding: 8,
+  },
+  fbCommentAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#eee',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  fbCommentUser: {
+    fontWeight: 'bold',
+    color: '#2788ff',
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  fbCommentText: {
+    color: '#222',
+    fontSize: 14,
+  },
+  fbNoComments: {
+    color: '#888',
+    marginBottom: 10,
+    textAlign: 'center',
+    fontSize: 14,
+  },
+  fbCommentInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    backgroundColor: '#fff',
+    marginTop: 2,
+  },
+  fbCommentInput: {
+    flex: 1,
     borderWidth: 1,
     borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 20,
-    minHeight: 100,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     fontSize: 16,
-    backgroundColor: '#ffffffff',
+    backgroundColor: '#f7f7f7',
     color: '#000',
+    marginRight: 8,
+    minHeight: 40,
+    maxHeight: 80,
   },
-  commentModalActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
-  },
-  cancelButton: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginRight: 10,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    color: '#666',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  submitButton: {
-    flex: 1,
+  fbSendButton: {
     backgroundColor: '#007BFF',
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginLeft: 10,
+    borderRadius: 20,
+    padding: 8,
     alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 2,
   },
-  submitButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  // submitButtonText: {
+  //   color: '#fff',
+  //   fontSize: 16,
+  //   fontWeight: '600',
+  // },
 });
