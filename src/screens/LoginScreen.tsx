@@ -25,6 +25,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 type RootNav = NativeStackNavigationProp<RootStackParamList, 'Auth'>;
 type SignUpNav = NativeStackNavigationProp<AuthStackParamList, 'Signup'>;
 
+
 const LoginScreen = () => {
   const navigation = useNavigation<RootNav>();
   const navi = useNavigation<SignUpNav>();
@@ -120,8 +121,9 @@ const LoginScreen = () => {
               )}
             </TouchableOpacity>
             <TouchableOpacity style={styles.googleBtnSimple} onPress={() => Alert.alert('Google Login', 'Google login pressed')}>
+              <Text style={styles.googleBtnTextSimple}>Continue with </Text>
               <Image source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png' }} style={styles.googleIconSimple} />
-              <Text style={styles.googleBtnTextSimple}>Continue with Google</Text>
+              
             </TouchableOpacity>
           </View>
           
@@ -254,7 +256,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0808f5ff',
+    backgroundColor: '#ffffffff',
     borderRadius: 10,
     paddingVertical: 14,
     width: '100%',
@@ -263,16 +265,17 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   googleIconSimple: {
-    width: 22,
-    height: 22,
+    width: 100,
+    height: 35,
     marginRight: 10,
-    borderRadius: 4,
+    marginTop: 8,
+    borderRadius: 0,
     backgroundColor: '#fff',
   },
   googleBtnTextSimple: {
-    color: '#fff',
+    color: '#000000ff',
     fontWeight: '600',
-    fontSize: 17,
+    fontSize: 22,
     letterSpacing: 0.2,
   },
   loginTitle: {

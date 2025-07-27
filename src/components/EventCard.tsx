@@ -13,7 +13,8 @@ import {
   Share,
   ScrollView
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+// import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { RootState, AppDispatch } from '../redux/store';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types/navigations';
@@ -228,14 +229,14 @@ const EventCard = ({
                     style={styles.actionButton}
                     onPress={handleCommentPress}
                   >
-                    <Icon name="comment-text-outline" size={22} color="#666" />
+                    <Icon name="chatbubbles-outline" size={22} color="#666" />
                     <Text style={styles.actionCount}>{event.noOfComments}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
                     style={styles.actionButton}
                     onPress={() => handleShareEvent(event)}
                   >
-                    <Icon name="share-variant-outline" size={22} color="#666" />
+                    <Icon name="share-social-sharp" size={22} color="#666" />
                   </TouchableOpacity>
                 </View>
                 <TouchableOpacity

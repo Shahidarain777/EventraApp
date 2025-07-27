@@ -46,7 +46,7 @@ const SearchScreen = () => {
   };
 
   return (
-    <LinearGradient colors={["#4F8CFF", "#A6C8FF"]} style={styles.container}>
+    <LinearGradient colors={["#075cf8ff", "#4f89e6ff"]} style={styles.container}>
       <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.searchBarRow}>
           <Ionicons name="search-outline" size={22} color="#8fa1c7" style={styles.icon} />

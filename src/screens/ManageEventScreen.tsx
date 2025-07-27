@@ -1,14 +1,26 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+//import { fetchEvents, Event } from '../redux/slices/eventSlice';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const ManageEventScreen = () => {
+  const navigation = require('@react-navigation/native').useNavigation();
+  const route = require('@react-navigation/native').useRoute();
+  const { event } = route.params || {};
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Manage Event</Text>
 
       <View style={styles.buttonGroup}>
         <View style={styles.row}>
-          <Button style={styles.editButton} text="Edit Event" icon="pencil" />
+          <Button
+            style={styles.editButton}
+            text="Edit Event"
+            icon="pencil"
+            
+            onPress={() => navigation.navigate('EditEventScreen', { event })}
+          />
         </View>
         <View style={styles.row}>
           <Button style={styles.memberButton} text="Member List" icon="account-group" />
@@ -29,8 +41,8 @@ const ManageEventScreen = () => {
 
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const Button = ({ style, text, icon }: { style: any; text: string; icon: string }) => (
-  <TouchableOpacity style={[styles.button, style]} activeOpacity={0.85}>
+const Button = ({ style, text, icon, onPress }: { style: any; text: string; icon: string; onPress?: () => void }) => (
+  <TouchableOpacity style={[styles.button, style]} activeOpacity={0.85} onPress={onPress}>
     <Icon name={icon} size={22} color={style.color || '#fff'} style={{ marginRight: 10 }} />
     <Text style={[styles.buttonText, { color: style.color || '#fff' }]}>{text}</Text>
   </TouchableOpacity>

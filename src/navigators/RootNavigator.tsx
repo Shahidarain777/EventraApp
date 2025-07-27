@@ -23,7 +23,8 @@ const RootNavigator = () => {
         <>
           <Stack.Screen name="Main" component={TabNavigator} />
           <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
-          <Stack.Screen name="EventDetailScreen" component={require('../screens/EventDetailScreen').default} /> 
+          <Stack.Screen name="EventDetailScreen" component={require('../screens/EventDetailScreen').default} />
+          <Stack.Screen name="EditEventScreen" component={require('../screens/EditEventScreen').default} />
           <Stack.Screen name="ManageEventScreen" component={ManageEventScreen} />
           <Stack.Screen name="FAQScreen" component={FAQScreen} />
           <Stack.Screen name="ReportProblemScreen" component={ReportProblemScreen} />
