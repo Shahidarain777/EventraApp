@@ -43,7 +43,11 @@ const ManageEventScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Manage Event</Text>
+      <View style={styles.header}>
+        <Ionicons name="settings-outline" size={28} color="#ffffffff" style={{ marginRight: 8, }} />
+        <Text style={styles.headerText}>Manage Event</Text>
+      </View>
+      {/* <Text style={styles.title}>Manage Event</Text> */}
 
       <View style={styles.buttonGroup}>
         <View style={styles.row}>
@@ -84,8 +88,22 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#005effff',
     paddingHorizontal: 24,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 32,
+    marginBottom: 240,
+    backgroundColor: 'transparent',
+  },
+  headerText: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#ffffffff',
+    letterSpacing: 0.5,
   },
   title: {
     fontSize: 24,
@@ -96,6 +114,7 @@ const styles = StyleSheet.create({
   buttonGroup: {
     width: '100%',
     alignItems: 'center',
+    marginBottom: 132,
   },
   row: {
     width: '100%',
@@ -121,7 +140,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   editButton: {
-    backgroundColor: '#2788ff',
+    backgroundColor: '#df6be3ff',
     color: '#fff',
   },
   memberButton: {
@@ -133,11 +152,11 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   approvalButton: {
-    backgroundColor: '#6d4cff',
+    backgroundColor: '#5ad8ebff',
     color: '#fff',
   },
   cancelButton: {
-    backgroundColor: '#e53935',
+    backgroundColor: '#ed6462ff',
     color: '#fff',
   },
 });
