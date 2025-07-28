@@ -232,7 +232,7 @@ const EventCard = ({
                     style={styles.actionButton}
                     onPress={() => handleShareEvent(event)}
                   >
-                    <Icon name="share-social-sharp" size={22} color="#666" />
+                    <Icon name="paper-plane-outline" size={22} color="#666" />
                   </TouchableOpacity>
                 </View>
                 <TouchableOpacity
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 0,
   },
   socialActions: {
     flexDirection: 'row',
