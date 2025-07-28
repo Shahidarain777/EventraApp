@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, ScrollView, Switch } from 'react-native';
+import ImageUploadCard from '../components/ImageUploadCard';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { RootState } from '../redux/store';
@@ -103,7 +104,15 @@ const EditEventScreen = () => {
       {/* Event Images */}
       <View style={{ width: '100%', backgroundColor: '#f7f7f7', borderRadius: 20, padding: 24, marginBottom: 18, alignItems: 'center' }}>
         <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#2788ff', marginBottom: 10 }}>Event Images</Text>
-        {/* Add your ImageUploadCard here, similar to CreateEventScreen */}
+        <ImageUploadCard
+          images={images}
+          onAdd={() => {
+            // TODO: Implement image picker logic here
+            // Example: setImages([...images, newImageUrl]);
+            Alert.alert('Add Image', 'Image picker logic goes here.');
+          }}
+          onRemove={idx => setImages(images.filter((_, i) => i !== idx))}
+        />
       </View>
       <Text style={styles.label}>Event Title</Text>
       <TextInput

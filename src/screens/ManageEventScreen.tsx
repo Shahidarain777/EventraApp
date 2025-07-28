@@ -149,7 +149,7 @@ const ManageEventScreen = () => {
         </View>
       </Modal>
         <View style={styles.row}>
-          <Button style={styles.cancelButton} text="Cancel Event" icon="close-circle-outline" onPress={handleCancelEvent} />
+          <Button style={styles.cancelButton} text="Cancel Event" icon="trash-outline" onPress={handleCancelEvent} />
         </View>
       </View>
 
