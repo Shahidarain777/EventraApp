@@ -274,7 +274,7 @@ const EventCard = ({
                             const member = event.joinedMembers?.find(
                               (m) => m.userId?.toString() === currentUserId
                             );
-                            return member ? member.status : 'Join';
+                            return member && member.userId?.toString() === currentUserId ? member.status : 'Join';
                           })()
                     }
                   </Text>

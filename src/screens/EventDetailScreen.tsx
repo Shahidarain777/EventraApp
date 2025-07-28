@@ -18,20 +18,26 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
   // State for user's join status
   const [userStatus, setUserStatus] = useState<string>('not_joined');
   const [isJoining, setIsJoining] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   
   // Get current user ID from AsyncStorage
   const getCurrentUserId = async () => {
     try {
-      const userStr = await AsyncStorage.getItem('user');
+      const userStr = await AsyncStorage.getItem('userData');
       if (userStr) {
         const user = JSON.parse(userStr);
-        return user._id || user.id || user.userId;
+        // Try to get the user ID from common fields
+        const userIdRaw = user._id || user.id || user.userId || user.userid || user.ID;
+        const userId = userIdRaw ? userIdRaw.toString() : null;
+        //Alert.alert('Extracted userId', userId ? userId : 'null');
+        return userId;
       }
+      Alert.alert('No user found in AsyncStorage');
       return null;
     } catch (error) {
       console.log('Failed to get current user ID:', error);
+      Alert.alert('Error', 'Failed to get current user ID');
       return null;
     }
   };
@@ -44,67 +50,38 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
     };
     initializeUserId();
   }, []);
-  
-  // Fetch user's current status for this event
-  const fetchUserStatus = async () => {
-    if (!currentUserId) return;
-    
-    try {
-      const response = await api.get(`/event_members?eventId=${event.eventId}`);
-      
-      // Find current user's membership status from the members array
-      const currentUserMember = response.data.members?.find(
-        (member: any) => member.userId === currentUserId
-      );
-      
-      setUserStatus(currentUserMember ? currentUserMember.status : 'not_joined');
-    } catch (error) {
-      console.log('Failed to fetch user status:', error);
-      setUserStatus('not_joined');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  // Initialize user status when currentUserId is available
+ 
+  // Get user status from event.joinedMembers (from eventSlice)
   useEffect(() => {
-    if (currentUserId) {
-      fetchUserStatus();
-    }
-  }, [event.eventId, currentUserId]);
+    if (!currentUserId) return;
+    setIsLoading(true);
+    const currentUserMember = event.joinedMembers?.find(
+      (member: any) => member.userId?.toString() === currentUserId?.toString()
+    );
+    //Alert.alert('Debug', `currentUserId: ${currentUserId}\ncurrentUserMember: ${JSON.stringify(currentUserMember)}`);
+    setUserStatus(currentUserMember ? currentUserMember.status : 'not_joined');
+    setIsLoading(false);
+  }, [event.eventId, event.joinedMembers, currentUserId]);
+  
   
   // Handle join event
   const handleJoinEvent = async () => {
     if (isJoining) return;
-    
-    // If payment is pending, could initiate payment flow here
-    if (userStatus === 'payment_pending') {
-      Alert.alert('Payment Required', 'Please complete your payment to join this event.');
-      return;
-    }
-    
+    // If user already has a status, do not allow join again
+    if (userStatus !== 'not_joined') return;
     setIsJoining(true);
-    
     try {
       let status = 'member';
-      
-      // Determine status based on event requirements
       if (getApprovalRequired()) {
         status = 'approval_pending';
       } else if (event.price && event.price !== 'Free' && event.price !== 0) {
         status = 'payment_pending';
       }
-      
-      // API call to join event
       await api.post('/event_members', {
         eventId: event.eventId,
         status: status
       });
-      
-      // Update local status
       setUserStatus(status);
-      
-      // Show success message
       let message = '';
       switch (status) {
         case 'member':
@@ -117,9 +94,7 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
           message = `Join request submitted! Please complete payment of ${String(event.price)} to confirm your membership.`;
           break;
       }
-      
       Alert.alert('Success', message);
-      
     } catch (error: any) {
       Alert.alert('Error', error?.response?.data?.message || 'Failed to join event. Please try again.');
     } finally {
@@ -160,6 +135,7 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
   
   // Get button text based on status
   const getButtonText = () => {
+    // Alert.alert('Debug Info', `userStatus: ${userStatus}`);
     switch (userStatus) {
       case 'member':
         return 'You are a member';
