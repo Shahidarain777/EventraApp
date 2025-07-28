@@ -1,6 +1,6 @@
 import React from 'react';
 //import { fetchEvents, Event } from '../redux/slices/eventSlice';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Modal, Image, Pressable } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Modal, Image, Pressable, TextInput } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import api from '../api/axios';
 
@@ -11,9 +11,73 @@ const ManageEventScreen = () => {
   const token = require('react-redux').useSelector((state: any) => state.auth.token);
   // joinedMembers is a property of event
   const members = event && event.joinedMembers ? event.joinedMembers : [];
+  const paymentMembers = event && event.payments ? event.payments : [];
   const [modalVisible, setModalVisible] = React.useState(false);
   const [approvalModalVisible, setApprovalModalVisible] = React.useState(false);
   const [pendingMembers, setPendingMembers] = React.useState([]);
+  const [paymentModalVisible, setPaymentModalVisible] = React.useState(false);
+  const [paymentPendingMembers, setPaymentPendingMembers] = React.useState([]);
+  const [rejectReason, setRejectReason] = React.useState('');
+  const [selectedPayment, setSelectedPayment] = React.useState(null);
+  // Payment Verification Pending logic
+  const handlePaymentVerificationPending = () => {
+    // Filter members with paymentStatus 'pending' or 'payment_verification_pending'
+
+    const pendingPayments = paymentMembers.filter((p: any) => p.paymentStatus === 'pending' || p.paymentStatus === 'payment_verification_pending');
+    //Alert.alert('Pending Payments', `Found ${paymentMembers.length} members pending payment verification.`);
+    if (!pendingPayments || pendingPayments.length === 0) {
+      Alert.alert('No Pending Payments', 'No members are pending payment verification.');
+      return;
+    }
+    setPaymentPendingMembers(pendingPayments);
+    setPaymentModalVisible(true);
+  };
+
+  // Approve payment
+  const handleApprovePayment = async (member: any) => {
+    try {
+      // 1. Update payment status
+      await api.put('/payments', {
+        eventId: Number(event.eventId),
+        userId: member.userId,
+        paymentStatus: 'completed',
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // 2. Update event member status
+      await api.put('/event_members', {
+        eventId: Number(event.eventId),
+        userId: member.userId,
+        status: 'member',
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      Alert.alert('Success', `${member.name || 'Member'} payment marked as completed and status set to member.`);
+      setPaymentPendingMembers((prev: any) => prev.filter((m: any) => m.userId !== member.userId));
+    } catch (err) {
+      Alert.alert('Error', 'Failed to approve payment.');
+    }
+  };
+
+  // Reject payment (with reason)
+  const handleRejectPayment = async (member: any, reason: string) => {
+    try {
+      await api.put('/payments', {
+        eventId: Number(event.eventId),
+        userId: member.userId,
+        paymentStatus: 'rejected',
+        rejectionReason: reason,
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      Alert.alert('Rejected', `${member.name || 'Member'} payment rejected.`);
+      setPaymentPendingMembers((prev: any) => prev.filter((m: any) => m.userId !== member.userId));
+      setRejectReason('');
+      setSelectedPayment(null);
+    } catch (err) {
+      Alert.alert('Error', 'Failed to reject payment.');
+    }
+  };
 
   const handleCancelEvent = () => {
     if (!event?.eventId) return Alert.alert('Error', 'No eventId found');
@@ -108,8 +172,100 @@ const ManageEventScreen = () => {
           <Button style={styles.memberButton} text="Member List" icon="people-outline" onPress={handleMemberList} />
         </View>
         <View style={styles.row}>
-          <Button style={styles.paymentButton} text="Payment Verification Pending" icon="card-outline" />
+          <Button style={styles.paymentButton} text="Payment Verification Pending" icon="card-outline" onPress={handlePaymentVerificationPending} />
         </View>
+      {/* Payment Verification Pending Modal */}
+      <Modal
+        visible={paymentModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => { setPaymentModalVisible(false); setRejectReason(''); setSelectedPayment(null); }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Payment Verification Pending</Text>
+            <View style={styles.memberList}>
+              {paymentPendingMembers.map((member: any, idx: number) => (
+                <View key={member.id || idx} style={styles.memberRow}>
+                  <Image
+                    source={member.profileImage ? { uri: member.profileImage } : require('../../assets/EventraLogo.png')}
+                    style={styles.profileImage}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.memberName}>{member.name || 'No Name'}</Text>
+                    {/* Show all payment details */}
+                    {/* <Text style={{ fontSize: 12, color: '#444' }}>ID: {member.id || member._id}</Text> */}
+                    {/* <Text style={{ fontSize: 12, color: '#444' }}>User ID: {member.userId}</Text> */}
+                    {/* <Text style={{ fontSize: 12, color: '#444' }}>Event ID: {member.eventId}</Text> */}
+                    {/* <Text style={{ fontSize: 12, color: '#444' }}>Host ID: {member.hostId}</Text> */}
+                    <Text style={{ fontSize: 12, color: '#444' }}>Amount: {member.amount}</Text>
+                    {/* <Text style={{ fontSize: 12, color: '#444' }}>Payment Status: {member.paymentStatus}</Text> */}
+                    <Text style={{ fontSize: 12, color: '#444' }}>Payment Method: {member.paymentMethod}</Text>
+                    {/* <Text style={{ fontSize: 12, color: '#444' }}>Created At: {member.createdAt}</Text> */}
+                  </View>
+                  <View style={styles.iconGroup}>
+                    <Pressable style={styles.iconBtn} onPress={() => handleApprovePayment(member)}>
+                      <Ionicons name="checkmark-circle-outline" size={26} color="#43a047" />
+                    </Pressable>
+                    <Pressable style={styles.iconBtn} onPress={() => { setSelectedPayment(member); }}>
+                      <Ionicons name="close-circle-outline" size={26} color="#ed6462" />
+                    </Pressable>
+                  </View>
+                </View>
+              ))}
+            </View>
+            <TouchableOpacity style={styles.closeModalBtn} onPress={() => { setPaymentModalVisible(false); setRejectReason(''); setSelectedPayment(null); }}>
+              <Text style={styles.closeModalText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Rejection Reason Modal */}
+      <Modal
+        visible={!!selectedPayment}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => { setSelectedPayment(null); setRejectReason(''); }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Reject Payment</Text>
+            <Text style={{ marginBottom: 10 }}>Please enter a reason for rejection:</Text>
+            <View style={{ width: '100%', marginBottom: 16 }}>
+              <TextInput
+                style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 8, minHeight: 40 }}
+                placeholder="Enter reason..."
+                value={rejectReason}
+                onChangeText={setRejectReason}
+                multiline
+              />
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
+              <TouchableOpacity
+                style={[styles.closeModalBtn, { backgroundColor: '#ed6462', flex: 1, marginRight: 8 }]}
+                onPress={() => {
+                  if (!rejectReason.trim()) {
+                    Alert.alert('Error', 'Please enter a reason for rejection.');
+                    return;
+                  }
+                  handleRejectPayment(selectedPayment, rejectReason);
+                  setRejectReason('');
+                  setSelectedPayment(null);
+                }}
+              >
+                <Text style={styles.closeModalText}>Reject</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.closeModalBtn, { backgroundColor: '#ccc', flex: 1, marginLeft: 8 }]}
+                onPress={() => { setSelectedPayment(null); setRejectReason(''); }}
+              >
+                <Text style={[styles.closeModalText, { color: '#333' }]}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
         <View style={styles.row}>
           <Button style={styles.approvalButton} text="Approval Pending" icon="time-outline" onPress={handleApprovalPending} />
         </View>

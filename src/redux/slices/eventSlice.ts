@@ -54,6 +54,17 @@ export interface Event {
     status: string;
     profileImage?: string;
   }>;
+
+  payments?: Array<{
+    id: string | number;
+    name: string;
+    profileImage?: string;
+    userId: string | number;
+    amount: number;
+    paymentStatus: string;
+    paymentMethod: string;
+    createdAt: string;
+  }>;
 }
 
 interface EventState {
