@@ -28,14 +28,13 @@ export default function SplashTransitionScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <Animated.Text
-        style={[
-          styles.eventraText,
-          { transform: [{ translateX }], opacity },
-        ]}
-      >
-        Eventra
-      </Animated.Text>
+      <View style={{ alignItems: 'center', marginBottom: 18 }}>
+        <Animated.Image
+          source={require('../../assets/EventraLogo.png')}
+          style={{ width: 210, height: 210, marginBottom: 8, opacity, transform: [{ translateX }] }}
+          resizeMode="contain"
+        />
+      </View>
     </View>
   );
 }
@@ -46,14 +45,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#075cf8ff',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  eventraText: {
-    fontSize: 44,
-    fontWeight: 'bold',
-    color: '#fff',
-    letterSpacing: 2,
-    textShadowColor: 'rgba(0,0,0,0.18)',
-    textShadowOffset: { width: 0, height: 4 },
-    textShadowRadius: 12,
   },
 });
