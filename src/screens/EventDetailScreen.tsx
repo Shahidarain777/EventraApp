@@ -181,8 +181,10 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
             <Ionicons name="location-outline" size={18} color="#2788ff" /> Location
           </Text>
           <Text style={styles.detailText}>
-            {event.location && (event.location.city || event.location.state || event.location.country || event.location.address) ?
-              [event.location.city, event.location.state, event.location.country, event.location.address]
+            {event.location && (event.location.city || event.location.state || event.location.country || event.location.address || event.location.link || event.location.platform || event.location.type || event.location.venueName) ?
+
+              [event.location.city, event.location.state, event.location.country, event.location.address, event.location.link]
+
                 .filter(Boolean)
                 .join(', ')
               : 'N/A'}

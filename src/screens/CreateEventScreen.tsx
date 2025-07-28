@@ -18,17 +18,33 @@ import { AppDispatch, RootState } from '../redux/store';
 import { fetchCategories } from '../redux/slices/categorySlice';
 import { addCategory } from '../redux/slices/categorySlice';
 import { launchImageLibrary } from 'react-native-image-picker';
-import DatePickerRow from '../components/DatePickerRow';
+import DateTimeSelector from '../components/DateTimeSelector';
 import ImageUploadCard from '../components/ImageUploadCard';
 import RNPickerSelect from 'react-native-picker-select';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Modal } from 'react-native'; 
 
 import LocationPickerModal from '../components/LocationPickerModal';
+import LocationSelectorModal from '../components/LocationSelectorModal';
 import api from '../api/axios';
 
 
 type User = { id: string; username: string };
+
+interface LocationData {
+  type: 'venue' | 'online';
+  // For venue
+  venueName?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  latitude?: number;
+  longitude?: number;
+  // For online
+  link?: string;
+  platform?: string;
+}
 
 const CreateEventScreen = () => {
   const navigation = useNavigation();
@@ -49,11 +65,11 @@ const CreateEventScreen = () => {
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [country, setCountry] = useState('');
-  const [state, setState] = useState('');
-  const [city, setCity] = useState('');
-  const [latitude, setLatitude] = useState('');
-  const [longitude, setLongitude] = useState('');
+  
+  // Location data (replaces individual location fields)
+  const [locationData, setLocationData] = useState<LocationData | null>(null);
+  const [locationModalVisible, setLocationModalVisible] = useState(false);
+  
   const [visibility, setVisibility] = useState('public');
   const [approvalRequired, setApprovalRequired] = useState('no');
   const [capacity, setCapacity] = useState('');
@@ -63,11 +79,7 @@ const CreateEventScreen = () => {
   const [currency, setCurrency] = useState('PKR');
   const [amountStep, setAmountStep] = useState(1);
   const [date, setDate] = useState({ start: new Date(), end: new Date() });
-  const [showStartPicker, setShowStartPicker] = useState(false);
-  const [showEndPicker, setShowEndPicker] = useState(false);
   const [error, setError] = useState('');
-  const [mapModalVisible, setMapModalVisible] = useState(false);
-  const [pickedLocation, setPickedLocation] = useState<{latitude: number, longitude: number} | null>(null);
   
   // Sub-events state
   const [subEvents, setSubEvents] = useState<Array<{
@@ -109,6 +121,39 @@ const CreateEventScreen = () => {
     ));
   };
 
+  // Location handler
+  const handleLocationSave = (data: LocationData) => {
+    setLocationData(data);
+    setLocationModalVisible(false);
+  };
+
+  // Get location display text
+  const getLocationDisplayText = () => {
+    if (!locationData) {
+      return 'Set a location or an online event link';
+    }
+    
+    if (locationData.type === 'venue') {
+      if (locationData.venueName) {
+        return locationData.venueName;
+      }
+      if (locationData.address) {
+        return locationData.address;
+      }
+      if (locationData.city || locationData.state || locationData.country) {
+        return [locationData.city, locationData.state, locationData.country]
+          .filter(Boolean)
+          .join(', ');
+      }
+      return 'Venue location set';
+    } else {
+      if (locationData.platform) {
+        return `${locationData.platform} meeting`;
+      }
+      return 'Online event link set';
+    }
+  };
+
   // Debounce image pick to prevent multiple triggers
   let imagePickInProgress = false;
   const handleImagePick = async () => {
@@ -127,20 +172,6 @@ const CreateEventScreen = () => {
     });
   };
 
-  const handleDateChange = (
-    type: 'start' | 'end',
-    _event: unknown,
-    selectedDate?: Date | undefined
-  ) => {
-    if (type === 'start') {
-      setShowStartPicker(false);
-      if (selectedDate) setDate((prev) => ({ ...prev, start: selectedDate }));
-    } else {
-      setShowEndPicker(false);
-      if (selectedDate) setDate((prev) => ({ ...prev, end: selectedDate }));
-    }
-  };
-
   const handleSubmit = async () => {
     setError('');
     if (!title.trim()) return setError('Event title is required');
@@ -148,6 +179,18 @@ const CreateEventScreen = () => {
     if (!description.trim()) return setError('Description is required');
     if (!date.start || !date.end) return setError('Start and End date required');
     if (isPaid && !joiningFee) return setError('Joining fee required for paid event');
+    
+    // Validate location
+    if (!locationData) return setError('Location is required');
+    if (locationData.type === 'venue') {
+      if (!locationData.address && !locationData.venueName) {
+        return setError('Venue address or name is required');
+      }
+    } else if (locationData.type === 'online') {
+      if (!locationData.link) {
+        return setError('Online event link is required');
+      }
+    }
     
     // Validate sub-events
     for (let i = 0; i < subEvents.length; i++) {
@@ -179,18 +222,41 @@ const CreateEventScreen = () => {
       }
     }
 
+    // Build location object based on type
+    let locationObj;
+    if (locationData.type === 'venue') {
+      locationObj = {
+        type: 'venue',
+        city: locationData.city || '',
+        state: locationData.state || '',
+        country: locationData.country || '',
+        address: locationData.address || locationData.venueName || '',
+        latitude: locationData.latitude || 0,
+        longitude: locationData.longitude || 0,
+        venueName: locationData.venueName || ''
+      };
+    } else {
+      // For online events, only send online-specific fields
+      locationObj = {
+        type: 'online',
+        link: locationData.link || '',
+        platform: locationData.platform || '',
+        // Explicitly set empty values for venue fields to avoid backend validation issues
+        city: '',
+        state: '',
+        country: '',
+        address: '',
+        latitude: 0,
+        longitude: 0,
+        venueName: ''
+      };
+    }
+
     // Build event body from user input
     const body = {
       title: title.trim(),
       description: description.trim(),
-      location: {
-        city: "Karachi",
-        state: "Sindh",
-        country: "Pakistan",
-        address: "Tech Hub, Shahrah-e-Faisal",
-        latitude: 24.8607,
-        longitude: 67.0011
-      },
+      location: locationObj,
       categoryId: finalCategoryId,
       dateTime: {
         start: date.start ? date.start.toISOString() : undefined,
@@ -304,49 +370,25 @@ const CreateEventScreen = () => {
 
       <Text style={styles.label}>Event Location</Text>
       <TouchableOpacity
-        style={{width: '100%', backgroundColor: '#007BFF', borderRadius: 10, padding: 12, alignItems: 'center', marginBottom: 14}}
-        onPress={() => setMapModalVisible(true)}
+        style={styles.locationCard}
+        onPress={() => setLocationModalVisible(true)}
       >
-        <Text style={{color: '#fff', fontWeight: '600', fontSize: 16}}>Pick Location on Map</Text>
+        <View style={styles.locationCardContent}>
+          <Ionicons 
+            name={locationData?.type === 'online' ? 'link-outline' : 'location-outline'} 
+            size={24} 
+            color="#888" 
+            style={styles.locationIcon}
+          />
+          <View style={styles.locationTextContainer}>
+            <Text style={styles.locationTitle}>Location</Text>
+            <Text style={styles.locationSubtitle}>
+              {getLocationDisplayText()}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#888" />
+        </View>
       </TouchableOpacity>
-      <View style={styles.latLngRow}>
-        <TextInput
-          style={styles.latLngInput}
-          placeholder="Latitude"
-          placeholderTextColor="#888"
-          value={latitude}
-          onChangeText={setLatitude}
-          keyboardType="numeric"
-          editable={false}
-        />
-        <TextInput
-          style={styles.latLngInput}
-          placeholder="Longitude"
-          placeholderTextColor="#888"
-          value={longitude}
-          onChangeText={setLongitude}
-          keyboardType="numeric"
-          editable={false}
-        />
-      </View>
-      {/* Use built-in Modal for map picker */}
-      <Modal
-        visible={mapModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setMapModalVisible(false)}
-      >
-        <LocationPickerModal
-          visible={true}
-          onClose={() => setMapModalVisible(false)}
-          onPick={(lat, lng) => {
-            setLatitude(lat.toString());
-            setLongitude(lng.toString());
-            setMapModalVisible(false);
-          }}
-          initialLocation={latitude && longitude ? { latitude: parseFloat(latitude), longitude: parseFloat(longitude) } : undefined}
-        />
-      </Modal>
 
       <Text style={styles.label}>Visibility</Text>
       <View style={styles.rowBtns}>
@@ -412,18 +454,12 @@ const CreateEventScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <View style={{ width: '100%', marginBottom: 10 }}>
-        <Text style={styles.label}>Start Date - End Date</Text>
-        <DatePickerRow
-          date={date}
-          setShowStartPicker={setShowStartPicker}
-          setShowEndPicker={setShowEndPicker}
-          showStartPicker={showStartPicker}
-          showEndPicker={showEndPicker}
-          handleDateChange={handleDateChange}
-          styles={styles}
-        />
-      </View>
+      <DateTimeSelector
+        startDate={date.start}
+        endDate={date.end}
+        onStartDateChange={(newDate) => setDate(prev => ({ ...prev, start: newDate }))}
+        onEndDateChange={(newDate) => setDate(prev => ({ ...prev, end: newDate }))}
+      />
 
       <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
         <Text style={[styles.label, { flex: 1 }]}>Is Paid?</Text>
@@ -548,6 +584,14 @@ const CreateEventScreen = () => {
           <Text style={styles.submitBtnText}>Upload Event</Text>
         )}
       </TouchableOpacity>
+
+      {/* Location Selector Modal */}
+      <LocationSelectorModal
+        visible={locationModalVisible}
+        onClose={() => setLocationModalVisible(false)}
+        onSave={handleLocationSave}
+        initialData={locationData || undefined}
+      />
     </ScrollView>
   );
 };
@@ -706,24 +750,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f7f7f7',
-  },
-  latLngRow: {
-    flexDirection: 'row',
-    width: '100%',
-    justifyContent: 'space-between',
-    marginBottom: 14,
-  },
-  latLngInput: {
-    width: '48%',
-    backgroundColor: '#fff', // Make background white for visibility
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    color: '#222', // Ensure input text is dark
-    fontWeight: '500',
   },
   rowBtns: {
     flexDirection: 'row',
@@ -996,5 +1022,36 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
     marginLeft: 8,
+  },
+  
+  // Location Card Styles
+  locationCard: {
+    width: '100%',
+    backgroundColor: '#f7f7f7',
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  locationCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  locationIcon: {
+    marginRight: 12,
+  },
+  locationTextContainer: {
+    flex: 1,
+  },
+  locationTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 2,
+  },
+  locationSubtitle: {
+    fontSize: 14,
+    color: '#888',
   },
 });

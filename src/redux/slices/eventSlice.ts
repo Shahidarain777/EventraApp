@@ -28,7 +28,25 @@ export interface Event {
   visibility?: string;
   approvalRequired?: string;
   maxAttendees?: number | string;
+  // {
+  // "location": {
+  //   "type": "venue", // or "online"
+  //   "venueName": "",
+  //   "address": "",
+  //   "city": "",
+  //   "state": "",
+  //   "country": "",
+  //   "latitude": null,
+  //   "longitude": null,
+  //   "link": "",
+  //   "platform": "Custom"
+  // }
+// }
   location?: {
+    type: 'venue' | 'online';
+    venueName?: string;
+    link?: string; // For online events
+    platform?: string; // e.g., Zoom, Google Meet
     city?: string;
     state?: string;
     country?: string;
