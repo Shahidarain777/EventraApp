@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
-    borderRadius: 8,
+    borderRadius: 30,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
