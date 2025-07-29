@@ -120,7 +120,7 @@ const SignupScreen = () => {
                 </TouchableOpacity>
               </View>
               <View style={styles.inputRow}>
-                <Ionicons name="description-outline" size={22} color="#8fa1c7" style={styles.icon} />
+                <Ionicons name="information-outline" size={22} color="#8fa1c7" style={styles.icon} />
                 <TextInput
                   style={styles.inputRowInput}
                   placeholder="Bio (optional)"
