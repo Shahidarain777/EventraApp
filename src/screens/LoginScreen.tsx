@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { KeyboardAvoidingView, Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -38,10 +39,36 @@ const LoginScreen = () => {
   const [savePassword, setSavePassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // Load saved credentials on mount
+  useEffect(() => {
+    const loadCredentials = async () => {
+      try {
+        const creds = await AsyncStorage.getItem('savedLogin');
+        if (creds) {
+          const { email, password } = JSON.parse(creds);
+          setEmail(email);
+          setPassword(password);
+          setSavePassword(true);
+        }
+      } catch {}
+    };
+    loadCredentials();
+  }, []);
+
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Validation Error', 'Email and Password are required');
       return;
+    }
+
+    if (savePassword) {
+      try {
+        await AsyncStorage.setItem('savedLogin', JSON.stringify({ email, password }));
+      } catch {}
+    } else {
+      try {
+        await AsyncStorage.removeItem('savedLogin');
+      } catch {}
     }
 
     const result = await dispatch(loginUser({ email, password }));
