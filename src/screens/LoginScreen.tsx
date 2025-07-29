@@ -120,10 +120,19 @@ const LoginScreen = () => {
                 <Text style={styles.loginBtnTextSimple}>Login</Text>
               )}
             </TouchableOpacity>
-            <TouchableOpacity style={styles.googleBtnSimple} onPress={() => Alert.alert('Google Login', 'Google login pressed')}>
-              <Text style={styles.googleBtnTextSimple}>Continue with </Text>
-              <Image source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png' }} style={styles.googleIconSimple} />
-              
+            <TouchableOpacity
+              style={styles.googleSignInBtn}
+              activeOpacity={0.85}
+              onPress={() => Alert.alert('Google Login', 'Google login pressed')}
+            >
+              <View style={styles.googleIconWrapper}>
+                <Image
+                  source={require('../../assets/google_logo.png')}
+                  style={styles.googleGIcon}
+                  resizeMode="contain"
+                />
+              </View>
+              <Text style={styles.googleSignInText}>Sign in with Google</Text>
             </TouchableOpacity>
           </View>
           
@@ -221,8 +230,8 @@ const styles = StyleSheet.create({
   },
   loginBtnSimple: {
     width: '100%',
-    backgroundColor: '#222',
-    borderRadius: 10,
+    backgroundColor: '#1a1111ff',
+    borderRadius: 30,
     paddingVertical: 15,
     alignItems: 'center',
     marginTop: 2,
@@ -252,31 +261,44 @@ const styles = StyleSheet.create({
     marginLeft:16,
     marginRight:20,
   },
-  googleBtnSimple: {
+  googleSignInBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ffffffff',
-    borderRadius: 10,
-    paddingVertical: 14,
-    width: '100%',
-    marginBottom: 2,
-    marginTop: 2,
-    elevation: 1,
-  },
-  googleIconSimple: {
-    width: 100,
-    height: 35,
-    marginRight: 10,
-    marginTop: 8,
-    borderRadius: 0,
     backgroundColor: '#fff',
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    width: '100%',
+    marginTop: 10,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  googleBtnTextSimple: {
-    color: '#000000ff',
-    fontWeight: '600',
-    fontSize: 22,
-    letterSpacing: 0.2,
+  googleIconWrapper: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  googleGIcon: {
+    width: 24,
+    height: 24,
+  },
+  googleSignInText: {
+    flex: 1,
+    textAlign: 'center',
+    color: '#222',
+    fontWeight: '500',
+    fontSize: 18,
+    letterSpacing: 0.1,
   },
   loginTitle: {
     fontSize: 30,
