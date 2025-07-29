@@ -226,32 +226,6 @@ const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({
                   onChangeText={setVenueName}
                 />
 
-                {/* <View style={styles.locationRow}>
-                  <TextInput
-                    style={[styles.input, { flex: 1, marginRight: 8 }]}
-                    placeholder="City"
-                    placeholderTextColor="#888"
-                    value={city}
-                    onChangeText={setCity}
-                  />
-                  <TextInput
-                    style={[styles.input, { flex: 1, marginLeft: 8 }]}
-                    placeholder="State"
-                    placeholderTextColor="#888"
-                    value={state}
-                    onChangeText={setState}
-                  />
-                </View>
-
-                <TextInput
-                  style={styles.input}
-                  placeholder="Country"
-                  placeholderTextColor="#888"
-                  value={country}
-                  onChangeText={setCountry}
-                /> */}
-                
-
                 <View style={styles.addressRowFlat}>
                 <View style={styles.addressCol}>
                   <AddressPicker
