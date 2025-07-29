@@ -1,3 +1,20 @@
+  // Helper to get join button text based on member status
+  const getJoinButtonText = (status: string | undefined) => {
+    switch (status) {
+      case 'member':
+        return 'Member';
+      case 'approval_pending':
+        return 'Awaiting Approval';
+      case 'payment_pending':
+        return 'Payment Pending';
+      case 'payment_verification_pending':
+        return 'Payment Verification';
+      case 'canceled':
+        return 'Join';
+      default:
+        return 'Join';
+    }
+  };
 import React, { useState } from 'react';
 import { Image } from 'react-native';
 import {
@@ -274,7 +291,9 @@ const EventCard = ({
                             const member = event.joinedMembers?.find(
                               (m) => m.userId?.toString() === currentUserId
                             );
-                            return member && member.userId?.toString() === currentUserId ? member.status : 'Join';
+                            return member && member.userId?.toString() === currentUserId
+                              ? getJoinButtonText(member.status)
+                              : 'Join';
                           })()
                     }
                   </Text>
