@@ -28,7 +28,6 @@ const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [currentPickerType, setCurrentPickerType] = useState<'start' | 'end'>('start');
   const [currentMode, setCurrentMode] = useState<'date' | 'time'>('date');
-  const [tempDate, setTempDate] = useState(new Date());
 
   const formatDate = (date: Date) => {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -55,6 +54,57 @@ const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
     return `${startTime} - ${endTime}`;
   };
 
+  const formatDateRange = () => {
+    const isSameDay = startDate.toDateString() === endDate.toDateString();
+    
+    if (isSameDay) {
+      return formatDate(startDate);
+    } else {
+      // Different dates - show range
+      const startDay = startDate.getDate();
+      const startMonth = startDate.toLocaleDateString('en-US', { month: 'short' });
+      const endDay = endDate.getDate();
+      const endMonth = endDate.toLocaleDateString('en-US', { month: 'short' });
+      
+      if (startDate.getMonth() === endDate.getMonth()) {
+        // Same month
+        return `${startDay} - ${endDay} ${startMonth}`;
+      } else {
+        // Different months
+        return `${startDay} ${startMonth} - ${endDay} ${endMonth}`;
+      }
+    }
+  };
+
+  const getDisplayMonth = () => {
+    const isSameDay = startDate.toDateString() === endDate.toDateString();
+    
+    if (isSameDay) {
+      return startDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+    } else {
+      // For date ranges, show the start month
+      return startDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+    }
+  };
+
+  const getDisplayDay = () => {
+    const isSameDay = startDate.toDateString() === endDate.toDateString();
+    
+    if (isSameDay) {
+      return startDate.getDate().toString();
+    } else {
+      // For date ranges, show range like "13-14"
+      const startDay = startDate.getDate();
+      const endDay = endDate.getDate();
+      
+      if (startDate.getMonth() === endDate.getMonth()) {
+        return `${startDay}-${endDay}`;
+      } else {
+        return startDay.toString(); // Just show start day if different months
+      }
+    }
+  };
+
   const getTimezone = () => {
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const offset = new Date().getTimezoneOffset();
@@ -68,43 +118,35 @@ const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
   const openDatePicker = (type: 'start' | 'end') => {
     setCurrentPickerType(type);
     setCurrentMode('date');
-    setTempDate(type === 'start' ? startDate : endDate);
+    setShowTimePicker(false); // Close time picker if open
     setShowDatePicker(true);
   };
 
   const openTimePicker = (type: 'start' | 'end') => {
     setCurrentPickerType(type);
     setCurrentMode('time');
-    setTempDate(type === 'start' ? startDate : endDate);
+    setShowDatePicker(false); // Close date picker if open
     setShowTimePicker(true);
   };
 
   const handleDatePickerChange = (event: any, selectedDate?: Date) => {
     if (selectedDate) {
-      setTempDate(selectedDate);
-    }
-  };
-
-  const handleTimePickerChange = (event: any, selectedTime?: Date) => {
-    if (selectedTime) {
-      setTempDate(selectedTime);
-    }
-  };
-
-  const confirmDateSelection = () => {
-    if (currentPickerType === 'start') {
-      onStartDateChange(tempDate);
-    } else {
-      onEndDateChange(tempDate);
+      if (currentPickerType === 'start') {
+        onStartDateChange(selectedDate);
+      } else {
+        onEndDateChange(selectedDate);
+      }
     }
     setShowDatePicker(false);
   };
 
-  const confirmTimeSelection = () => {
-    if (currentPickerType === 'start') {
-      onStartDateChange(tempDate);
-    } else {
-      onEndDateChange(tempDate);
+  const handleTimePickerChange = (event: any, selectedTime?: Date) => {
+    if (selectedTime) {
+      if (currentPickerType === 'start') {
+        onStartDateChange(selectedTime);
+      } else {
+        onEndDateChange(selectedTime);
+      }
     }
     setShowTimePicker(false);
   };
@@ -122,15 +164,15 @@ const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
         <View style={styles.dateSection}>
           <View style={styles.dateIconContainer}>
             <Text style={styles.monthText}>
-              {startDate.toLocaleDateString('en-US', { month: 'short' })}
+              {getDisplayMonth()}
             </Text>
             <Text style={styles.dayText}>
-              {startDate.getDate()}
+              {getDisplayDay()}
             </Text>
           </View>
           
           <View style={styles.dateDetails}>
-            <Text style={styles.dateText}>{formatDate(startDate)}</Text>
+            <Text style={styles.dateText}>{formatDateRange()}</Text>
           </View>
           
           <View style={styles.timeSection}>
@@ -148,14 +190,22 @@ const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
         visible={showMainModal}
         transparent={true}
         animationType="slide"
-        onRequestClose={() => setShowMainModal(false)}
+        onRequestClose={() => {
+          setShowMainModal(false);
+          setShowDatePicker(false);
+          setShowTimePicker(false);
+        }}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.mainModalContainer}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Select Date & Time</Text>
               <TouchableOpacity 
-                onPress={() => setShowMainModal(false)}
+                onPress={() => {
+                  setShowMainModal(false);
+                  setShowDatePicker(false);
+                  setShowTimePicker(false);
+                }}
                 style={styles.closeButton}
               >
                 <Ionicons name="close" size={24} color="#666" />
@@ -213,7 +263,11 @@ const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
 
             <TouchableOpacity 
               style={styles.doneButton}
-              onPress={() => setShowMainModal(false)}
+              onPress={() => {
+                setShowMainModal(false);
+                setShowDatePicker(false);
+                setShowTimePicker(false);
+              }}
             >
               <Text style={styles.doneButtonText}>Done</Text>
             </TouchableOpacity>
@@ -221,89 +275,25 @@ const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
         </View>
       </Modal>
 
-      {/* Date Picker Modal */}
-      <Modal
-        visible={showDatePicker}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowDatePicker(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                Select {currentPickerType === 'start' ? 'Start' : 'End'} Date
-              </Text>
-            </View>
-            
-            <DateTimePicker
-              value={tempDate}
-              mode="date"
-              display="spinner"
-              onChange={handleDatePickerChange}
-              style={styles.datePicker}
-            />
-            
-            <View style={styles.modalButtons}>
-              <TouchableOpacity 
-                style={styles.cancelButton} 
-                onPress={() => setShowDatePicker(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={styles.confirmButton} 
-                onPress={confirmDateSelection}
-              >
-                <Text style={styles.confirmButtonText}>Confirm</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      {/* Date Picker */}
+      {showDatePicker && (
+        <DateTimePicker
+          value={currentPickerType === 'start' ? startDate : endDate}
+          mode="date"
+          display="default"
+          onChange={handleDatePickerChange}
+        />
+      )}
 
-      {/* Time Picker Modal */}
-      <Modal
-        visible={showTimePicker}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowTimePicker(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                Select {currentPickerType === 'start' ? 'Start' : 'End'} Time
-              </Text>
-            </View>
-            
-            <DateTimePicker
-              value={tempDate}
-              mode="time"
-              display="spinner"
-              onChange={handleTimePickerChange}
-              style={styles.datePicker}
-            />
-            
-            <View style={styles.modalButtons}>
-              <TouchableOpacity 
-                style={styles.cancelButton} 
-                onPress={() => setShowTimePicker(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={styles.confirmButton} 
-                onPress={confirmTimeSelection}
-              >
-                <Text style={styles.confirmButtonText}>Confirm</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      {/* Time Picker */}
+      {showTimePicker && (
+        <DateTimePicker
+          value={currentPickerType === 'start' ? startDate : endDate}
+          mode="time"
+          display="default"
+          onChange={handleTimePickerChange}
+        />
+      )}
     </View>
   );
 };
@@ -311,6 +301,7 @@ const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 20,
+    width: '100%',
   },
   label: {
     fontSize: 16,
@@ -322,14 +313,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
     borderRadius: 16,
     padding: 16,
-    
     marginBottom: 16,
     borderWidth: 1,
     borderColor: '#e9ecef',
+    width: '100%',
   },
   dateSection: {
     flexDirection: 'row',
     alignItems: 'center',
+    width: '100%',
   },
   dateIconContainer: {
     backgroundColor: '#e3f2fd',
@@ -337,18 +329,22 @@ const styles = StyleSheet.create({
     padding: 8,
     alignItems: 'center',
     marginRight: 12,
-    minWidth: 50,
+    minWidth: 60,
+    minHeight: 60,
+    justifyContent: 'center',
   },
   monthText: {
     fontSize: 12,
     fontWeight: '600',
     color: '#2788ff',
     textTransform: 'uppercase',
+    marginBottom: 2,
   },
   dayText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#2788ff',
+    textAlign: 'center',
   },
   dateDetails: {
     flex: 1,

@@ -796,7 +796,7 @@ const styles = StyleSheet.create({
   submitBtn: {
     width: '100%',
     backgroundColor: '#2788ff', // modern blue
-    borderRadius: 10,
+    borderRadius: 30,
     paddingVertical: 15,
     alignItems: 'center',
     marginTop: 10,
