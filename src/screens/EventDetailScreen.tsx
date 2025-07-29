@@ -21,6 +21,13 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   
+  // State for sub-event selection and fee calculation
+  const [selectedSubEvents, setSelectedSubEvents] = useState<Set<string>>(new Set());
+  const [totalFee, setTotalFee] = useState<number>(0);
+  
+  // Define restricted statuses for sub-event selection
+  const restrictedStatuses = ['member', 'approval_pending', 'payment_pending', 'payment_verification_pending'];
+  
   // Get current user ID from AsyncStorage
   const getCurrentUserId = async () => {
     try {
@@ -50,6 +57,150 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
     };
     initializeUserId();
   }, []);
+
+  // Calculate total fee whenever selected sub-events change or user status changes
+  useEffect(() => {
+    const mainEventFee = event.price && event.price !== 'Free' ? Number(event.price) : 0;
+    let subEventsFee = 0;
+    
+    // Check if user has restricted status (already joined)
+    const isRestricted = restrictedStatuses.includes(userStatus);
+    
+    if (isRestricted && event.joinedMembers && currentUserId) {
+      // For restricted users, try to get their committed total amount first
+      const currentUserMember = event.joinedMembers.find(
+        (member: any) => member.userId?.toString() === currentUserId?.toString()
+      );
+      
+      // If user has a committed totalAmount, use that
+      if (currentUserMember && (currentUserMember as any).totalAmount !== undefined) {
+        const committedTotal = Number((currentUserMember as any).totalAmount);
+        if (!isNaN(committedTotal)) {
+          setTotalFee(committedTotal);
+          return; // Use committed amount, skip calculation
+        }
+      }
+    }
+    
+    // Calculate fee based on selected sub-events (for new users or fallback)
+    if (event.subEvents) {
+      if (isRestricted) {
+        // For restricted users without committed total, calculate from previously selected sub-events
+        if ((event as any).userSelectedSubEvents) {
+          (event as any).userSelectedSubEvents.forEach((userSubEvent: any) => {
+            const matchingSubEvent = event.subEvents?.find((subEvent) => {
+              const subEventId = String(subEvent.subEventId || subEvent._id || subEvent.itemName);
+              const userSubEventId = String(userSubEvent.subEventId || userSubEvent._id || userSubEvent.itemName);
+              return subEventId === userSubEventId;
+            });
+            
+            if (matchingSubEvent && matchingSubEvent.isPaid) {
+              subEventsFee += Number(matchingSubEvent.fee) || 0;
+            }
+          });
+        } else {
+          // Fallback: use current selectedSubEvents for restricted users
+          event.subEvents.forEach((subEvent) => {
+            const subEventId = String(subEvent.subEventId || subEvent._id || subEvent.itemName);
+            if (selectedSubEvents.has(subEventId) && subEvent.isPaid) {
+              subEventsFee += Number(subEvent.fee) || 0;
+            }
+          });
+        }
+      } else {
+        // For new users (not_joined), calculate based on current selection
+        event.subEvents.forEach((subEvent) => {
+          const subEventId = String(subEvent.subEventId || subEvent._id || subEvent.itemName);
+          if (selectedSubEvents.has(subEventId) && subEvent.isPaid) {
+            subEventsFee += Number(subEvent.fee) || 0;
+          }
+        });
+      }
+    }
+    
+    setTotalFee(mainEventFee + subEventsFee);
+  }, [selectedSubEvents, event.price, event.subEvents, userStatus, restrictedStatuses, event.joinedMembers, currentUserId]);
+
+  // Handle sub-event selection
+  const toggleSubEventSelection = (subEventId: string) => {
+    // Prevent selection changes if user has already joined
+    const restrictedStatuses = ['member', 'approval_pending', 'payment_pending', 'payment_verification_pending'];
+    
+    if (restrictedStatuses.includes(userStatus)) {
+      // Show alert that they cannot change selections
+      // Alert.alert(
+      //   'Cannot Modify Selection',
+      //   'You have already joined this event. Sub-event selections cannot be changed.',
+      //   [{ text: 'OK' }]
+      // );
+      return;
+    }
+
+    // Original selection logic for new users
+    setSelectedSubEvents(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(subEventId)) {
+        newSet.delete(subEventId);
+      } else {
+        newSet.add(subEventId);
+      }
+      return newSet;
+    });
+  };
+
+  // Load user's previously selected sub-events when status changes
+  useEffect(() => {
+    // If user has already joined (any of the restricted statuses), load their previous selections
+    const restrictedStatuses = ['member', 'approval_pending', 'payment_pending', 'payment_verification_pending'];
+    
+    if (restrictedStatuses.includes(userStatus) && event.subEvents) {
+      // For restricted users, we need to get their previously committed selections
+      // This could come from the backend API or from joinedMembers data
+      
+      // Option 1: If backend provides userSelectedSubEvents in event data
+      if ((event as any).userSelectedSubEvents) {
+        const userSubEventIds = (event as any).userSelectedSubEvents.map((subEvent: any) => 
+          String(subEvent.subEventId || subEvent._id || subEvent.itemName)
+        );
+        setSelectedSubEvents(new Set(userSubEventIds));
+      }
+      // Option 2: Get from joinedMembers data if available
+      else if (event.joinedMembers && currentUserId) {
+        const currentUserMember = event.joinedMembers.find(
+          (member: any) => member.userId?.toString() === currentUserId?.toString()
+        );
+        
+        if (currentUserMember && (currentUserMember as any).selectedSubEvents) {
+          const memberSubEventIds = (currentUserMember as any).selectedSubEvents.map((subEventId: any) => 
+            String(subEventId)
+          );
+          setSelectedSubEvents(new Set(memberSubEventIds));
+        }
+        // Option 3: If sub-events are stored as part of member data with different structure
+        else if (currentUserMember && (currentUserMember as any).subEvents) {
+          const memberSubEventIds = (currentUserMember as any).subEvents.map((subEvent: any) => 
+            String(subEvent.subEventId || subEvent._id || subEvent.itemName || subEvent)
+          );
+          setSelectedSubEvents(new Set(memberSubEventIds));
+        }
+        // Option 4: If the member has a totalAmount, try to reverse-engineer selections
+        else if (currentUserMember && (currentUserMember as any).totalAmount) {
+          // This is a fallback - try to match the committed total with possible sub-event combinations
+          console.log('User has committed total:', (currentUserMember as any).totalAmount);
+          // For now, we'll let the fee calculation handle this
+        }
+      }
+      
+      // If no stored selections found but user has restricted status, make API call to get selections
+      // You can uncomment this if you have a dedicated API endpoint
+      // else {
+      //   fetchUserSelectedSubEvents();
+      // }
+    } else if (userStatus === 'not_joined') {
+      // Clear selections for new users
+      setSelectedSubEvents(new Set());
+    }
+  }, [userStatus, event.subEvents, event.joinedMembers, currentUserId]);
  
   // Get user status from event.joinedMembers (from eventSlice)
   useEffect(() => {
@@ -74,12 +225,18 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
       let status = 'member';
       if (getApprovalRequired()) {
         status = 'approval_pending';
-      } else if (event.price && event.price !== 'Free' && event.price !== 0) {
+      } else if (totalFee > 0) {
         status = 'payment_pending';
       }
+      
+      // Include selected sub-events in the request
+      const selectedSubEventIds = Array.from(selectedSubEvents);
+      
       await api.post('/event_members', {
         eventId: event.eventId,
-        status: status
+        status: status,
+        selectedSubEvents: selectedSubEventIds,
+        totalAmount: totalFee
       });
       setUserStatus(status);
       let message = '';
@@ -91,7 +248,7 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
           message = 'Your join request has been submitted and is awaiting approval.';
           break;
         case 'payment_pending':
-          message = `Join request submitted! Please complete payment of ${String(event.price)} to confirm your membership.`;
+          message = `Join request submitted! Please complete payment of $${totalFee.toFixed(2)} to confirm your membership.`;
           break;
       }
       Alert.alert('Success', message);
@@ -259,51 +416,98 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
           <View style={styles.subEventsContainer}>
             <Text style={styles.subEventsTitle}>
               <Ionicons name="list-outline" size={20} color="#2788ff" /> Sub Events
+              {restrictedStatuses.includes(userStatus) && (
+                <Text style={styles.lockedIndicator}> (Locked)</Text>
+              )}
             </Text>
             
-            {event.subEvents.map((subEvent, index) => (
-              <View key={subEvent.subEventId || subEvent._id || index} style={styles.subEventCard}>
-                <View style={styles.subEventHeader}>
-                  <Text style={styles.subEventName}>{subEvent.itemName || `Sub Event ${index + 1}`}</Text>
-                  <View style={styles.subEventBadge}>
-                    <Text style={styles.subEventBadgeText}>
-                      {subEvent.isPaid ? 'Paid' : 'Free'}
-                    </Text>
-                  </View>
-                </View>
-                
-                <View style={styles.subEventDetails}>
-                  <View style={styles.subEventDetailItem}>
-                    <Ionicons name="pricetag" size={16} color="#666" />
-                    <Text style={styles.subEventDetailText}>
-                      Fee: {subEvent.isPaid ? `$${String(subEvent.fee || 0)}` : 'Free'}
-                    </Text>
-                  </View>
-                  
-                  <View style={styles.subEventDetailItem}>
-                    <Ionicons name="people" size={16} color="#666" />
-                    <Text style={styles.subEventDetailText}>
-                      Capacity: {String(subEvent.maxAttendees || 'Unlimited')}
-                    </Text>
-                  </View>
-                  
-                  {subEvent.joinedCount !== undefined && (
-                    <View style={styles.subEventDetailItem}>
-                      <Ionicons name="person-add" size={16} color="#666" />
-                      <Text style={styles.subEventDetailText}>
-                        Joined: {String(subEvent.joinedCount || 0)}
+            {event.subEvents.map((subEvent, index) => {
+              const subEventId = String(subEvent.subEventId || subEvent._id || subEvent.itemName || index);
+              const isSelected = selectedSubEvents.has(subEventId);
+              
+              return (
+                <TouchableOpacity 
+                  key={subEventId} 
+                  style={[
+                    styles.subEventCard, 
+                    isSelected && styles.subEventCardSelected,
+                    restrictedStatuses.includes(userStatus) && styles.disabledSubEventCard
+                  ]}
+                  onPress={() => toggleSubEventSelection(subEventId)}
+                  activeOpacity={0.7}
+                  disabled={restrictedStatuses.includes(userStatus)}
+                >
+                  <View style={styles.subEventHeader}>
+                    <View style={styles.subEventTitleRow}>
+                      <View style={styles.subEventCheckbox}>
+                        {restrictedStatuses.includes((event as any).user_status) ? (
+                          <Ionicons 
+                            name="lock-closed" 
+                            size={20} 
+                            color="#999" 
+                          />
+                        ) : (
+                          <Ionicons 
+                            name={isSelected ? "checkmark-circle" : "ellipse-outline"} 
+                            size={20} 
+                            color={isSelected ? "#2788ff" : "#ccc"} 
+                          />
+                        )}
+                      </View>
+                      <Text style={[
+                        styles.subEventName, 
+                        isSelected && styles.subEventNameSelected,
+                        restrictedStatuses.includes((event as any).user_status) && styles.disabledSubEventName
+                      ]}>
+                        {subEvent.itemName || `Sub Event ${index + 1}`}
                       </Text>
                     </View>
-                  )}
-                </View>
-              </View>
-            ))}
+                    <View style={[styles.subEventBadge, subEvent.isPaid ? styles.paidBadge : styles.freeBadge]}>
+                      <Text style={styles.subEventBadgeText}>
+                        {subEvent.isPaid ? `$${Number(subEvent.fee || 0)}` : 'Free'}
+                      </Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.subEventDetails}>
+                    <View style={styles.subEventDetailItem}>
+                      <Ionicons name="people" size={16} color="#666" />
+                      <Text style={styles.subEventDetailText}>
+                        Capacity: {String(subEvent.maxAttendees || 'Unlimited')}
+                      </Text>
+                    </View>
+                    
+                    {subEvent.joinedCount !== undefined && (
+                      <View style={styles.subEventDetailItem}>
+                        <Ionicons name="person-add" size={16} color="#666" />
+                        <Text style={styles.subEventDetailText}>
+                          Joined: {String(subEvent.joinedCount || 0)}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         )}
       </ScrollView>
       
       {/* Fixed Join Button at Bottom */}
       <View style={styles.fixedButtonContainer}>
+        {/* Total Fee Display */}
+        <View style={styles.totalFeeContainer}>
+          <View style={styles.totalFeeLabelContainer}>
+            <Text style={styles.totalFeeLabel}>Total Amount:</Text>
+            {restrictedStatuses.includes(userStatus) && (
+              <Text style={styles.committedFeeIndicator}>(Committed)</Text>
+            )}
+          </View>
+          <Text style={styles.totalFeeAmount}>
+            ${totalFee > 0 ? `${totalFee.toFixed(2)}` : '0.00'}
+          </Text>
+        </View>
+        
         {isLoading ? (
           <View style={styles.loadingButton}>
             <ActivityIndicator color="#2788ff" size="small" />
@@ -458,6 +662,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: 'left',
   },
+  lockedIndicator: {
+    fontSize: 14,
+    fontWeight: 'normal',
+    color: '#999',
+    fontStyle: 'italic',
+  },
   subEventCard: {
     backgroundColor: '#f8f9fa',
     borderRadius: 12,
@@ -466,24 +676,55 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e9ecef',
   },
+  subEventCardSelected: {
+    backgroundColor: '#e8f4fd',
+    borderColor: '#2788ff',
+    borderWidth: 2,
+  },
+  disabledSubEventCard: {
+    opacity: 0.5,
+    backgroundColor: '#f1f1f1',
+    borderColor: '#ddd',
+  },
   subEventHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
   },
+  subEventTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 10,
+  },
+  subEventCheckbox: {
+    marginRight: 10,
+  },
   subEventName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
     flex: 1,
-    marginRight: 10,
+  },
+  disabledSubEventName: {
+    color: '#999',
+    opacity: 0.7,
+  },
+  subEventNameSelected: {
+    color: '#2788ff',
+    fontWeight: '700',
   },
   subEventBadge: {
-    backgroundColor: '#2788ff',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
+  },
+  paidBadge: {
+    backgroundColor: '#2788ff',
+  },
+  freeBadge: {
+    backgroundColor: '#28a745',
   },
   subEventBadgeText: {
     color: '#fff',
@@ -547,6 +788,37 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 8,
+  },
+  totalFeeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  totalFeeLabelContainer: {
+    flexDirection: 'column',
+  },
+  totalFeeLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  committedFeeIndicator: {
+    fontSize: 12,
+    color: '#666',
+    fontStyle: 'italic',
+    marginTop: 2,
+  },
+  totalFeeAmount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2788ff',
   },
   joinButton: {
     backgroundColor: '#2788ff',
