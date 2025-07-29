@@ -44,7 +44,7 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ country, state, city, set
               setCity('');
             }}
             items={countryOptions}
-            placeholder={{ label: 'Select', value: '' }}
+            placeholder={{ label: 'Pick', value: '' }}
             value={country}
             style={pickerSelectStyles}
           />
@@ -58,7 +58,7 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ country, state, city, set
               setCity('');
             }}
             items={stateOptions}
-            placeholder={{ label: 'Select', value: '' }}
+            placeholder={{ label: 'Pick', value: '' }}
             value={state}
             disabled={!country}
             style={pickerSelectStyles}
@@ -70,7 +70,7 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ country, state, city, set
           <RNPickerSelect
             onValueChange={(value) => setCity(value)}
             items={cityOptions}
-            placeholder={{ label: 'Select', value: '' }}
+            placeholder={{ label: 'Pick', value: '' }}
             value={city}
             disabled={!state}
             style={pickerSelectStyles}

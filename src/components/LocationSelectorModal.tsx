@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LocationPickerModal from './LocationPickerModal';
+import AddressPicker from '../components/AddressPicker';
 
 interface LocationData {
   type: 'venue' | 'online';
@@ -216,7 +217,7 @@ const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({
                   </TouchableOpacity>
                 </View>
 
-                {/* Venue Details */}
+                <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 8, color: '#4F8CFF' }}>Venue Details</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Venue name (optional)"
@@ -225,7 +226,7 @@ const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({
                   onChangeText={setVenueName}
                 />
 
-                <View style={styles.locationRow}>
+                {/* <View style={styles.locationRow}>
                   <TextInput
                     style={[styles.input, { flex: 1, marginRight: 8 }]}
                     placeholder="City"
@@ -248,7 +249,21 @@ const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({
                   placeholderTextColor="#888"
                   value={country}
                   onChangeText={setCountry}
-                />
+                /> */}
+                
+
+                <View style={styles.addressRowFlat}>
+                <View style={styles.addressCol}>
+                  <AddressPicker
+                    country={country}
+                    setCountry={setCountry}
+                    state={state}
+                    setState={setState}
+                    city={city}
+                    setCity={setCity}
+                  />
+                </View>
+              </View>
 
                 {/* Coordinates */}
                 {(latitude || longitude) && (
@@ -338,12 +353,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 10,
   },
   modalContainer: {
     width: '100%',
     maxWidth: 400,
-    height: '75%',
+    height: '68%',
     minHeight: 500,
     backgroundColor: '#fff',
     borderRadius: 16,
@@ -404,6 +419,20 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 10,
   },
+
+  addressRowFlat: {
+    width: '100%',
+    flexDirection: 'row',
+    backgroundColor: 'transparent',
+    marginBottom: 0,
+    marginTop: 0,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  addressCol: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
   
   // Venue Content Styles
   venueContent: {
@@ -463,10 +492,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e9ecef',
   },
-  locationRow: {
-    flexDirection: 'row',
-    marginBottom: 12,
-  },
+  // locationRow: {
+  //   flexDirection: 'row',
+  //   marginBottom: 12,
+  // },
   coordinatesContainer: {
     backgroundColor: '#e8f4f8',
     borderRadius: 8,
