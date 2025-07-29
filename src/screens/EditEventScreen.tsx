@@ -3,11 +3,28 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, ScrollView, Switch } from 'react-native';
 import ImageUploadCard from '../components/ImageUploadCard';
 import { useSelector } from 'react-redux';
-import axios from 'axios';
 import { RootState } from '../redux/store';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import RNPickerSelect from 'react-native-picker-select';
 import api from '../api/axios';
+import LocationSelectorModal from '../components/LocationSelectorModal';
+
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
+interface LocationData {
+  type: 'venue' | 'online';
+  // For venue
+  venueName?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  latitude?: number;
+  longitude?: number;
+  // For online
+  link?: string;
+  platform?: string;
+}
 
 const EditEventScreen = () => {
   const navigation = useNavigation();
@@ -18,17 +35,14 @@ const EditEventScreen = () => {
   const { categories, loading: categoriesLoading, error: categoriesError } = useSelector((state: RootState) => state.categories);
 
   // State for all event fields
+  const [locationData, setLocationData] = useState<LocationData | null>(null);
+  const [locationModalVisible, setLocationModalVisible] = useState(false);
   const [images, setImages] = useState<string[]>(event?.imageUrl || []);
   const [title, setTitle] = useState(event?.title || '');
   const [categoryId, setCategoryId] = useState(event?.categoryId || null);
   const [showOtherCategory, setShowOtherCategory] = useState(false);
   const [otherCategory, setOtherCategory] = useState('');
   const [description, setDescription] = useState(event?.description || '');
-  const [latitude, setLatitude] = useState(event?.location?.latitude ? String(event.location.latitude) : '');
-  const [longitude, setLongitude] = useState(event?.location?.longitude ? String(event.location.longitude) : '');
-  const [country, setCountry] = useState(event?.location?.country || '');
-  const [stateVal, setStateVal] = useState(event?.location?.state || '');
-  const [city, setCity] = useState(event?.location?.city || '');
   const [visibility, setVisibility] = useState(event?.visibility || 'public');
   const [approvalRequired, setApprovalRequired] = useState(event?.approvalRequired || 'no');
   const [capacity, setCapacity] = useState(event?.maxAttendees ? String(event.maxAttendees) : '');
@@ -40,11 +54,8 @@ const EditEventScreen = () => {
     start: event?.dateTime?.start ? new Date(event.dateTime.start) : new Date(),
     end: event?.dateTime?.end ? new Date(event.dateTime.end) : new Date(),
   });
-  const [showStartPicker, setShowStartPicker] = useState(false);
-  const [showEndPicker, setShowEndPicker] = useState(false);
   const [subEvents, setSubEvents] = useState(event?.subEvents || []);
   const [error, setError] = useState('');
-  const [mapModalVisible, setMapModalVisible] = useState(false);
 
   if (!event) return <Text>Event not found.</Text>;
   if (event.hostId !== userId) return <Text style={{ color: 'red', textAlign: 'center', marginTop: 40 }}>Only the host can edit this event.</Text>;
@@ -61,18 +72,54 @@ const EditEventScreen = () => {
   }
 
   const handleSubmit = async () => {
+
+    // Validate location
+    if (!locationData) return setError('Location is required');
+    if (locationData.type === 'venue') {
+      if (!locationData.address && !locationData.venueName) {
+        return setError('Venue address or name is required');
+      }
+    } else if (locationData.type === 'online') {
+      if (!locationData.link) {
+        return setError('Online event link is required');
+      }
+    }
+
+
+    let locationObj;
+    if (locationData.type === 'venue') {
+      locationObj = {
+        type: 'venue',
+        city: locationData.city || '',
+        state: locationData.state || '',
+        country: locationData.country || '',
+        address: locationData.address || locationData.venueName || '',
+        latitude: locationData.latitude || 0,
+        longitude: locationData.longitude || 0,
+        venueName: locationData.venueName || ''
+      };
+    } else {
+      // For online events, only send online-specific fields
+      locationObj = {
+        type: 'online',
+        link: locationData.link || '',
+        platform: locationData.platform || '',
+        // Explicitly set empty values for venue fields to avoid backend validation issues
+        city: '',
+        state: '',
+        country: '',
+        address: '',
+        latitude: 0,
+        longitude: 0,
+        venueName: ''
+      };
+    }
     try {
       const body = {
         eventId: event.eventId,
         title: title.trim(),
         description: description.trim(),
-        location: {
-          city,
-          state: stateVal,
-          country,
-          latitude: latitude ? parseFloat(latitude) : undefined,
-          longitude: longitude ? parseFloat(longitude) : undefined,
-        },
+        location: locationObj,
         categoryId,
         dateTime: {
           start: date.start ? date.start.toISOString() : undefined,
@@ -94,6 +141,39 @@ const EditEventScreen = () => {
       navigation.goBack();
     } catch (err: any) {
       Alert.alert('Error', err?.response?.data?.message || 'Failed to update event');
+    }
+  };
+
+  // Location handler
+  const handleLocationSave = (data: LocationData) => {
+    setLocationData(data);
+    setLocationModalVisible(false);
+  };
+
+  // Get location display text
+  const getLocationDisplayText = () => {
+    if (!locationData) {
+      return 'Set a location or an online event link';
+    }
+    
+    if (locationData.type === 'venue') {
+      if (locationData.venueName) {
+        return locationData.venueName;
+      }
+      if (locationData.address) {
+        return locationData.address;
+      }
+      if (locationData.city || locationData.state || locationData.country) {
+        return [locationData.city, locationData.state, locationData.country]
+          .filter(Boolean)
+          .join(', ');
+      }
+      return 'Venue location set';
+    } else {
+      if (locationData.platform) {
+        return `${locationData.platform} meeting`;
+      }
+      return 'Online event link set';
     }
   };
 
@@ -165,30 +245,26 @@ const EditEventScreen = () => {
         numberOfLines={3}
       />
       <Text style={styles.label}>Event Location</Text>
-      <TouchableOpacity
-        style={{width: '100%', backgroundColor: '#007BFF', borderRadius: 10, padding: 12, alignItems: 'center', marginBottom: 14}}
-        onPress={() => setMapModalVisible(true)}
-      >
-        <Text style={{color: '#fff', fontWeight: '600', fontSize: 16}}>Pick Location on Map</Text>
-      </TouchableOpacity>
-      <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'space-between', marginBottom: 14 }}>
-        <TextInput
-          style={{ width: '48%', backgroundColor: '#fff', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12, fontSize: 16, borderWidth: 1, borderColor: '#e0e0e0', color: '#222', fontWeight: '500' }}
-          placeholder="Latitude"
-          placeholderTextColor="#888"
-          value={latitude}
-          onChangeText={setLatitude}
-          keyboardType="numeric"
-        />
-        <TextInput
-          style={{ width: '48%', backgroundColor: '#fff', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12, fontSize: 16, borderWidth: 1, borderColor: '#e0e0e0', color: '#222', fontWeight: '500' }}
-          placeholder="Longitude"
-          placeholderTextColor="#888"
-          value={longitude}
-          onChangeText={setLongitude}
-          keyboardType="numeric"
-        />
-      </View>
+        <TouchableOpacity
+          style={styles.locationCard}
+          onPress={() => setLocationModalVisible(true)}
+        >
+          <View style={styles.locationCardContent}>
+            <Ionicons 
+              name={locationData?.type === 'online' ? 'link-outline' : 'location-outline'} 
+              size={24} 
+              color="#888" 
+              style={styles.locationIcon}
+            />
+            <View style={styles.locationTextContainer}>
+              <Text style={styles.locationTitle}>Location</Text>
+              <Text style={styles.locationSubtitle}>
+                {getLocationDisplayText()}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#888" />
+          </View>
+        </TouchableOpacity>
       <Text style={styles.label}>Visibility</Text>
       <View style={{ flexDirection: 'row', width: '100%', marginBottom: 14, justifyContent: 'space-between' }}>
         <TouchableOpacity
@@ -232,14 +308,14 @@ const EditEventScreen = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
-                  style={styles.stepBtn}
-                  onPress={() => {
-                    const val = (parseInt(capacity) || 0) + capacityStep;
-                    setCapacity(val.toString());
-                  }}
-                >
-                  <Text style={styles.stepBtnText}>+</Text>
-                </TouchableOpacity>
+            style={styles.stepBtn}
+            onPress={() => {
+              const val = (parseInt(capacity) || 0) + capacityStep;
+              setCapacity(val.toString());
+            }}
+          >
+            <Text style={styles.stepBtnText}>+</Text>
+        </TouchableOpacity>
         <TextInput
           style={[{ flex: 1, backgroundColor: 'transparent', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 12, fontSize: 16, color: '#222', fontWeight: '500', textAlign: 'center', minWidth: 60 }]}
           placeholder="Max attendees"
@@ -311,6 +387,14 @@ const EditEventScreen = () => {
       <TouchableOpacity style={styles.button} onPress={handleSubmit}>
         <Text style={styles.buttonText}>Save Changes</Text>
       </TouchableOpacity>
+
+      {/* Location Selector Modal */}
+      <LocationSelectorModal
+        visible={locationModalVisible}
+        onClose={() => setLocationModalVisible(false)}
+        onSave={handleLocationSave}
+        initialData={locationData || undefined}
+      />
     </ScrollView>
   );
 };
@@ -399,6 +483,37 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontSize: 15,
     alignSelf: 'center',
+  },
+
+  // Location Card Styles
+  locationCard: {
+    width: '100%',
+    backgroundColor: '#f7f7f7',
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  locationCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  locationIcon: {
+    marginRight: 12,
+  },
+  locationTextContainer: {
+    flex: 1,
+  },
+  locationTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 2,
+  },
+  locationSubtitle: {
+    fontSize: 14,
+    color: '#888',
   },
 });
 

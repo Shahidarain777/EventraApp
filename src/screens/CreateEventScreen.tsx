@@ -22,9 +22,9 @@ import DateTimeSelector from '../components/DateTimeSelector';
 import ImageUploadCard from '../components/ImageUploadCard';
 import RNPickerSelect from 'react-native-picker-select';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { Modal } from 'react-native'; 
+// import { Modal } from 'react-native'; 
 
-import LocationPickerModal from '../components/LocationPickerModal';
+//  import LocationPickerModal from '../components/LocationPickerModal';
 import LocationSelectorModal from '../components/LocationSelectorModal';
 import api from '../api/axios';
 

@@ -19,12 +19,9 @@ const ManageEventScreen = () => {
   const [paymentPendingMembers, setPaymentPendingMembers] = React.useState([]);
   const [rejectReason, setRejectReason] = React.useState('');
   const [selectedPayment, setSelectedPayment] = React.useState(null);
-  // Payment Verification Pending logic
+  
   const handlePaymentVerificationPending = () => {
-    // Filter members with paymentStatus 'pending' or 'payment_verification_pending'
-
     const pendingPayments = paymentMembers.filter((p: any) => p.paymentStatus === 'pending' || p.paymentStatus === 'payment_verification_pending');
-    //Alert.alert('Pending Payments', `Found ${paymentMembers.length} members pending payment verification.`);
     if (!pendingPayments || pendingPayments.length === 0) {
       Alert.alert('No Pending Payments', 'No members are pending payment verification.');
       return;
