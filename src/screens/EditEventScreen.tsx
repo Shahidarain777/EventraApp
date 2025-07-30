@@ -64,7 +64,30 @@ const EditEventScreen = () => {
     start: event?.dateTime?.start ? new Date(event.dateTime.start) : new Date(),
     end: event?.dateTime?.end ? new Date(event.dateTime.end) : new Date(),
   });
-  const [subEvents, setSubEvents] = useState(event?.subEvents || []);
+  const [subEvents, setSubEvents] = useState<Array<{
+    itemName: string;
+    maxAttendees: string;
+    fee: string;
+    isPaid: boolean;
+  }>>(event?.subEvents || []);
+
+  // Sub-events functions (copied from CreateEventScreen)
+  const addSubEvent = () => {
+    setSubEvents(prev => [
+      ...prev,
+      { itemName: '', maxAttendees: '', fee: '', isPaid: false }
+    ]);
+  };
+
+  const removeSubEvent = (index: number) => {
+    setSubEvents(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const updateSubEvent = (index: number, field: string, value: string | boolean) => {
+    setSubEvents(prev => prev.map((event, i) =>
+      i === index ? { ...event, [field]: value } : event
+    ));
+  };
   const [error, setError] = useState('');
 
   if (!event) return <Text>Event not found.</Text>;
@@ -406,7 +429,64 @@ const EditEventScreen = () => {
           </View>
         </View>
       )}
-      {/* Sub Events section - you can use your sub-event logic here */}
+      {/* Sub Events Section */}
+      <Text style={styles.label}>Sub Events</Text>
+      {subEvents.map((subEvent, index) => (
+        <View key={index} style={styles.subEventCardStyle}>
+          <View style={styles.subEventHeaderStyle}>
+            <Text style={styles.subEventTitleStyle}>Sub Event {index + 1}</Text>
+            <TouchableOpacity onPress={() => removeSubEvent(index)}>
+              <Ionicons name="close-circle" size={24} color="#ed6462" />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.subEventRowStyle}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.subEventLabelStyle}>Max Attendees</Text>
+              <TextInput
+                style={styles.subEventInputStyle}
+                placeholder="Max attendees"
+                placeholderTextColor="#bbb"
+                value={subEvent.maxAttendees !== undefined && subEvent.maxAttendees !== null ? String(subEvent.maxAttendees) : ''}
+                onChangeText={text => {
+                  if (/^\d*$/.test(text)) updateSubEvent(index, 'maxAttendees', text);
+                }}
+                keyboardType="numeric"
+              />
+            </View>
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={styles.subEventLabelStyle}>Fee</Text>
+              <TextInput
+                style={styles.subEventInputStyle}
+                placeholder="Fee"
+                placeholderTextColor="#bbb"
+                value={subEvent.fee !== undefined && subEvent.fee !== null ? String(subEvent.fee) : ''}
+                onChangeText={text => {
+                  if (/^\d*$/.test(text)) {
+                    updateSubEvent(index, 'fee', text);
+                    updateSubEvent(index, 'isPaid', parseInt(text) > 0);
+                  }
+                }}
+                keyboardType="numeric"
+              />
+            </View>
+          </View>
+          <View style={styles.subEventFullRowStyle}>
+            <Text style={styles.subEventLabelStyle}>Item Name</Text>
+            <TextInput
+              style={styles.subEventInputFullStyle}
+              placeholder="e.g., Jazz Band, Food Stall"
+              placeholderTextColor="#bbb"
+              value={subEvent.itemName !== undefined && subEvent.itemName !== null ? String(subEvent.itemName) : ''}
+              onChangeText={text => updateSubEvent(index, 'itemName', text)}
+            />
+          </View>
+        </View>
+      ))}
+      <TouchableOpacity style={styles.addSubEventBtnStyle} onPress={addSubEvent}>
+        <Ionicons name="add-circle" size={24} color="#2788ff" />
+        <Text style={styles.addSubEventBtnTextStyle}>Add Sub-Event</Text>
+      </TouchableOpacity>
+
       <TouchableOpacity style={styles.button} onPress={handleSubmit}>
         <Text style={styles.buttonText}>Save Changes</Text>
       </TouchableOpacity>
@@ -443,6 +523,90 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     alignSelf: 'flex-start',
   },
+
+  // Sub Event Styles for matching reference image
+  subEventCardStyle : {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 16,
+    width: '100%',
+    marginBottom: 18,
+    borderWidth: 1.2,
+    borderColor: '#e6eaf3',
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  subEventHeaderStyle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  subEventTitleStyle : {
+    fontWeight: 'bold',
+    fontSize: 15,
+    flex: 1,
+    color: '#1a1d21ff',
+  },
+  subEventRowStyle : {
+    flexDirection: 'row',
+    marginBottom: 10,
+  },
+  subEventLabelStyle : {
+    fontSize: 13,
+    fontWeight: '500',
+    marginBottom: 4,
+    color: '#1a1c21ff',
+  },
+  subEventInputStyle:{
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e6eaf3',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 15,
+    color: '#222',
+    fontWeight: '500',
+    marginBottom: 0,
+  },
+  subEventFullRowStyle: {
+    marginBottom: 0,
+  },
+  subEventInputFullStyle :{
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e6eaf3',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 15,
+    color: '#222',
+    fontWeight: '500',
+    marginBottom: 0,
+    marginTop: 2,
+  },
+  addSubEventBtnStyle :{
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    justifyContent: 'center',
+    marginBottom: 18,
+    borderWidth: 2,
+    borderColor: '#b3d8ff',
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    paddingVertical: 12,
+    backgroundColor: '#fafdff',
+  },
+  addSubEventBtnTextStyle : {
+    color: '#2788ff',
+    fontWeight: '700',
+    marginLeft: 8,
+    fontSize: 16,
+  },
+
   input: {
     width: '100%',
     backgroundColor: '#f7f7f7',
@@ -456,6 +620,8 @@ const styles = StyleSheet.create({
     color: '#222',
     fontWeight: '500',
   },
+
+  
   stepBtn: {
     width: 32,
     height: 32,
@@ -490,7 +656,7 @@ const styles = StyleSheet.create({
   button: {
     width: '100%',
     backgroundColor: '#2788ff',
-    borderRadius: 10,
+    borderRadius: 30,
     paddingVertical: 15,
     alignItems: 'center',
     marginTop: 10,
