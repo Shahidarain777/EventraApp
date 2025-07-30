@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { launchImageLibrary } from 'react-native-image-picker';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, ScrollView, Switch } from 'react-native';
 import ImageUploadCard from '../components/ImageUploadCard';
 import { useSelector } from 'react-redux';
@@ -187,9 +188,15 @@ const EditEventScreen = () => {
         <ImageUploadCard
           images={images}
           onAdd={() => {
-            // TODO: Implement image picker logic here
-            // Example: setImages([...images, newImageUrl]);
-            Alert.alert('Add Image', 'Image picker logic goes here.');
+            launchImageLibrary({ mediaType: 'photo', quality: 0.8 }, (response) => {
+              if (response.didCancel) return;
+              if (response.errorCode) {
+                Alert.alert('Error', response.errorMessage || 'Failed to pick image');
+                return;
+              }
+              const uri = response.assets && response.assets[0]?.uri;
+              if (uri) setImages([...images, uri]);
+            });
           }}
           onRemove={idx => setImages(images.filter((_, i) => i !== idx))}
         />

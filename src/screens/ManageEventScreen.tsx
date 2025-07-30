@@ -116,9 +116,9 @@ const ManageEventScreen = () => {
 
 // Add the following counts for chart
   const confirmedCount = members.filter((m: any) => m.status === 'member').length;
-  const declinedCount = paymentMembers.filter((p: any) => p.paymentStatus === 'declined').length;
+  const declinedCount = paymentMembers.filter((p: any) => p.paymentStatus === 'rejected').length;
   const pendingCount =
-    members.filter((m: any) => m.status === 'approval_pending' || m.status === 'payment_pending' || m.status === 'payment_verification_pending').length;
+    members.filter((m: any) => m.status === 'approval_pending' || m.status === 'payment_verification_pending').length;
   const totalCount = members.length;
 
   // Calculate percentages (avoid division by zero)
