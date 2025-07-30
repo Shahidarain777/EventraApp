@@ -101,7 +101,7 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
         } else {
           // Fallback: use current selectedSubEvents for restricted users
           event.subEvents.forEach((subEvent) => {
-            const subEventId = String(subEvent.subEventId || subEvent._id || subEvent.itemName);
+            const subEventId = String(subEvent.subEventId);
             if (selectedSubEvents.has(subEventId) && subEvent.isPaid) {
               subEventsFee += Number(subEvent.fee) || 0;
             }
@@ -110,7 +110,7 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
       } else {
         // For new users (not_joined), calculate based on current selection
         event.subEvents.forEach((subEvent) => {
-          const subEventId = String(subEvent.subEventId || subEvent._id || subEvent.itemName);
+          const subEventId = String(subEvent.subEventId);
           if (selectedSubEvents.has(subEventId) && subEvent.isPaid) {
             subEventsFee += Number(subEvent.fee) || 0;
           }
@@ -229,8 +229,18 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
         status = 'payment_pending';
       }
       
-      // Include selected sub-events in the request
-      const selectedSubEventIds = Array.from(selectedSubEvents);
+      // Include selected sub-events in the request - convert to numbers
+      const selectedSubEventIds = Array.from(selectedSubEvents).map(id => {
+        const numericId = parseInt(id, 10);
+        return isNaN(numericId) ? id : numericId;
+      });
+      
+      console.log('🚀 Sending join request with data:', {
+        eventId: event.eventId,
+        status: status,
+        selectedSubEvents: selectedSubEventIds,
+        totalAmount: totalFee
+      });
       
       await api.post('/event_members', {
         eventId: event.eventId,
@@ -417,12 +427,12 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
             <Text style={styles.subEventsTitle}>
               <Ionicons name="list-outline" size={20} color="#2788ff" /> Sub Events
               {restrictedStatuses.includes(userStatus) && (
-                <Text style={styles.lockedIndicator}> (Locked)</Text>
+                <Text style={styles.lockedIndicator}> 🔒 (Your Selections)</Text>
               )}
             </Text>
             
             {event.subEvents.map((subEvent, index) => {
-              const subEventId = String(subEvent.subEventId || subEvent._id || subEvent.itemName || index);
+              const subEventId = String(subEvent.subEventId);
               const isSelected = selectedSubEvents.has(subEventId);
               
               return (
@@ -440,11 +450,12 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
                   <View style={styles.subEventHeader}>
                     <View style={styles.subEventTitleRow}>
                       <View style={styles.subEventCheckbox}>
-                        {restrictedStatuses.includes((event as any).user_status) ? (
+                        {restrictedStatuses.includes(userStatus) ? (
+                          // For restricted users, show their committed selections with checkmarks
                           <Ionicons 
-                            name="lock-closed" 
+                            name={isSelected ? "checkmark-circle" : "ellipse-outline"} 
                             size={20} 
-                            color="#999" 
+                            color={isSelected ? "#2788ff" : "#ccc"} 
                           />
                         ) : (
                           <Ionicons 
@@ -457,7 +468,7 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
                       <Text style={[
                         styles.subEventName, 
                         isSelected && styles.subEventNameSelected,
-                        restrictedStatuses.includes((event as any).user_status) && styles.disabledSubEventName
+                        restrictedStatuses.includes(userStatus) && styles.disabledSubEventName
                       ]}>
                         {subEvent.itemName || `Sub Event ${index + 1}`}
                       </Text>
@@ -491,9 +502,7 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
             })}
           </View>
         )}
-      </ScrollView>
-      
-      {/* Fixed Join Button at Bottom */}
+        {/* Fixed Join Button at Bottom */}
       <View style={styles.fixedButtonContainer}>
         {/* Total Fee Display */}
         <View style={styles.totalFeeContainer}>
@@ -529,6 +538,9 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
           </TouchableOpacity>
         )}
       </View>
+      </ScrollView>
+      
+      
     </View>
   );
 };
@@ -547,7 +559,7 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#f7faff',
     flexGrow: 1,
-    paddingBottom: 100, // Add padding to prevent content from being hidden behind fixed button
+    paddingBottom: 140, // Increased padding to prevent overlap with fixed button
   },
   
   // Location Card - Full Width
@@ -637,7 +649,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 16,
+    marginBottom: 50,
+    marginTop: -10,
     shadowColor: '#000',
     shadowOpacity: 0.04,
     shadowRadius: 6,
@@ -649,7 +662,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 14,
     padding: 16,
-    marginBottom: 20,
+    marginBottom: 50,
+    marginTop: -38, // Increased margin for better spacing
     shadowColor: '#000',
     shadowOpacity: 0.04,
     shadowRadius: 6,
@@ -753,7 +767,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 16,
     marginTop: 10,
-    marginBottom: 30,
+    marginBottom: 25, // Increased margin for consistency
     shadowColor: '#000',
     shadowOpacity: 0.04,
     shadowRadius: 6,
@@ -774,32 +788,32 @@ const styles = StyleSheet.create({
   
   // Fixed button styles
   fixedButtonContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    paddingBottom: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+  backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: -130,
+    marginTop: -38, // Increased margin for better spacing
     shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 8,
+    shadowOpacity: 0.04,
+    shadowRadius: 50,
+    // elevation: 2,
   },
   totalFeeContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#f8f9fa',
-    borderRadius: 8,
+    borderRadius: 15,
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 12,
+    paddingVertical: 14, // Increased padding
+    marginBottom: 14, // Consistent margin
     borderWidth: 1,
-    borderColor: '#e9ecef',
+
+     borderColor: '#e9ecef',
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowRadius: 3,
+    elevation: 2,
   },
   totalFeeLabelContainer: {
     flexDirection: 'column',
@@ -822,7 +836,7 @@ const styles = StyleSheet.create({
   },
   joinButton: {
     backgroundColor: '#2788ff',
-    borderRadius: 12,
+    borderRadius: 30,
     paddingVertical: 16,
     paddingHorizontal: 24,
     alignItems: 'center',

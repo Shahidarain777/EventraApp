@@ -71,6 +71,8 @@ export interface Event {
     name: string;
     status: string;
     profileImage?: string;
+    selectedSubEvents: number[]; // Array of subEventIds
+    totalAmount: number; // Total amount for selected sub-events
   }>;
 
   payments?: Array<{
