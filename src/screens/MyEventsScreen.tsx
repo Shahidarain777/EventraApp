@@ -51,78 +51,103 @@ const MyEventsScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Tab Bar */}
-      <View style={styles.tabBar}>
-        {TABS.map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            style={[styles.tabButton, activeTab === tab && styles.tabButtonActive]}
-            onPress={() => setActiveTab(tab)}
-          >
-            <Text style={[styles.tabButtonText, activeTab === tab && styles.tabButtonTextActive]}>{tab}</Text>
-          </TouchableOpacity>
-        ))}
+      {/* Status Bar with Tabs */}
+      <View style={styles.statusBarContainer}>
+        <View style={styles.tabBar}>
+          {TABS.map((tab) => (
+            <TouchableOpacity
+              key={tab}
+              style={[styles.tabButton, activeTab === tab && styles.tabButtonActive]}
+              onPress={() => setActiveTab(tab)}
+            >
+              <Text style={[styles.tabButtonText, activeTab === tab && styles.tabButtonTextActive]}>{tab}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
-      {/* Tab Content */}
-      {activeTab === 'My Event' ? (
-        <FlatList
-          data={myEvents}
-          keyExtractor={item => item.eventId?.toString() || item.id?.toString()}
-          renderItem={({ item }) => <EventCard event={item} showJoin={true} />}
-          ListEmptyComponent={!loading ? <Text style={styles.empty}>No events found.</Text> : null}
-          refreshControl={<RefreshControl refreshing={loading} onRefresh={() => dispatch(fetchEvents())} />}
-          contentContainerStyle={{ flexGrow: 1 }}
-        />
-      ) : (
-        <FlatList
-          data={joinedEvents}
-          keyExtractor={item => item.eventId?.toString() || item.id?.toString()}
-          renderItem={({ item }) => <EventCard event={item} showJoin={true} />}
-          ListEmptyComponent={!loading ? <Text style={styles.empty}>No joined events found.</Text> : null}
-          refreshControl={<RefreshControl refreshing={loading} onRefresh={() => dispatch(fetchEvents())} />}
-          contentContainerStyle={{ flexGrow: 1 }}
-        />
-      )}
+      {/* Tab Content fills the rest of the screen */}
+      <View style={styles.listContainer}>
+        {activeTab === 'My Event' ? (
+          <FlatList
+            data={myEvents}
+            keyExtractor={item => item.eventId?.toString() || item.id?.toString()}
+            renderItem={({ item }) => <EventCard event={item} showJoin={true} />}
+            ListEmptyComponent={!loading ? <Text style={styles.empty}>No events found.</Text> : null}
+            refreshControl={<RefreshControl refreshing={loading} onRefresh={() => dispatch(fetchEvents())} />}
+            contentContainerStyle={{ flexGrow: 1 }}
+          />
+        ) : (
+          <FlatList
+            data={joinedEvents}
+            keyExtractor={item => item.eventId?.toString() || item.id?.toString()}
+            renderItem={({ item }) => <EventCard event={item} showJoin={true} />}
+            ListEmptyComponent={!loading ? <Text style={styles.empty}>No joined events found.</Text> : null}
+            refreshControl={<RefreshControl refreshing={loading} onRefresh={() => dispatch(fetchEvents())} />}
+            contentContainerStyle={{ flexGrow: 1 }}
+          />
+        )}
+      </View>
     </SafeAreaView>
   );
 };
 
 
 const styles = StyleSheet.create({
+
   container: {
     flex: 1,
-    backgroundColor: '#6695ebff',
+    backgroundColor: '#075cf8ff',
     width: '100%',
+  },
+  statusBarContainer: {
+    backgroundColor: '#f0f0f0',
+    paddingTop: 8,
+    paddingBottom: 0,
+    paddingHorizontal: 0,
+    zIndex: 2,
   },
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: '#eaf0fa',
-    borderRadius: 12,
-    margin: 12,
-    overflow: 'hidden',
+    backgroundColor: '#ffffffff',
+    borderRadius: 30,
+    padding: 4,
+    marginHorizontal: 16,
+    marginTop: 5,
+    marginBottom: 8,
     alignSelf: 'center',
     width: '90%',
+    justifyContent: 'space-between',
   },
   tabButton: {
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
-    backgroundColor: 'transparent',
+    borderRadius: 24,
   },
   tabButtonActive: {
-    backgroundColor: '#fff',
-    borderBottomWidth: 3,
-    borderBottomColor: '#2788ff',
+    backgroundColor: '#075cf8ff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   tabButtonText: {
     color: '#2788ff',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: 20,
   },
   tabButtonTextActive: {
-    color: '#222',
+    color: '#fff',
     fontWeight: 'bold',
   },
+  listContainer: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    width: '100%',
+    paddingBottom: 0,
+  },
+
   title: {
     fontSize: 24,
     fontWeight: 'bold',

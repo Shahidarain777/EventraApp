@@ -46,7 +46,8 @@ const TabNavigator = () => {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar-outline" color={color} size={size} />
           ),
-          tabBarLabel: 'My Events',
+           tabBarLabel: 'My Events',
+           headerShown: false,
         }}
       />
       <Tab.Screen 
