@@ -252,52 +252,54 @@ const EventCard = ({
                     <Icon name="paper-plane-outline" size={22} color="#666" />
                   </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                  style={(() => {
-                    if (isEventEnded) return [styles.joinButton, { backgroundColor: '#cccccc' }];
-                    if (event.hostId?.toString() === currentUserId) return [styles.joinButton, { backgroundColor: '#4874e2ff' }]; // Professional color
-                    const member = event.joinedMembers?.find(
-                      (m) => m.userId?.toString() === currentUserId
-                    );
-                    if (member) return [styles.joinButton, { backgroundColor: '#43a047' }]; // Green for status
-                    return [styles.joinButton, { backgroundColor: '#2196F3' }]; // Blue for join
-                  })()}
-                  onPress={() => {
-                    if (!isEventEnded) {
-                      if (event.hostId?.toString() === currentUserId) {
-                        navigation.navigate('ManageEventScreen', { event });
-                      } else {
-                        navigation.navigate('EventDetailScreen', { event });
+                {showJoin && (
+                  <TouchableOpacity
+                    style={(() => {
+                      if (isEventEnded) return [styles.joinButton, { backgroundColor: '#cccccc' }];
+                      if (event.hostId?.toString() === currentUserId) return [styles.joinButton, { backgroundColor: '#4874e2ff' }]; // Professional color
+                      const member = event.joinedMembers?.find(
+                        (m) => m.userId?.toString() === currentUserId
+                      );
+                      if (member) return [styles.joinButton, { backgroundColor: '#43a047' }]; // Green for status
+                      return [styles.joinButton, { backgroundColor: '#2196F3' }]; // Blue for join
+                    })()}
+                    onPress={() => {
+                      if (!isEventEnded) {
+                        if (event.hostId?.toString() === currentUserId) {
+                          navigation.navigate('ManageEventScreen', { event });
+                        } else {
+                          navigation.navigate('EventDetailScreen', { event });
+                        }
                       }
-                    }
-                  }}
-                  activeOpacity={isEventEnded ? 1 : 0.7}
-                  disabled={isEventEnded}
-                >
-                  <Text style={(() => {
-                    if (isEventEnded) return styles.joinButtonText;
-                    if (event.hostId?.toString() === currentUserId) return [styles.joinButtonText, { color: '#fff' }];
-                    const member = event.joinedMembers?.find(
-                      (m) => m.userId?.toString() === currentUserId
-                    );
-                    if (member) return [styles.joinButtonText, { color: '#fff' }];
-                    return styles.joinButtonText;
-                  })()}>
-                    {isEventEnded
-                      ? 'Event Ended'
-                      : event.hostId?.toString() === currentUserId
-                        ? 'Manage Event'
-                        : (() => {
-                            const member = event.joinedMembers?.find(
-                              (m) => m.userId?.toString() === currentUserId
-                            );
-                            return member && member.userId?.toString() === currentUserId
-                              ? getJoinButtonText(member.status)
-                              : 'Join';
-                          })()
-                    }
-                  </Text>
-                </TouchableOpacity>
+                    }}
+                    activeOpacity={isEventEnded ? 1 : 0.7}
+                    disabled={isEventEnded}
+                  >
+                    <Text style={(() => {
+                      if (isEventEnded) return styles.joinButtonText;
+                      if (event.hostId?.toString() === currentUserId) return [styles.joinButtonText, { color: '#fff' }];
+                      const member = event.joinedMembers?.find(
+                        (m) => m.userId?.toString() === currentUserId
+                      );
+                      if (member) return [styles.joinButtonText, { color: '#fff' }];
+                      return styles.joinButtonText;
+                    })()}>
+                      {isEventEnded
+                        ? 'Event Ended'
+                        : event.hostId?.toString() === currentUserId
+                          ? 'Manage Event'
+                          : (() => {
+                              const member = event.joinedMembers?.find(
+                                (m) => m.userId?.toString() === currentUserId
+                              );
+                              return member && member.userId?.toString() === currentUserId
+                                ? getJoinButtonText(member.status)
+                                : 'Join';
+                            })()
+                      }
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
             )}
           </View>
