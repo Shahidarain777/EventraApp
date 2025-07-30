@@ -1,3 +1,4 @@
+import DateTimeSelector from '../components/DateTimeSelector';
 
 import React, { useState } from 'react';
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -36,7 +37,15 @@ const EditEventScreen = () => {
   const { categories, loading: categoriesLoading, error: categoriesError } = useSelector((state: RootState) => state.categories);
 
   // State for all event fields
-  const [locationData, setLocationData] = useState<LocationData | null>(null);
+  const [locationData, setLocationData] = useState<LocationData | null>(
+    event?.location
+      ? {
+          ...event.location,
+          // fallback for legacy events: if type missing, guess from fields
+          type: event.location.type || (event.location.link ? 'online' : 'venue'),
+        }
+      : null
+  );
   const [locationModalVisible, setLocationModalVisible] = useState(false);
   const [images, setImages] = useState<string[]>(event?.imageUrl || []);
   const [title, setTitle] = useState(event?.title || '');
@@ -341,6 +350,13 @@ const EditEventScreen = () => {
           <Text style={{ color: '#2788ff', fontWeight: 'bold', fontSize: 18 }}>+</Text>
         </TouchableOpacity>
       </View>
+      {/* Date & Time Picker */}
+      <DateTimeSelector
+        startDate={date.start}
+        endDate={date.end}
+        onStartDateChange={d => setDate(prev => ({ ...prev, start: d }))}
+        onEndDateChange={d => setDate(prev => ({ ...prev, end: d }))}
+      />
       {/* Paid toggle and fee input */}
       <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
         <Text style={[styles.label, { flex: 1 }]}>Is Paid?</Text>
