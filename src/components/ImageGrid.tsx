@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
+import api from '../api/axios';
 
 interface ImageGridProps {
   imageUrl: string[];
@@ -8,9 +9,24 @@ interface ImageGridProps {
 const placeholder = require('../../assets/EventraLogo.png');
 
 const ImageGrid: React.FC<ImageGridProps> = ({ imageUrl }) => {
+  const getImageUrl = (imageUrl: string | undefined | null): string | undefined => {
+    if (!imageUrl) return undefined;
+    if (imageUrl.startsWith('http')) return imageUrl;
+    // If already starts with /uploads, just prepend baseURL
+    if (imageUrl.startsWith('/uploads')) {
+      return `${api.defaults.baseURL?.replace(/\/api$/, '')}${imageUrl}`;
+    }
+    // If starts with /, but not /uploads, add /uploads
+    if (imageUrl.startsWith('/')) {
+      return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads${imageUrl}`;
+    }
+    // Otherwise, add /uploads/
+    return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads/${imageUrl}`;
+  };
+
   const renderImage = (uri?: string, style?: any) => (
     <Image
-      source={uri ? { uri } : placeholder}
+      source={uri ? { uri: getImageUrl(uri) } : placeholder}
       style={style}
       resizeMode="cover"
       defaultSource={placeholder}

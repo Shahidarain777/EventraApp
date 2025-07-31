@@ -50,6 +50,7 @@ const CreateEventScreen = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch<AppDispatch>();
   const eventError = useSelector((state: RootState) => state.events.error);
+  const token = useSelector((state: RootState) => state.auth.token); // <-- Add this line
   const [title, setTitle] = useState('');
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [showOtherCategory, setShowOtherCategory] = useState(false);
@@ -172,6 +173,34 @@ const CreateEventScreen = () => {
     });
   };
 
+  // Helper to upload a single image and return the uploaded URL
+  const uploadImage = async (uri: string): Promise<string | null> => {
+    try {
+      const formData = new FormData();
+      formData.append('image', {
+        uri,
+        type: 'image/jpeg', // You may want to detect type
+        name: `event_${Date.now()}.jpg`,
+      } as any);
+      formData.append('eventId', 'event'); // For backend compatibility
+      const response = await api.post('/upload_image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
+        timeout: 30000,
+      });
+      const uploadedImage = response.data?.image;
+      if (uploadedImage && uploadedImage.url) {
+        return uploadedImage.url;
+      }
+      return null;
+    } catch (error) {
+      console.error('Image upload error:', error);
+      return null;
+    }
+  };
+
   const handleSubmit = async () => {
     setError('');
     if (!title.trim()) return setError('Event title is required');
@@ -252,6 +281,20 @@ const CreateEventScreen = () => {
       };
     }
 
+    // --- UPLOAD IMAGES FIRST ---
+    let uploadedImageUrls: string[] = [];
+    if (images.length > 0) {
+      for (let i = 0; i < images.length; i++) {
+        const url = await uploadImage(images[i]);
+        if (url) {
+          uploadedImageUrls.push(url);
+        } else {
+          setUploading(false);
+          setError('Failed to upload one or more images.');
+          return;
+        }
+      }
+    }
     // Build event body from user input
     const body = {
       title: title.trim(),
@@ -266,7 +309,7 @@ const CreateEventScreen = () => {
       price: isPaid ? parseFloat(joiningFee) : 0,
       maxAttendees: capacity ? parseInt(capacity) : undefined,
       isLimited: !!capacity,
-      imageUrl: images.length > 0 ? images : [],
+      imageUrl: uploadedImageUrls, // <-- Use uploaded URLs
       approvalRequired: approvalRequired,
       subEvents: subEvents.map(subEvent => ({
         itemName: subEvent.itemName.trim(),
@@ -291,9 +334,6 @@ const CreateEventScreen = () => {
   };
  
   return (
-
-
-
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
       <Text style={styles.title}>Create Event</Text>
       {error ? <Text style={styles.error}>{error}</Text> : null}

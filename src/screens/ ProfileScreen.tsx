@@ -135,12 +135,15 @@ const ProfileScreen = () => {
         
         try {
           // Create FormData for multipart upload
+
           const formData = new FormData();
           formData.append('image', {
             uri: asset.uri,
             type: asset.type || 'image/jpeg',
             name: asset.fileName || `profile_${Date.now()}.jpg`,
           } as any);
+          // Add eventId for backend compatibility (use 'profile' as a special value)
+          formData.append('eventId', 'profile');
 
           console.log('Uploading image:', {
             size: asset.fileSize,
@@ -149,6 +152,7 @@ const ProfileScreen = () => {
           });
 
           // Upload image to your API
+          // Always use /upload_image, backend will use JWT for userId
           const response = await api.post('/upload_image', formData, {
             headers: {
               'Content-Type': 'multipart/form-data',
@@ -157,28 +161,34 @@ const ProfileScreen = () => {
             timeout: 30000,
           });
 
-          if (response.data?.image?.url) {
-            // Update profile image state with the uploaded image URL
-            const imageUrl = `${api.defaults.baseURL?.replace('/api', '')}${response.data.image.url}`;
+          // Use the backend's returned image.url for the profile image
+          const uploadedImage = response.data?.image;
+          if (uploadedImage && uploadedImage.url) {
 
-            // 1. Update user profileImage in backend
-            try {
-              if (user?._id) {
+            const imageUrl = uploadedImage.url;
+
+            // 1. Update user profile with new image URL (PUT request)
+            if (user && user._id) {
+              try {
                 await api.put(`/users/${user._id}`, { profileImage: imageUrl }, {
                   headers: {
                     Authorization: `Bearer ${token}`,
                   },
                 });
+              } catch (err) {
+                console.error('Failed to update user profile image:', err);
+                // Optionally show a warning, but don't block the UI
               }
-            } catch (err) {
-              console.error('Failed to update user profile image in backend:', err);
-              // Optionally show a warning, but continue
             }
+
 
             // 2. Update Redux state and save to AsyncStorage
             dispatch(updateProfileImage(imageUrl));
             await saveProfileImageToStorage(imageUrl);
 
+            Alert.alert('Success', 'Profile image updated successfully!');
+          } else if (response.status === 201) {
+            // If status is 201 but no image object, still treat as success
             Alert.alert('Success', 'Profile image updated successfully!');
           } else {
             throw new Error('Invalid response from server');
@@ -237,7 +247,24 @@ const ProfileScreen = () => {
             disabled={uploadingImage}
           >
             {user?.profileImage ? (
-              <Image source={{ uri: user.profileImage }} style={styles.profileImage} />
+              <Image
+                source={{
+                  uri: (() => {
+                    if (user.profileImage.startsWith('http')) return user.profileImage;
+                    // If already starts with /uploads, just prepend baseURL
+                    if (user.profileImage.startsWith('/uploads')) {
+                      return `${api.defaults.baseURL?.replace(/\/api$/, '')}${user.profileImage}`;
+                    }
+                    // If starts with /, but not /uploads, add /uploads
+                    if (user.profileImage.startsWith('/')) {
+                      return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads${user.profileImage}`;
+                    }
+                    // Otherwise, add /uploads/
+                    return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads/${user.profileImage}`;
+                  })()
+                }}
+                style={styles.profileImage}
+              />
             ) : (
               <View style={styles.placeholderImage}>
                 <Icon name="account" size={60} color="#ccc" />

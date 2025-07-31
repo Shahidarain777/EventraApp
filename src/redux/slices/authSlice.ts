@@ -77,24 +77,22 @@ const loginFromStorage = createAsyncThunk<
   }
 });
 
-// 🖼️ Fetch user profile image from uploaded_images table
+// Fetch user profile image from uploaded_images table
 const fetchUserProfileImage = createAsyncThunk<
   string | null,
   string,
   { rejectValue: string }
 >('auth/fetchUserProfileImage', async (userId, { rejectWithValue }) => {
   try {
-    // Make API call to get user's profile image from uploaded_images table
-    const response = await api.get(`/upload_image/${userId}`);
-    
-    if (response.data?.profileImage) {
-      return response.data.profileImage;
+    // Get the latest uploaded image for the user
+    const response = await api.get(`/upload_image?userId=${userId}&limit=1`);
+    const images = response.data?.imageUrl || response.data?.images || [];
+    if (images && images.length > 0) {
+      return images[0].url || images[0].imageUrl; // use the correct field name
     }
-    
     return null;
   } catch (error: any) {
     console.log('Failed to fetch profile image:', error);
-    // Don't reject, just return null so it doesn't break the app
     return null;
   }
 });

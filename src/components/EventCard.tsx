@@ -16,6 +16,8 @@
     }
   };
 import React, { useState } from 'react';
+import api from '../api/axios';
+// Helper to resolve profile image URL like ProfileScreen
 import { Image } from 'react-native';
 import {
   View,
@@ -169,7 +171,21 @@ const EventCard = ({
               {event.hostProfileImage ? (
                 <View style={styles.hostImageWrapper}>
                   <Image
-                    source={{ uri: event.hostProfileImage }}
+                    source={{
+                      uri: (() => {
+                        if (event.hostProfileImage.startsWith('http')) return event.hostProfileImage;
+                        // If already starts with /uploads, just prepend baseURL
+                        if (event.hostProfileImage.startsWith('/uploads')) {
+                          return `${api.defaults.baseURL?.replace(/\/api$/, '')}${event.hostProfileImage}`;
+                        }
+                        // If starts with /, but not /uploads, add /uploads
+                        if (event.hostProfileImage.startsWith('/')) {
+                          return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads${event.hostProfileImage}`;
+                        }
+                        // Otherwise, add /uploads/
+                        return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads/${event.hostProfileImage}`;
+                      })()
+                    }}
                     style={styles.hostImage}
                   />
                 </View>
@@ -188,7 +204,7 @@ const EventCard = ({
           </View>
 
           <View style={styles.imageContainer}>
-            <ImageGrid imageUrl={event.imageUrl || [event.imageUrl]} />
+            <ImageGrid imageUrl={ event.imageUrl || [event.imageUrl]} />
             {showHeart && (
               <Animated.View
                 style={[
@@ -327,7 +343,21 @@ const EventCard = ({
                       <View style={styles.fbCommentAvatar}>
                         {c.profileImage ? (
                           <Image
-                            source={{ uri: c.profileImage }}
+                            source={{
+                              uri: (() => {
+                                if (c.profileImage.startsWith('http')) return c.profileImage;
+                                // If already starts with /uploads, just prepend baseURL
+                                if (c.profileImage.startsWith('/uploads')) {
+                                  return `${api.defaults.baseURL?.replace(/\/api$/, '')}${c.profileImage}`;
+                                }
+                                // If starts with /, but not /uploads, add /uploads
+                                if (c.profileImage.startsWith('/')) {
+                                  return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads${c.profileImage}`;
+                                }
+                                // Otherwise, add /uploads/
+                                return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads/${c.profileImage}`;
+                              })()
+                            }}
                             style={{ width: 32, height: 32, borderRadius: 16 }}
                           />
                         ) : (
