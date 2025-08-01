@@ -1,23 +1,5 @@
-  // Helper to get join button text based on member status
-  const getJoinButtonText = (status: string | undefined) => {
-    switch (status) {
-      case 'member':
-        return 'Member';
-      case 'approval_pending':
-        return 'Awaiting Approval';
-      case 'payment_pending':
-        return 'Payment Pending';
-      case 'payment_verification_pending':
-        return 'Payment Verification';
-      case 'canceled':
-        return 'Join';
-      default:
-        return 'Join';
-    }
-  };
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
-// Helper to resolve profile image URL like ProfileScreen
 import { Image } from 'react-native';
 import {
   View,
@@ -25,12 +7,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
-  TouchableWithoutFeedback,
-  Alert,
   Modal,
   TextInput,
   Share,
-  ScrollView
+  ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { RootState, AppDispatch } from '../redux/store';
@@ -48,6 +29,23 @@ type EventCardProps = {
   showActions?: boolean;
 };
 
+const getJoinButtonText = (status: string | undefined) => {
+  switch (status) {
+    case 'member':
+      return 'Member';
+    case 'approval_pending':
+      return 'Awaiting Approval';
+    case 'payment_pending':
+      return 'Payment Pending';
+    case 'payment_verification_pending':
+      return 'Payment Verification';
+    case 'canceled':
+      return 'Join';
+    default:
+      return 'Join';
+  }
+};
+
 const EventCard = ({
   event,
   showJoin = true,
@@ -58,61 +56,85 @@ const EventCard = ({
   const [commentText, setCommentText] = useState('');
   const [expanded, setExpanded] = useState(false);
   const [showHeart, setShowHeart] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [localLikeCount, setLocalLikeCount] = useState(Array.isArray(event.likedBy) ? event.likedBy.length : 0);
+  const [localIsLiked, setLocalIsLiked] = useState(
+    Array.isArray(event.likedBy)
+      ? event.likedBy.some((u) => u.id?.toString() === currentUserId)
+      : false
+  );
+  const [localCommentCount, setLocalCommentCount] = useState(event.noOfComments);
+  const [localComments, setLocalComments] = useState(event.comments || []);
   const heartAnimation = new Animated.Value(0);
   const isLong = event.description && event.description.length > 100;
   const navigation = useNavigation<NavigationProp>();
-
-  // Get current user id as STRING!
   const currentUserId = useSelector((state: RootState) => state.auth.user?._id?.toString() || '');
 
-//   React.useEffect(() => {
-// //     Alert.alert('currentUserId:', currentUserId);
-// //     Alert.alert(
-// //   'Debug Info',
-// //   `currentUserId: ${currentUserId}\nlikedBy: ${JSON.stringify(event.likedBy)}`
-// // );
-//     // console.log(
-//     //   'isLiked:',
-//     //   Array.isArray(event.likedBy)
-//     //     ? event.likedBy.some((u) => u.id?.toString() === currentUserId)
-//     //     : false
-//     // );
-//   }, [event.likedBy, currentUserId]);
+  // Sync localIsLiked with backend on mount or when event changes
+  useEffect(() => {
+    const liked = Array.isArray(event.likedBy)
+      ? event.likedBy.some((u) => u.id?.toString() === currentUserId)
+      : false;
+    setLocalIsLiked(liked);
+  }, [event, currentUserId]);
 
-  const isLiked = Array.isArray(event.likedBy)
-    ? event.likedBy.some((u) => u.id?.toString() === currentUserId)
-    : false;
+
+  const isLiked =
+    Array.isArray(event.likedBy)
+      ? event.likedBy.some((u) => u.id?.toString() === currentUserId)
+      : false;
 
   const handleLikeEvent = async (eventId: string | number) => {
+    if (likeLoading) return;
+    setLikeLoading(true);
     try {
       await dispatch(likeEvent(eventId)).unwrap();
-      if (!isLiked) triggerHeartAnimation();
+      // Locally update like status/count
+      if (!localIsLiked) {
+        setLocalLikeCount((prev) => prev + 1);
+        setLocalIsLiked(true);
+        triggerHeartAnimation();
+      } else {
+        setLocalLikeCount((prev) => (prev > 0 ? prev - 1 : 0));
+        setLocalIsLiked(false);
+      }
     } catch (error) {
-      Alert.alert('Error', 'Failed to update like.');
+      // No alert message, just reset loading
     }
+    setLikeLoading(false);
   };
 
-  // Ensure these functions are defined before usage
   const handleCommentPress = () => {
     setCommentModalVisible(true);
   };
 
   const handleCommentSubmit = async () => {
-    if (!commentText.trim()) {
-      Alert.alert('Error', 'Please enter a comment');
-      return;
-    }
+    if (!commentText.trim() || commentLoading) return;
+    setCommentLoading(true);
     try {
-      await dispatch(addComment({
-        eventId: event.eventId,
-        comment: commentText.trim()
-      })).unwrap();
+      await dispatch(
+        addComment({
+          eventId: event.eventId,
+          comment: commentText.trim(),
+        })
+      ).unwrap();
+      // Locally update comment count and comments
+      setLocalCommentCount((prev) => prev + 1);
+      setLocalComments((prev) => [
+        ...prev,
+        {
+          userName: 'You',
+          message: commentText.trim(),
+          profileImage: '', // You can update with actual user profile image if available
+        },
+      ]);
       setCommentText('');
       setCommentModalVisible(false);
-      Alert.alert('Success', 'Comment added successfully!');
     } catch (error) {
-      Alert.alert('Error', 'Failed to add comment. Please try again.');
+      // No alert message
     }
+    setCommentLoading(false);
   };
 
   const isEventEnded = (() => {
@@ -130,18 +152,12 @@ const EventCard = ({
     try {
       const shareMessage = `🎉 Check out this event: ${event.title}\n\n📝 ${event.description}\n\n📅 Date: ${event.dateTime.start} - ${event.dateTime.end}\n💰 Price: ${event.price}\n👨‍💼 Organizer: ${event.hostName}\n\nJoin us for an amazing experience!`;
 
-      const result = await Share.share({
+      await Share.share({
         message: shareMessage,
         title: event.title,
       });
-
-      if (result.action === Share.sharedAction) {
-        // Successfully shared
-        console.log('Event shared successfully');
-      }
     } catch (error) {
-      console.error('Error sharing event:', error);
-      Alert.alert('Error', 'Failed to share event. Please try again.');
+      // No alert message
     }
   };
 
@@ -164,163 +180,166 @@ const EventCard = ({
 
   return (
     <>
-      {/* <TouchableWithoutFeedback> */}
-        <View style={styles.eventCard}>
-          <View style={styles.eventHeader}>
-            <View style={styles.hostRow}>
-              {event.hostProfileImage ? (
-                <View style={styles.hostImageWrapper}>
-                  <Image
-                    source={{
-                      uri: (() => {
-                        if (event.hostProfileImage.startsWith('http')) return event.hostProfileImage;
-                        // If already starts with /uploads, just prepend baseURL
-                        if (event.hostProfileImage.startsWith('/uploads')) {
-                          return `${api.defaults.baseURL?.replace(/\/api$/, '')}${event.hostProfileImage}`;
-                        }
-                        // If starts with /, but not /uploads, add /uploads
-                        if (event.hostProfileImage.startsWith('/')) {
-                          return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads${event.hostProfileImage}`;
-                        }
-                        // Otherwise, add /uploads/
-                        return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads/${event.hostProfileImage}`;
-                      })()
-                    }}
-                    style={styles.hostImage}
-                  />
-                </View>
-              ) : (
-                <View style={styles.hostImagePlaceholder}>
-                  <Icon name="account-circle" size={32} color="#bbb" />
-                </View>
-              )}
-              <Text style={styles.organizerName}>{event.hostName}</Text>
-            </View>
-
-            <View style={styles.categoryInfoPrice}>
-              <Text style={styles.categoryInfoText}>{event.categoryInfo.name}</Text>
-              <Text style={styles.priceText}> · {event.price === 0 ? "Free" : event.price}</Text>
-            </View>
+      <View style={styles.eventCard}>
+        <View style={styles.eventHeader}>
+          <View style={styles.hostRow}>
+            {event.hostProfileImage ? (
+              <View style={styles.hostImageWrapper}>
+                <Image
+                  source={{
+                    uri: (() => {
+                      if (event.hostProfileImage.startsWith('http')) return event.hostProfileImage;
+                      if (event.hostProfileImage.startsWith('/uploads')) {
+                        return `${api.defaults.baseURL?.replace(/\/api$/, '')}${event.hostProfileImage}`;
+                      }
+                      if (event.hostProfileImage.startsWith('/')) {
+                        return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads${event.hostProfileImage}`;
+                      }
+                      return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads/${event.hostProfileImage}`;
+                    })(),
+                  }}
+                  style={styles.hostImage}
+                />
+              </View>
+            ) : (
+              <View style={styles.hostImagePlaceholder}>
+                <Icon name="account-circle" size={32} color="#bbb" />
+              </View>
+            )}
+            <Text style={styles.organizerName}>{event.hostName}</Text>
           </View>
 
-          <View style={styles.imageContainer}>
-            <ImageGrid imageUrl={ event.imageUrl || [event.imageUrl]} />
-            {showHeart && (
-              <Animated.View
-                style={[
-                  styles.heartAnimationContainer,
-                  {
-                    opacity: heartAnimation,
-                    transform: [
-                      {
-                        scale: heartAnimation.interpolate({
-                          inputRange: [0, 0.5, 1],
-                          outputRange: [0.5, 1.2, 0.8],
-                        }),
-                      },
-                    ],
-                  },
-                ]}
-              >
-                <Icon name="heart" size={80} color="#FF4A6D" />
-              </Animated.View>
+          <View style={styles.categoryInfoPrice}>
+            <Text style={styles.categoryInfoText}>{event.categoryInfo.name}</Text>
+            <Text style={styles.priceText}> · {event.price === 0 ? 'Free' : event.price}</Text>
+          </View>
+        </View>
+
+        <View style={styles.imageContainer}>
+          <ImageGrid imageUrl={event.imageUrl || [event.imageUrl]} />
+          {showHeart && (
+            <Animated.View
+              style={[
+                styles.heartAnimationContainer,
+                {
+                  opacity: heartAnimation,
+                  transform: [
+                    {
+                      scale: heartAnimation.interpolate({
+                        inputRange: [0, 0.5, 1],
+                        outputRange: [0.5, 1.2, 0.8],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            >
+              <Icon name="heart" size={80} color="#FF4A6D" />
+            </Animated.View>
+          )}
+        </View>
+        <View style={styles.eventContent}>
+          <Text style={styles.eventTitle} numberOfLines={1}>
+            {event.title}
+          </Text>
+          <View>
+            <Text style={styles.eventDescription} numberOfLines={expanded ? undefined : 2}>
+              {event.description}
+            </Text>
+            {isLong && (
+              <TouchableOpacity onPress={() => setExpanded((e) => !e)}>
+                <Text style={styles.seeMoreText}>{expanded ? 'see less' : 'see more'}</Text>
+              </TouchableOpacity>
             )}
           </View>
-          <View style={styles.eventContent}>
-            <Text style={styles.eventTitle} numberOfLines={1}>
-              {event.title}
-            </Text>
-            <View>
-              <Text style={styles.eventDescription} numberOfLines={expanded ? undefined : 2}>
-                {event.description}
-              </Text>
-              {isLong && (
-                <TouchableOpacity onPress={() => setExpanded((e) => !e)}>
-                  <Text style={styles.seeMoreText}>{expanded ? 'see less' : 'see more'}</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-            {showActions && (
-              <View style={styles.eventActions}>
-                <View style={styles.socialActions}>
-                  <TouchableOpacity 
-                    style={styles.actionButton}
-                    onPress={() => handleLikeEvent(event.eventId)}
-                  >
-                    <Icon 
-                      name={isLiked ? "heart" : "heart-outline"} 
-                      size={22} 
-                      color={isLiked ? "#FF4A6D" : "#666"} 
+          {showActions && (
+            <View style={styles.eventActions}>
+              <View style={styles.socialActions}>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => handleLikeEvent(event.eventId)}
+                  disabled={likeLoading}
+                >
+                  {likeLoading ? (
+                    <ActivityIndicator size={18} color="#FF4A6D" style={{ marginRight: 4 }} />
+                  ) : (
+                    <Icon
+                      name={localIsLiked ? 'heart' : 'heart-outline'}
+                      size={22}
+                      color={localIsLiked ? '#FF4A6D' : '#666'}
                     />
-                    <Text style={styles.actionCount}>{Array.isArray(event.likedBy) ? event.likedBy.length : 0}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={styles.actionButton}
-                    onPress={handleCommentPress}
-                  >
-                    <Icon name="chatbubbles-outline" size={22} color="#666" />
-                    <Text style={styles.actionCount}>{event.noOfComments}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={styles.actionButton}
-                    onPress={() => handleShareEvent(event)}
-                  >
-                    <Icon name="paper-plane-outline" size={22} color="#666" />
-                  </TouchableOpacity>
-                </View>
-                {showJoin && (
-                  <TouchableOpacity
-                    style={(() => {
-                      if (isEventEnded) return [styles.joinButton, { backgroundColor: '#cccccc' }];
-                      if (event.hostId?.toString() === currentUserId) return [styles.joinButton, { backgroundColor: '#4874e2ff' }]; // Professional color
-                      const member = event.joinedMembers?.find(
-                        (m) => m.userId?.toString() === currentUserId
-                      );
-                      if (member) return [styles.joinButton, { backgroundColor: '#43a047' }]; // Green for status
-                      return [styles.joinButton, { backgroundColor: '#2196F3' }]; // Blue for join
-                    })()}
-                    onPress={() => {
-                      if (!isEventEnded) {
-                        if (event.hostId?.toString() === currentUserId) {
-                          navigation.navigate('ManageEventScreen', { event });
-                        } else {
-                          navigation.navigate('EventDetailScreen', { event });
-                        }
+                  )}
+                  <Text style={styles.actionCount}>{localLikeCount}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={handleCommentPress}
+                >
+                  <Icon name="chatbubbles-outline" size={22} color="#666" />
+                  <Text style={styles.actionCount}>{localCommentCount}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => handleShareEvent(event)}
+                >
+                  <Icon name="paper-plane-outline" size={22} color="#666" />
+                </TouchableOpacity>
+              </View>
+              {showJoin && (
+                <TouchableOpacity
+                  style={(() => {
+                    if (isEventEnded) return [styles.joinButton, { backgroundColor: '#cccccc' }];
+                    if (event.hostId?.toString() === currentUserId)
+                      return [styles.joinButton, { backgroundColor: '#4874e2ff' }];
+                    const member = event.joinedMembers?.find(
+                      (m) => m.userId?.toString() === currentUserId
+                    );
+                    if (member) return [styles.joinButton, { backgroundColor: '#43a047' }];
+                    return [styles.joinButton, { backgroundColor: '#2196F3' }];
+                  })()}
+                  onPress={() => {
+                    if (!isEventEnded) {
+                      if (event.hostId?.toString() === currentUserId) {
+                        navigation.navigate('ManageEventScreen', { event });
+                      } else {
+                        navigation.navigate('EventDetailScreen', { event });
                       }
-                    }}
-                    activeOpacity={isEventEnded ? 1 : 0.7}
-                    disabled={isEventEnded}
-                  >
-                    <Text style={(() => {
+                    }
+                  }}
+                  activeOpacity={isEventEnded ? 1 : 0.7}
+                  disabled={isEventEnded}
+                >
+                  <Text
+                    style={(() => {
                       if (isEventEnded) return styles.joinButtonText;
-                      if (event.hostId?.toString() === currentUserId) return [styles.joinButtonText, { color: '#fff' }];
+                      if (event.hostId?.toString() === currentUserId)
+                        return [styles.joinButtonText, { color: '#fff' }];
                       const member = event.joinedMembers?.find(
                         (m) => m.userId?.toString() === currentUserId
                       );
                       if (member) return [styles.joinButtonText, { color: '#fff' }];
                       return styles.joinButtonText;
-                    })()}>
-                      {isEventEnded
-                        ? 'Event Ended'
-                        : event.hostId?.toString() === currentUserId
-                          ? 'Manage Event'
-                          : (() => {
-                              const member = event.joinedMembers?.find(
-                                (m) => m.userId?.toString() === currentUserId
-                              );
-                              return member && member.userId?.toString() === currentUserId
-                                ? getJoinButtonText(member.status)
-                                : 'Join';
-                            })()
-                      }
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            )}
-          </View>
+                    })()}
+                  >
+                    {isEventEnded
+                      ? 'Event Ended'
+                      : event.hostId?.toString() === currentUserId
+                      ? 'Manage Event'
+                      : (() => {
+                          const member = event.joinedMembers?.find(
+                            (m) => m.userId?.toString() === currentUserId
+                          );
+                          return member && member.userId?.toString() === currentUserId
+                            ? getJoinButtonText(member.status)
+                            : 'Join';
+                        })()}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
         </View>
-      {/* </TouchableWithoutFeedback> */}
+      </View>
       <Modal
         animationType="slide"
         transparent={true}
@@ -336,9 +355,9 @@ const EventCard = ({
               </TouchableOpacity>
             </View>
             <View style={styles.fbCommentsList}>
-              {event.comments && event.comments.length > 0 ? (
+              {localComments && localComments.length > 0 ? (
                 <ScrollView>
-                  {event.comments.map((c, idx) => (
+                  {localComments.map((c, idx) => (
                     <View key={idx} style={styles.fbCommentItem}>
                       <View style={styles.fbCommentAvatar}>
                         {c.profileImage ? (
@@ -346,17 +365,14 @@ const EventCard = ({
                             source={{
                               uri: (() => {
                                 if (c.profileImage.startsWith('http')) return c.profileImage;
-                                // If already starts with /uploads, just prepend baseURL
                                 if (c.profileImage.startsWith('/uploads')) {
                                   return `${api.defaults.baseURL?.replace(/\/api$/, '')}${c.profileImage}`;
                                 }
-                                // If starts with /, but not /uploads, add /uploads
                                 if (c.profileImage.startsWith('/')) {
                                   return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads${c.profileImage}`;
                                 }
-                                // Otherwise, add /uploads/
                                 return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads/${c.profileImage}`;
-                              })()
+                              })(),
                             }}
                             style={{ width: 32, height: 32, borderRadius: 16 }}
                           />
@@ -395,8 +411,16 @@ const EventCard = ({
                 textAlignVertical="center"
                 autoFocus
               />
-              <TouchableOpacity style={styles.fbSendButton} onPress={handleCommentSubmit}>
-                <Icon name="send" size={24} color="#fff" />
+              <TouchableOpacity
+                style={styles.fbSendButton}
+                onPress={handleCommentSubmit}
+                disabled={commentLoading}
+              >
+                {commentLoading ? (
+                  <ActivityIndicator size={20} color="#fff" />
+                ) : (
+                  <Icon name="send" size={24} color="#fff" />
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -407,6 +431,8 @@ const EventCard = ({
 };
 
 export default EventCard;
+
+// ...styles unchanged, same as your provided styles...
 
 const styles = StyleSheet.create({
   hostRow: {
