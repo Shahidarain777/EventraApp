@@ -11,6 +11,7 @@ import {
   Image,
   Pressable,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -111,10 +112,16 @@ const ManageEventScreen = () => {
   const [paymentModalVisible, setPaymentModalVisible] = React.useState(false);
   const [paymentPendingMembers, setPaymentPendingMembers] = React.useState([]);
   const [rejectReason, setRejectReason] = React.useState('');
-  const [selectedPayment, setSelectedPayment] = React.useState(null);
+const [selectedPayment, setSelectedPayment] = React.useState<any>(null);
+// Or, if you have a type for payment/member:
+// const [selectedPayment, setSelectedPayment] = React.useState<MemberType | null>(null);
 
+  // New states for loading indicators
+  const [paymentActionLoading, setPaymentActionLoading] = React.useState(false);
+  const [approvalActionLoading, setApprovalActionLoading] = React.useState(false);
+  const [selectedMemberId, setSelectedMemberId] = React.useState(null);
 
-// Add the following counts for chart
+  // Add the following counts for chart
   const confirmedCount = members.filter((m: any) => m.status === 'member').length;
   const declinedCount = paymentMembers.filter((p: any) => p.paymentStatus === 'rejected').length;
   const pendingCount =
@@ -142,7 +149,7 @@ const ManageEventScreen = () => {
     },
     {
       value: pendingCount,
-      color: '#e6e6e6',
+      color: '#5cec1eff',
       label: 'Pending',
       text: `${pendingPercent}%`,
     },
@@ -162,6 +169,8 @@ const ManageEventScreen = () => {
 
   // Approve payment
   const handleApprovePayment = async (member: any) => {
+    setPaymentActionLoading(true);
+    setSelectedPayment(member); // For loading indicator
     try {
       // 1. Update payment status
       await api.put(
@@ -195,10 +204,14 @@ const ManageEventScreen = () => {
     } catch (err) {
       Alert.alert('Error', 'Failed to approve payment.');
     }
+    setSelectedPayment(null);
+    setPaymentActionLoading(false);
   };
 
   // Reject payment (with reason)
   const handleRejectPayment = async (member: any, reason: string) => {
+    setPaymentActionLoading(true);
+    setSelectedPayment(member); // For loading indicator
     try {
       await api.put(
         '/payments',
@@ -218,7 +231,9 @@ const ManageEventScreen = () => {
       setSelectedPayment(null);
     } catch (err) {
       Alert.alert('Error', 'Failed to reject payment.');
+      setSelectedPayment(null);
     }
+    setPaymentActionLoading(false);
   };
 
   const handleCancelEvent = () => {
@@ -269,6 +284,8 @@ const ManageEventScreen = () => {
   };
 
   const handleApproveMember = async (member: any) => {
+    setApprovalActionLoading(true);
+    setSelectedMemberId(member.userId);
     try {
       let newStatus = 'member';
       if (event.price && event.price > 0) {
@@ -290,11 +307,9 @@ const ManageEventScreen = () => {
     } catch (err) {
       Alert.alert('Error', 'Failed to approve member.');
     }
+    setSelectedMemberId(null);
+    setApprovalActionLoading(false);
   };
-
-  
-
-  
 
   return (
     <ScrollView>
@@ -413,6 +428,7 @@ const ManageEventScreen = () => {
             setPaymentModalVisible(false);
             setRejectReason('');
             setSelectedPayment(null);
+            setPaymentActionLoading(false);
           }}
         >
           <View style={styles.modalOverlay}>
@@ -435,12 +451,26 @@ const ManageEventScreen = () => {
                       <Text style={{ fontSize: 12, color: '#444' }}>Payment Method: {member.paymentMethod}</Text>
                     </View>
                     <View style={styles.iconGroup}>
-                      <Pressable style={styles.iconBtn} onPress={() => handleApprovePayment(member)}>
-                        <Ionicons name="checkmark-circle-outline" size={26} color="#43a047" />
-                      </Pressable>
-                      <Pressable style={styles.iconBtn} onPress={() => setSelectedPayment(member)}>
-                        <Ionicons name="close-circle-outline" size={26} color="#ed6462" />
-                      </Pressable>
+                      {paymentActionLoading && selectedPayment?.userId === member.userId ? (
+                        <ActivityIndicator size="small" color="#00a2ff" style={{ marginHorizontal: 10 }} />
+                      ) : (
+                        <>
+                          <Pressable
+                            style={styles.iconBtn}
+                            onPress={() => handleApprovePayment(member)}
+                            disabled={paymentActionLoading}
+                          >
+                            <Ionicons name="checkmark-circle-outline" size={26} color="#43a047" />
+                          </Pressable>
+                          <Pressable
+                            style={styles.iconBtn}
+                            onPress={() => setSelectedPayment(member)}
+                            disabled={paymentActionLoading}
+                          >
+                            <Ionicons name="close-circle-outline" size={26} color="#ed6462" />
+                          </Pressable>
+                        </>
+                      )}
                     </View>
                   </View>
                 ))}
@@ -451,6 +481,7 @@ const ManageEventScreen = () => {
                   setPaymentModalVisible(false);
                   setRejectReason('');
                   setSelectedPayment(null);
+                  setPaymentActionLoading(false);
                 }}
               >
                 <Text style={styles.closeModalText}>Close</Text>
@@ -461,7 +492,7 @@ const ManageEventScreen = () => {
 
         {/* Rejection Reason Modal */}
         <Modal
-          visible={!!selectedPayment}
+          visible={!!selectedPayment && !paymentActionLoading}
           animationType="fade"
           transparent={true}
           onRequestClose={() => {
@@ -504,10 +535,15 @@ const ManageEventScreen = () => {
                     }
                     handleRejectPayment(selectedPayment, rejectReason);
                     setRejectReason('');
-                    setSelectedPayment(null);
+                    // setSelectedPayment(null); // handled in API
                   }}
+                  disabled={paymentActionLoading}
                 >
-                  <Text style={styles.closeModalText}>Reject</Text>
+                  {paymentActionLoading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.closeModalText}>Reject</Text>
+                  )}
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.closeModalBtn, { backgroundColor: '#ccc', flex: 1, marginLeft: 8 }]}
@@ -515,6 +551,7 @@ const ManageEventScreen = () => {
                     setSelectedPayment(null);
                     setRejectReason('');
                   }}
+                  disabled={paymentActionLoading}
                 >
                   <Text style={[styles.closeModalText, { color: '#333' }]}>Cancel</Text>
                 </TouchableOpacity>
@@ -546,12 +583,22 @@ const ManageEventScreen = () => {
                     />
                     <Text style={styles.memberName}>{member.name || 'No Name'}</Text>
                     <View style={styles.iconGroup}>
-                      <Pressable style={styles.iconBtn} onPress={() => handleApproveMember(member)}>
-                        <Ionicons name="checkmark-circle-outline" size={26} color="#43a047" />
-                      </Pressable>
-                      <Pressable style={styles.iconBtn}>
-                        <Ionicons name="close-circle-outline" size={26} color="#ed6462" />
-                      </Pressable>
+                      {approvalActionLoading && selectedMemberId === member.userId ? (
+                        <ActivityIndicator size="small" color="#00a2ff" style={{ marginHorizontal: 10 }} />
+                      ) : (
+                        <>
+                          <Pressable
+                            style={styles.iconBtn}
+                            onPress={() => handleApproveMember(member)}
+                            disabled={approvalActionLoading}
+                          >
+                            <Ionicons name="checkmark-circle-outline" size={26} color="#43a047" />
+                          </Pressable>
+                          <Pressable style={styles.iconBtn} disabled={approvalActionLoading}>
+                            <Ionicons name="close-circle-outline" size={26} color="#ed6462" />
+                          </Pressable>
+                        </>
+                      )}
                     </View>
                   </View>
                 ))}
