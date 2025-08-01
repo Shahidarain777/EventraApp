@@ -18,6 +18,7 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { RootStackParamList, TabParamList } from '../types/navigations';
 import { fetchEvents, Event } from '../redux/slices/eventSlice';
 import EventCard from '../components/EventCard'; // <-- Import your EventCard
+import EmailVerificationBanner from '../components/EmailVerificationBanner';
 
 const HomeScreen = () => {
   const navigation = useNavigation<
@@ -52,6 +53,10 @@ const HomeScreen = () => {
           <Text style={styles.createEventText}>Create Event</Text>
         </TouchableOpacity>
       </View>
+      
+      {/* Email Verification Banner */}
+      <EmailVerificationBanner />
+      
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007BFF" />

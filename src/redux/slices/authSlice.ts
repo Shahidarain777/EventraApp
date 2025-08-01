@@ -11,6 +11,7 @@ interface User {
   role?: string; // Add role field
   createdAt?: string; // Add creation date field
   profileImage?: string; // Add profile image URL field
+  isEmailVerified?: boolean; // Add email verification status
   // Add more fields if needed
 }
 
@@ -53,6 +54,11 @@ const loginUser = createAsyncThunk<
       token,
     };
   } catch (error: any) {
+    // Handle email verification error specifically
+    if (error.response?.status === 403 && error.response?.data?.emailNotVerified) {
+      return rejectWithValue('Email not verified. Please check your inbox and verify your email address.');
+    }
+    
     const message =
       error.response?.data?.message || error.message || 'Login failed';
     return rejectWithValue(message);

@@ -15,10 +15,14 @@ import AddressPicker from '../components/AddressPicker';
 import api from '../api/axios';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { AuthStackParamList } from '../types/navigations';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
+type NavigationProp = StackNavigationProp<AuthStackParamList>;
+
 const SignupScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -44,8 +48,19 @@ const SignupScreen = () => {
         Address: { city, state, Country: country },
       });
       if (response.status === 201) {
-        Alert.alert('Success', 'Account created! Please login.');
-        navigation.goBack();
+        Alert.alert(
+          'Account Created!',
+          'Please check your email to verify your account before logging in.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                // Navigate to email verification screen
+                (navigation as any).navigate('EmailVerification', { email });
+              },
+            },
+          ]
+        );
       } else {
         const msg = (response as any).data?.message || 'Unknown error';
         Alert.alert('Signup Failed', msg);

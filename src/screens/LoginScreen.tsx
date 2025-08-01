@@ -76,7 +76,29 @@ const LoginScreen = () => {
     if (loginUser.fulfilled.match(result)) {
       navigation.replace('Main'); // 🎯 Navigate on successful login
     } else {
-      Alert.alert('Login Failed', result.payload || 'Unknown error');
+      // Check if it's an email verification error
+      const errorMessage = result.payload as string;
+      if (errorMessage && errorMessage.includes('email not verified')) {
+        Alert.alert(
+          'Email Not Verified',
+          'Please verify your email address before logging in. Check your inbox for the verification email.',
+          [
+            {
+              text: 'Resend Verification',
+              onPress: () => {
+                // Navigate to email verification screen
+                (navigation as any).navigate('EmailVerification', { email });
+              },
+            },
+            {
+              text: 'OK',
+              style: 'cancel',
+            },
+          ]
+        );
+      } else {
+        Alert.alert('Login Failed', errorMessage || 'Unknown error');
+      }
     }
   };
 

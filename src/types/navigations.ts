@@ -19,6 +19,7 @@ export type AuthStackParamList = {
   Login: undefined;
   Signup: undefined;
   ForgotPasswordScreen: undefined;
+  EmailVerification: { email: string };
 };
 
 export type TabParamList = {
