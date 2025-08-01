@@ -78,19 +78,36 @@ const loginFromStorage = createAsyncThunk<
 });
 
 // Fetch user profile image from uploaded_images table
+// const fetchUserProfileImage = createAsyncThunk<
+//   string | null,
+//   string,
+//   { rejectValue: string }
+// >('auth/fetchUserProfileImage', async (userId, { rejectWithValue }) => {
+//   try {
+//     // Get the latest uploaded image for the user
+//     const response = await api.get(`/user?userId=${userId}&limit=1`);
+//     const images = response.data?.imageUrl || response.data?.images || [];
+//     if (images && images.length > 0) {
+//       return images[0].url || images[0].imageUrl; // use the correct field name
+//     }
+//     return null;
+//   } catch (error: any) {
+//     console.log('Failed to fetch profile image:', error);
+//     return null;
+//   }
+// });
+
+
 const fetchUserProfileImage = createAsyncThunk<
   string | null,
   string,
   { rejectValue: string }
 >('auth/fetchUserProfileImage', async (userId, { rejectWithValue }) => {
   try {
-    // Get the latest uploaded image for the user
-    const response = await api.get(`/upload_image?userId=${userId}&limit=1`);
-    const images = response.data?.imageUrl || response.data?.images || [];
-    if (images && images.length > 0) {
-      return images[0].url || images[0].imageUrl; // use the correct field name
-    }
-    return null;
+    // Fetch user by ID and get profileImage field
+    const response = await api.get(`/users/${userId}`);
+    const profileImage = response.data?.profileImage;
+    return profileImage || null;
   } catch (error: any) {
     console.log('Failed to fetch profile image:', error);
     return null;
