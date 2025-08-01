@@ -267,7 +267,7 @@ const ProfileScreen = () => {
               />
             ) : (
               <View style={styles.placeholderImage}>
-                <Icon name="account" size={60} color="#ccc" />
+                <Ionicons name="person-outline" size={90} color="#007BFF" />
               </View>
             )}
             
@@ -279,7 +279,7 @@ const ProfileScreen = () => {
             )}
             
             <View style={styles.editIconContainer}>
-              <Icon name="camera" size={18} color="#fff" />
+              <Ionicons name="camera-outline" size={20} color="#ffffffff" />
             </View>
           </TouchableOpacity>
           
@@ -292,7 +292,7 @@ const ProfileScreen = () => {
         <View style={styles.userInfoSection}>
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
-              <Ionicons name="person-outline" size={20} color="#007BFF" />
+              <Ionicons name="person-circle-outline" size={20} color="#007BFF" />
               <View style={styles.infoTextContainer}>
                 <Text style={styles.infoLabel}>Name</Text>
                 <Text style={styles.infoValue}>{user?.name || 'John Doe'}</Text>
