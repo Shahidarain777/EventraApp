@@ -28,6 +28,7 @@ export interface Event {
   visibility?: string;
   approvalRequired?: string;
   maxAttendees?: number | string;
+  currency: string; // e.g., USD, EUR
   location?: {
     type: 'venue' | 'online';
     venueName?: string;
@@ -59,7 +60,13 @@ export interface Event {
     profileImage?: string;
     selectedSubEvents: number[]; // Array of subEventIds
     totalAmount: number; // Total amount for selected sub-events
+    ticketQuantities?: {
+      mainEvent: number;
+      subEvents: { [key: string]: number };
+    };
   }>;
+
+
 
   payments?: Array<{
     id: string | number;
@@ -118,12 +125,23 @@ export const fetchEvents = createAsyncThunk<
     const response = await api.get('/events');
     const userId = getCurrentUserId();
     if (response.data?.events?.length > 0) {
-      return response.data.events.map((event: Event) => ({
-        ...event,
-        isLiked: Array.isArray(event.likedBy)
-          ? event.likedBy.some((u) => u.id?.toString() === userId)
-          : false,
-      }));
+      return response.data.events.map((event: Event) => {
+        // Find current user's joinedMember entry
+        let ticketQuantities = undefined;
+        if (Array.isArray(event.joinedMembers)) {
+          const currentMember = event.joinedMembers.find((m: any) => m.userId?.toString() === userId);
+          if (currentMember && currentMember.ticketQuantities) {
+            ticketQuantities = currentMember.ticketQuantities;
+          }
+        }
+        return {
+          ...event,
+          isLiked: Array.isArray(event.likedBy)
+            ? event.likedBy.some((u) => u.id?.toString() === userId)
+            : false,
+          ticketQuantities,
+        };
+      });
     }
     return [];
   } catch (error: any) {

@@ -24,6 +24,7 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
   // State for sub-event selection and fee calculation
   const [selectedSubEvents, setSelectedSubEvents] = useState<Set<string>>(new Set());
   const [totalFee, setTotalFee] = useState<number>(0);
+
   
   // New state for Group Ticket Selection
   const [mainEventTickets, setMainEventTickets] = useState<number>(1);
@@ -228,66 +229,28 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
     const restrictedStatuses = ['member', 'approval_pending', 'payment_pending', 'payment_verification_pending'];
     
     if (restrictedStatuses.includes(userStatus) && event.subEvents) {
-      // For restricted users, we need to get their previously committed selections
-      // This could come from the backend API or from joinedMembers data
-      
-      // Option 1: If backend provides userSelectedSubEvents in event data
-      if ((event as any).userSelectedSubEvents) {
-        const userSubEventIds = (event as any).userSelectedSubEvents.map((subEvent: any) => 
-          String(subEvent.subEventId || subEvent._id || subEvent.itemName)
-        );
-        setSelectedSubEvents(new Set(userSubEventIds));
-        
-        // Load ticket quantities for committed sub-events
-        const ticketQuantities: { [key: string]: number } = {};
-        (event as any).userSelectedSubEvents.forEach((userSubEvent: any) => {
-          const subEventId = String(userSubEvent.subEventId || userSubEvent._id || userSubEvent.itemName);
-          ticketQuantities[subEventId] = (userSubEvent as any).ticketQuantity || 1;
-        });
-        setSubEventTickets(ticketQuantities);
-      }
-      // Option 2: Get from joinedMembers data if available
-      else if (event.joinedMembers && currentUserId) {
+      // For restricted users, get ticket quantities from event or joinedMembers
+      let mainEventQty = 1;
+      let subEventQtyObj: { [key: string]: number } = {};
+      let selectedSubEventIds: string[] = [];
+      // Prefer event.ticketQuantities if available
+      if ((event as any).ticketQuantities) {
+        mainEventQty = (event as any).ticketQuantities.mainEvent || 1;
+        subEventQtyObj = (event as any).ticketQuantities.subEvents || {};
+        selectedSubEventIds = Object.keys(subEventQtyObj);
+      } else if (Array.isArray(event.joinedMembers) && currentUserId) {
         const currentUserMember = event.joinedMembers.find(
           (member: any) => member.userId?.toString() === currentUserId?.toString()
         );
-        
-        if (currentUserMember && (currentUserMember as any).selectedSubEvents) {
-          const memberSubEventIds = (currentUserMember as any).selectedSubEvents.map((subEventId: any) => 
-            String(subEventId)
-          );
-          setSelectedSubEvents(new Set(memberSubEventIds));
-          
-          // Load ticket quantities if available
-          if ((currentUserMember as any).ticketQuantities) {
-            setSubEventTickets((currentUserMember as any).ticketQuantities);
-          }
-        }
-        // Option 3: If sub-events are stored as part of member data with different structure
-        else if (currentUserMember && (currentUserMember as any).subEvents) {
-          const memberSubEventIds = (currentUserMember as any).subEvents.map((subEvent: any) => 
-            String(subEvent.subEventId || subEvent._id || subEvent.itemName || subEvent)
-          );
-          setSelectedSubEvents(new Set(memberSubEventIds));
-          
-          // Load ticket quantities if available
-          if ((currentUserMember as any).ticketQuantities) {
-            setSubEventTickets((currentUserMember as any).ticketQuantities);
-          }
-        }
-        // Option 4: If the member has a totalAmount, try to reverse-engineer selections
-        else if (currentUserMember && (currentUserMember as any).totalAmount) {
-          // This is a fallback - try to match the committed total with possible sub-event combinations
-          console.log('User has committed total:', (currentUserMember as any).totalAmount);
-          // For now, we'll let the fee calculation handle this
+        if (currentUserMember && currentUserMember.ticketQuantities) {
+          mainEventQty = currentUserMember.ticketQuantities.mainEvent || 1;
+          subEventQtyObj = currentUserMember.ticketQuantities.subEvents || {};
+          selectedSubEventIds = Object.keys(subEventQtyObj);
         }
       }
-      
-      // If no stored selections found but user has restricted status, make API call to get selections
-      // You can uncomment this if you have a dedicated API endpoint
-      // else {
-      //   fetchUserSelectedSubEvents();
-      // }
+      setMainEventTickets(mainEventQty);
+      setSubEventTickets(subEventQtyObj);
+      setSelectedSubEvents(new Set(selectedSubEventIds));
     } else if (userStatus === 'not_joined') {
       // Clear selections for new users
       setSelectedSubEvents(new Set());
@@ -443,6 +406,17 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
     return styles.joinButton;
   };
 
+  // Helper to format currency
+  const formatCurrency = (amount: number) => {
+    if (event.currency && event.currency.toLowerCase() === 'pkr') {
+      return `PKR ${amount.toFixed(2)}`;
+    } else if (event.currency && event.currency.toLowerCase() === 'usd') {
+      return `$${amount.toFixed(2)}`;
+    } else {
+      return `${amount.toFixed(2)}`;
+    }
+  };
+
   // Render ticket quantity input component
   const renderTicketQuantityInput = (
     label: string, 
@@ -513,7 +487,9 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
             <Ionicons name="pricetag-outline" size={20} color="#2788ff" />
             <Text style={styles.detailCardTitle}>Fee</Text>
             <Text style={styles.detailCardValue}>
-              {event.price && event.price !== 'Free' ? String(event.price) : 'Free'}
+              {event.price && event.price !== 'Free'
+                ? formatCurrency(Number(event.price))
+                : 'Free'}
             </Text>
           </View>
           
@@ -657,10 +633,12 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
                           {subEvent.itemName || `Sub Event ${index + 1}`}
                         </Text>
                       </View>
-                      <View style={[styles.subEventBadge, subEvent.isPaid ? styles.paidBadge : styles.freeBadge]}>
-                        <Text style={styles.subEventBadgeText}>
-                          {subEvent.isPaid ? `$${Number(subEvent.fee || 0)}` : 'Free'}
-                        </Text>
+              <View style={[styles.subEventBadge, subEvent.isPaid ? styles.paidBadge : styles.freeBadge]}>
+                <Text style={styles.subEventBadgeText}>
+                  {subEvent.isPaid
+                    ? formatCurrency(Number(subEvent.fee || 0))
+                    : 'Free'}
+                </Text>
                       </View>
                     </View>
                     
@@ -738,8 +716,9 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
               <Text style={styles.committedFeeIndicator}>(Committed)</Text>
             )}
           </View>
+          
           <Text style={styles.totalFeeAmount}>
-            ${totalFee > 0 ? `${totalFee.toFixed(2)}` : '0.00'}
+            {formatCurrency(totalFee)}
           </Text>
         </View>
         
