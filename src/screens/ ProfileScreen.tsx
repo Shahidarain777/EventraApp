@@ -346,6 +346,16 @@ const ProfileScreen = () => {
               <Ionicons name="chevron-forward" size={20} color="#ccc" />
             </TouchableOpacity>
 
+           {/* Invoice Button */}
+           <TouchableOpacity 
+             style={styles.optionItem}
+             onPress={() => navigation.navigate('InvoiceScreen' as never)}
+           >
+             <Ionicons name="receipt-outline" size={20} color="#666" />
+             <Text style={styles.optionText}>Invoice</Text>
+             <Ionicons name="chevron-forward" size={20} color="#ccc" />
+           </TouchableOpacity>
+
             <TouchableOpacity 
               style={styles.optionItem}
               onPress={() => navigation.navigate('HelpSupport' as never)}
