@@ -28,20 +28,6 @@ export interface Event {
   visibility?: string;
   approvalRequired?: string;
   maxAttendees?: number | string;
-  // {
-  // "location": {
-  //   "type": "venue", // or "online"
-  //   "venueName": "",
-  //   "address": "",
-  //   "city": "",
-  //   "state": "",
-  //   "country": "",
-  //   "latitude": null,
-  //   "longitude": null,
-  //   "link": "",
-  //   "platform": "Custom"
-  // }
-// }
   location?: {
     type: 'venue' | 'online';
     venueName?: string;
@@ -85,6 +71,10 @@ export interface Event {
     paymentMethod: string;
     createdAt: string;
   }>;
+
+  accountHolderName: string;
+  accountNumber: string;
+  bankName: string;
 }
 
 interface EventState {

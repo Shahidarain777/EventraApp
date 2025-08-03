@@ -93,7 +93,7 @@ const CreateEventScreen = () => {
   const [accountHolderName, setAccountHolderName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [bankName, setBankName] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('');
+  // const [paymentMethod, setPaymentMethod] = useState('');
 
   const handleCategoryChange = (value: string | null) => {
     if (value === 'Other') {
@@ -238,7 +238,7 @@ const CreateEventScreen = () => {
       if (!accountHolderName.trim()) return setError('Account holder name is required for paid event');
       if (!accountNumber.trim()) return setError('Account number is required for paid event');
       if (!bankName) return setError('Bank name is required for paid event');
-      if (!paymentMethod) return setError('Payment method is required for paid event');
+      // if (!paymentMethod) return setError('Payment method is required for paid event');
     }
     
     setUploading(true);
@@ -335,7 +335,6 @@ const CreateEventScreen = () => {
         accountHolderName: accountHolderName.trim(),
         accountNumber: accountNumber.trim(),
         bankName,
-        paymentMethod,
       } : {}),
     };
 
@@ -596,24 +595,21 @@ const CreateEventScreen = () => {
             value={bankName}
             items={[
               { label: 'JazzCash', value: 'JazzCash' },
+              { label: 'Easypaisa', value: 'Easypaisa' },
+              { label: 'Sadapay', value: 'Sadapay' },
+              { label: 'Nayapay', value: 'Nayapay' },
               { label: 'HBL', value: 'HBL' },
               { label: 'MCB', value: 'MCB' },
-              { label: 'Easypaisa', value: 'Easypaisa' },
+              { label: 'UBL', value: 'UBL' },
+              { label: 'Meezan bank', value: 'Meezan bank' },
+              { label: 'Bank Alfalah', value: 'Bank Alfalah' },
+              { label: 'Faysal Bank', value: 'Faysal Bank' },           
+              { label: 'Bank Islami', value: 'Bank Islami' },
+              { label: 'Al Baraka Bank', value: 'Al Baraka Bank' },
+              { label: 'Habib Metropolitan Bank', value: 'Habib Metropolitan Bank' },
+              { label: 'National Bank of Pakistan', value: 'National Bank of Pakistan' },
+              
               // Add more banks as needed
-            ]}
-          />
-
-          <Text style={styles.label}>Payment Method</Text>
-          <RNPickerSelect
-            placeholder={{ label: 'Select payment method...', value: '' }}
-            style={{ inputIOS: styles.input, inputAndroid: styles.input }}
-            onValueChange={setPaymentMethod}
-            value={paymentMethod}
-            items={[
-              { label: 'Bank Transfer', value: 'Bank Transfer' },
-              { label: 'JazzCash', value: 'JazzCash' },
-              { label: 'Easypaisa', value: 'Easypaisa' },
-              // Add more payment methods as needed
             ]}
           />
         </>

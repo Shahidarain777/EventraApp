@@ -288,7 +288,7 @@ const [selectedPayment, setSelectedPayment] = React.useState<any>(null);
     setSelectedMemberId(member.userId);
     try {
       let newStatus = 'member';
-      if (event.price && event.price > 0) {
+      if (event.totalAmount !== 0) {
         newStatus = 'payment_pending';
       }
       await api.put(
