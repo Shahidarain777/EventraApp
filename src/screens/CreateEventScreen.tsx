@@ -28,7 +28,6 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import LocationSelectorModal from '../components/LocationSelectorModal';
 import api from '../api/axios';
 
-
 type User = { id: string; username: string };
 
 interface LocationData {
@@ -90,6 +89,11 @@ const CreateEventScreen = () => {
     isPaid: boolean;
   }>>([]);
 
+  // Payment info state
+  const [accountHolderName, setAccountHolderName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [bankName, setBankName] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('');
 
   const handleCategoryChange = (value: string | null) => {
     if (value === 'Other') {
@@ -228,6 +232,14 @@ const CreateEventScreen = () => {
       if (!subEvent.maxAttendees) return setError(`Sub-event ${i + 1}: Max attendees is required`);
       if (subEvent.isPaid && !subEvent.fee) return setError(`Sub-event ${i + 1}: Fee is required for paid sub-event`);
     }
+
+    // Validate payment fields if paid
+    if (isPaid) {
+      if (!accountHolderName.trim()) return setError('Account holder name is required for paid event');
+      if (!accountNumber.trim()) return setError('Account number is required for paid event');
+      if (!bankName) return setError('Bank name is required for paid event');
+      if (!paymentMethod) return setError('Payment method is required for paid event');
+    }
     
     setUploading(true);
 
@@ -317,9 +329,16 @@ const CreateEventScreen = () => {
         fee: subEvent.isPaid ? parseFloat(subEvent.fee) : 0,
         maxAttendees: parseInt(subEvent.maxAttendees)
       })),
-      //visibility: visibility,
-      //currency: currency,
+      visibility: visibility,
+      currency: currency,
+      ...(isPaid ? {
+        accountHolderName: accountHolderName.trim(),
+        accountNumber: accountNumber.trim(),
+        bankName,
+        paymentMethod,
+      } : {}),
     };
+
     // Direct API call for event creation (not using Redux eventslice)
     try {
       await api.post('/events', body);
@@ -395,7 +414,6 @@ const CreateEventScreen = () => {
           onChangeText={setOtherCategory}
         />
       )}
-
 
       <Text style={styles.label}>Description</Text>
       <TextInput
@@ -511,44 +529,94 @@ const CreateEventScreen = () => {
         />
       </View>
       {isPaid && (
-        <View style={styles.feeInputRow}>
-          {/* Currency Dropdown */}
-          <TouchableOpacity style={styles.currencyBox} onPress={() => setCurrency(currency === 'PKR' ? 'USD' : 'PKR')}>
-            <Text style={styles.currencyText}>{currency}</Text>
-          </TouchableOpacity>
-          {/* Amount Input with Stepper Dropdown */}
-          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', minWidth: 0 }}>
-            <TouchableOpacity
-              style={styles.stepBtn}
-              onPress={() => {
-                const val = Math.max(0, (parseInt(joiningFee) || 0) - amountStep);
-                setJoiningFee(val.toString());
-              }}
-            >
-              <Text style={styles.stepBtnText}>-</Text>
+        <>
+          <View style={styles.feeInputRow}>
+            {/* Currency Dropdown */}
+            <TouchableOpacity style={styles.currencyBox} onPress={() => setCurrency(currency === 'PKR' ? 'USD' : 'PKR')}>
+              <Text style={styles.currencyText}>{currency}</Text>
             </TouchableOpacity>
-            <TextInput
-              style={[styles.feeInput, { textAlign: 'center', minWidth: 60 }]}
-              placeholder="Amount"
-              placeholderTextColor="#888"
-              value={joiningFee}
-              onChangeText={text => {
-                // Only allow numbers
-                if (/^\d*$/.test(text)) setJoiningFee(text);
-              }}
-              keyboardType="numeric"
-            />
-            <TouchableOpacity
-              style={styles.stepBtn}
-              onPress={() => {
-                const val = (parseInt(joiningFee) || 0) + amountStep;
-                setJoiningFee(val.toString());
-              }}
-            >
-              <Text style={styles.stepBtnText}>+</Text>
-            </TouchableOpacity>
+            {/* Amount Input with Stepper Dropdown */}
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', minWidth: 0 }}>
+              <TouchableOpacity
+                style={styles.stepBtn}
+                onPress={() => {
+                  const val = Math.max(0, (parseInt(joiningFee) || 0) - amountStep);
+                  setJoiningFee(val.toString());
+                }}
+              >
+                <Text style={styles.stepBtnText}>-</Text>
+              </TouchableOpacity>
+              <TextInput
+                style={[styles.feeInput, { textAlign: 'center', minWidth: 60 }]}
+                placeholder="Amount"
+                placeholderTextColor="#888"
+                value={joiningFee}
+                onChangeText={text => {
+                  // Only allow numbers
+                  if (/^\d*$/.test(text)) setJoiningFee(text);
+                }}
+                keyboardType="numeric"
+              />
+              <TouchableOpacity
+                style={styles.stepBtn}
+                onPress={() => {
+                  const val = (parseInt(joiningFee) || 0) + amountStep;
+                  setJoiningFee(val.toString());
+                }}
+              >
+                <Text style={styles.stepBtnText}>+</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+          {/* Payment Info Section */}
+          <Text style={styles.label}>Account Holder Name</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Account Holder Name"
+            placeholderTextColor="#888"
+            value={accountHolderName}
+            onChangeText={setAccountHolderName}
+          />
+
+          <Text style={styles.label}>Account Number</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Account Number"
+            placeholderTextColor="#888"
+            value={accountNumber}
+            keyboardType="numeric"
+            onChangeText={setAccountNumber}
+          />
+
+          <Text style={styles.label}>Bank Name</Text>
+          <RNPickerSelect
+            placeholder={{ label: 'Select a bank...', value: '' }}
+            style={{ inputIOS: styles.input, inputAndroid: styles.input }}
+            onValueChange={setBankName}
+            value={bankName}
+            items={[
+              { label: 'JazzCash', value: 'JazzCash' },
+              { label: 'HBL', value: 'HBL' },
+              { label: 'MCB', value: 'MCB' },
+              { label: 'Easypaisa', value: 'Easypaisa' },
+              // Add more banks as needed
+            ]}
+          />
+
+          <Text style={styles.label}>Payment Method</Text>
+          <RNPickerSelect
+            placeholder={{ label: 'Select payment method...', value: '' }}
+            style={{ inputIOS: styles.input, inputAndroid: styles.input }}
+            onValueChange={setPaymentMethod}
+            value={paymentMethod}
+            items={[
+              { label: 'Bank Transfer', value: 'Bank Transfer' },
+              { label: 'JazzCash', value: 'JazzCash' },
+              { label: 'Easypaisa', value: 'Easypaisa' },
+              // Add more payment methods as needed
+            ]}
+          />
+        </>
       )}
 
       {/* Sub Events Section */}
@@ -637,6 +705,8 @@ const CreateEventScreen = () => {
 };
 
 export default CreateEventScreen;
+
+// ... styles remain unchanged, as above
 
 const styles = StyleSheet.create({
   imageCard: {
