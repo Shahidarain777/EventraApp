@@ -546,8 +546,8 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
           <DueDate event={event} styles={styles} />
         </View>
 
-        {/* Main Event Ticket Selection - Modern Compact Design */}
-        {userStatus === 'not_joined' && (
+        {/* Main Event Ticket Selection - Modern Compact Design or Committed Tickets */}
+        {userStatus === 'not_joined' ? (
           <View style={styles.modernMainEventTicketCard}>
             <View style={styles.modernMainEventHeader}>
               <Ionicons name="ticket-outline" size={18} color="#2788ff" />
@@ -561,9 +561,7 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
               >
                 <Ionicons name="remove" size={16} color={mainEventTickets <= 1 ? "#ccc" : "#2788ff"} />
               </TouchableOpacity>
-              
               <Text style={styles.modernMainEventValue}>{mainEventTickets}</Text>
-              
               <TouchableOpacity
                 style={[styles.modernMainEventButton, (typeof getCapacity() === 'number' && mainEventTickets >= Number(getCapacity())) && styles.modernMainEventButtonDisabled]}
                 onPress={() => {
@@ -576,6 +574,14 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
               </TouchableOpacity>
             </View>
             <Text style={styles.modernMainEventMax}>Max: {getCapacity()}</Text>
+          </View>
+        ) : null}
+        {/* Show committed main event tickets for restricted users */}
+        {restrictedStatuses.includes(userStatus) && mainEventTickets > 0 && (
+          <View style={styles.committedTicketContainer}>
+            <Text style={styles.committedTicketText}>
+              Committed: {mainEventTickets} main event ticket{mainEventTickets !== 1 ? 's' : ''}
+            </Text>
           </View>
         )}
 
