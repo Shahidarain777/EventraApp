@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, TextInput } from 'react-native';
 import EventCard from '../components/EventCard';
 import { Event } from '../redux/slices/eventSlice';
 import { RouteProp } from '@react-navigation/native';
@@ -24,6 +24,10 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
   // State for sub-event selection and fee calculation
   const [selectedSubEvents, setSelectedSubEvents] = useState<Set<string>>(new Set());
   const [totalFee, setTotalFee] = useState<number>(0);
+  
+  // New state for Group Ticket Selection
+  const [mainEventTickets, setMainEventTickets] = useState<number>(1);
+  const [subEventTickets, setSubEventTickets] = useState<{ [key: string]: number }>({});
   
   // Define restricted statuses for sub-event selection
   const restrictedStatuses = ['member', 'approval_pending', 'payment_pending', 'payment_verification_pending'];
@@ -58,7 +62,7 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
     initializeUserId();
   }, []);
 
-  // Calculate total fee whenever selected sub-events change or user status changes
+  // Calculate total fee whenever selected sub-events change, user status changes, or ticket quantities change
   useEffect(() => {
     const mainEventFee = event.price && event.price !== 'Free' ? Number(event.price) : 0;
     let subEventsFee = 0;
@@ -82,7 +86,7 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
       }
     }
     
-    // Calculate fee based on selected sub-events (for new users or fallback)
+    // Calculate fee based on selected sub-events and ticket quantities (for new users or fallback)
     if (event.subEvents) {
       if (isRestricted) {
         // For restricted users without committed total, calculate from previously selected sub-events
@@ -95,7 +99,9 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
             });
             
             if (matchingSubEvent && matchingSubEvent.isPaid) {
-              subEventsFee += Number(matchingSubEvent.fee) || 0;
+              // Use committed ticket quantity or default to 1
+              const ticketQuantity = (userSubEvent as any).ticketQuantity || 1;
+              subEventsFee += (Number(matchingSubEvent.fee) || 0) * ticketQuantity;
             }
           });
         } else {
@@ -103,23 +109,28 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
           event.subEvents.forEach((subEvent) => {
             const subEventId = String(subEvent.subEventId);
             if (selectedSubEvents.has(subEventId) && subEvent.isPaid) {
-              subEventsFee += Number(subEvent.fee) || 0;
+              const ticketQuantity = subEventTickets[subEventId] || 1;
+              subEventsFee += (Number(subEvent.fee) || 0) * ticketQuantity;
             }
           });
         }
       } else {
-        // For new users (not_joined), calculate based on current selection
+        // For new users (not_joined), calculate based on current selection and ticket quantities
         event.subEvents.forEach((subEvent) => {
           const subEventId = String(subEvent.subEventId);
           if (selectedSubEvents.has(subEventId) && subEvent.isPaid) {
-            subEventsFee += Number(subEvent.fee) || 0;
+            const ticketQuantity = subEventTickets[subEventId] || 1;
+            subEventsFee += (Number(subEvent.fee) || 0) * ticketQuantity;
           }
         });
       }
     }
     
-    setTotalFee(mainEventFee + subEventsFee);
-  }, [selectedSubEvents, event.price, event.subEvents, userStatus, restrictedStatuses, event.joinedMembers, currentUserId]);
+    // Calculate main event fee with ticket quantity
+    const mainEventTotalFee = mainEventFee * mainEventTickets;
+    
+    setTotalFee(mainEventTotalFee + subEventsFee);
+  }, [selectedSubEvents, event.price, event.subEvents, userStatus, restrictedStatuses, event.joinedMembers, currentUserId, mainEventTickets, subEventTickets]);
 
   // Handle sub-event selection
   const toggleSubEventSelection = (subEventId: string) => {
@@ -141,11 +152,74 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
       const newSet = new Set(prev);
       if (newSet.has(subEventId)) {
         newSet.delete(subEventId);
+        // Reset ticket quantity when deselecting
+        setSubEventTickets(prev => {
+          const newTickets = { ...prev };
+          delete newTickets[subEventId];
+          return newTickets;
+        });
       } else {
         newSet.add(subEventId);
+        // Set default ticket quantity to 1 when selecting
+        setSubEventTickets(prev => ({
+          ...prev,
+          [subEventId]: 1
+        }));
       }
       return newSet;
     });
+  };
+
+  // Handle main event ticket quantity change
+  const handleMainEventTicketChange = (value: string) => {
+    const numValue = parseInt(value) || 0;
+    const maxCapacity = Number(event.maxAttendees) || Infinity;
+    
+    if (numValue < 1) {
+      setMainEventTickets(1);
+    } else if (numValue > maxCapacity) {
+      setMainEventTickets(maxCapacity);
+      Alert.alert('Capacity Limit', `Maximum ${maxCapacity} tickets allowed for this event.`);
+    } else {
+      setMainEventTickets(numValue);
+    }
+  };
+
+  // Handle sub-event ticket quantity change
+  const handleSubEventTicketChange = (subEventId: string, value: string) => {
+    const numValue = parseInt(value) || 0;
+    const subEvent = event.subEvents?.find(se => String(se.subEventId) === subEventId);
+    const maxCapacity = subEvent?.maxAttendees || Infinity;
+    
+    if (numValue < 0) {
+      setSubEventTickets(prev => ({ ...prev, [subEventId]: 0 }));
+    } else if (numValue > maxCapacity) {
+      setSubEventTickets(prev => ({ ...prev, [subEventId]: maxCapacity }));
+      Alert.alert('Capacity Limit', `Maximum ${maxCapacity} tickets allowed for this sub-event.`);
+    } else {
+      setSubEventTickets(prev => ({ ...prev, [subEventId]: numValue }));
+    }
+  };
+
+  // Validate ticket quantities before submission
+  const validateTicketQuantities = (): boolean => {
+    // Check main event capacity
+    const maxCapacity = Number(event.maxAttendees) || Infinity;
+    if (mainEventTickets > maxCapacity) {
+      Alert.alert('Invalid Quantity', `Maximum ${maxCapacity} tickets allowed for the main event.`);
+      return false;
+    }
+    
+    // Check sub-event capacities
+    for (const [subEventId, quantity] of Object.entries(subEventTickets)) {
+      const subEvent = event.subEvents?.find(se => String(se.subEventId) === subEventId);
+      if (subEvent && quantity > (subEvent.maxAttendees || Infinity)) {
+        Alert.alert('Invalid Quantity', `Maximum ${subEvent.maxAttendees} tickets allowed for "${subEvent.itemName}".`);
+        return false;
+      }
+    }
+    
+    return true;
   };
 
   // Load user's previously selected sub-events when status changes
@@ -163,6 +237,14 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
           String(subEvent.subEventId || subEvent._id || subEvent.itemName)
         );
         setSelectedSubEvents(new Set(userSubEventIds));
+        
+        // Load ticket quantities for committed sub-events
+        const ticketQuantities: { [key: string]: number } = {};
+        (event as any).userSelectedSubEvents.forEach((userSubEvent: any) => {
+          const subEventId = String(userSubEvent.subEventId || userSubEvent._id || userSubEvent.itemName);
+          ticketQuantities[subEventId] = (userSubEvent as any).ticketQuantity || 1;
+        });
+        setSubEventTickets(ticketQuantities);
       }
       // Option 2: Get from joinedMembers data if available
       else if (event.joinedMembers && currentUserId) {
@@ -175,6 +257,11 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
             String(subEventId)
           );
           setSelectedSubEvents(new Set(memberSubEventIds));
+          
+          // Load ticket quantities if available
+          if ((currentUserMember as any).ticketQuantities) {
+            setSubEventTickets((currentUserMember as any).ticketQuantities);
+          }
         }
         // Option 3: If sub-events are stored as part of member data with different structure
         else if (currentUserMember && (currentUserMember as any).subEvents) {
@@ -182,6 +269,11 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
             String(subEvent.subEventId || subEvent._id || subEvent.itemName || subEvent)
           );
           setSelectedSubEvents(new Set(memberSubEventIds));
+          
+          // Load ticket quantities if available
+          if ((currentUserMember as any).ticketQuantities) {
+            setSubEventTickets((currentUserMember as any).ticketQuantities);
+          }
         }
         // Option 4: If the member has a totalAmount, try to reverse-engineer selections
         else if (currentUserMember && (currentUserMember as any).totalAmount) {
@@ -199,6 +291,8 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
     } else if (userStatus === 'not_joined') {
       // Clear selections for new users
       setSelectedSubEvents(new Set());
+      setSubEventTickets({});
+      setMainEventTickets(1);
     }
   }, [userStatus, event.subEvents, event.joinedMembers, currentUserId]);
  
@@ -220,6 +314,12 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
     if (isJoining) return;
     // If user already has a status, do not allow join again
     if (userStatus !== 'not_joined') return;
+    
+    // Validate ticket quantities
+    if (!validateTicketQuantities()) {
+      return;
+    }
+    
     setIsJoining(true);
     try {
       let status = 'member';
@@ -229,24 +329,32 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
         status = 'payment_pending';
       }
       
-      // Include selected sub-events in the request - convert to numbers
+      // Include selected sub-events and ticket quantities in the request
       const selectedSubEventIds = Array.from(selectedSubEvents).map(id => {
         const numericId = parseInt(id, 10);
         return isNaN(numericId) ? id : numericId;
       });
       
+      // Prepare ticket quantities data
+      const ticketQuantities = {
+        mainEvent: mainEventTickets,
+        subEvents: subEventTickets
+      };
+      
       console.log('🚀 Sending join request with data:', {
         eventId: event.eventId,
         status: status,
         selectedSubEvents: selectedSubEventIds,
-        totalAmount: totalFee
+        totalAmount: totalFee,
+        ticketQuantities: ticketQuantities
       });
       
       await api.post('/event_members', {
         eventId: event.eventId,
         status: status,
         selectedSubEvents: selectedSubEventIds,
-        totalAmount: totalFee
+        totalAmount: totalFee,
+        ticketQuantities: ticketQuantities
       });
       setUserStatus(status);
       let message = '';
@@ -334,6 +442,47 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
     }
     return styles.joinButton;
   };
+
+  // Render ticket quantity input component
+  const renderTicketQuantityInput = (
+    label: string, 
+    value: number, 
+    onChange: (value: string) => void, 
+    maxCapacity: number | string,
+    disabled: boolean = false
+  ) => (
+    <View style={styles.ticketQuantityContainer}>
+      <Text style={styles.ticketQuantityLabel}>{label}</Text>
+      <View style={styles.ticketQuantityInputRow}>
+        <TouchableOpacity
+          style={[styles.ticketQuantityButton, disabled && styles.ticketQuantityButtonDisabled]}
+          onPress={() => !disabled && onChange(String(Math.max(1, value - 1)))}
+          disabled={disabled || value <= 1}
+        >
+          <Ionicons name="remove" size={16} color={disabled || value <= 1 ? "#ccc" : "#2788ff"} />
+        </TouchableOpacity>
+        
+        <TextInput
+          style={[styles.ticketQuantityInput, disabled && styles.ticketQuantityInputDisabled]}
+          value={String(value)}
+          onChangeText={onChange}
+          keyboardType="numeric"
+          editable={!disabled}
+          maxLength={3}
+        />
+        
+        <TouchableOpacity
+          style={[styles.ticketQuantityButton, disabled && styles.ticketQuantityButtonDisabled]}
+          onPress={() => !disabled && onChange(String(Math.min(Number(maxCapacity) || 999, value + 1)))}
+          disabled={disabled || value >= (Number(maxCapacity) || 999)}
+        >
+          <Ionicons name="add" size={16} color={disabled || value >= (Number(maxCapacity) || 999) ? "#ccc" : "#2788ff"} />
+        </TouchableOpacity>
+      </View>
+      <Text style={styles.ticketQuantityMax}>Max: {maxCapacity}</Text>
+    </View>
+  );
+
   return (
     <View style={styles.screenContainer}>
       <ScrollView 
@@ -421,6 +570,39 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
           <DueDate event={event} styles={styles} />
         </View>
 
+        {/* Main Event Ticket Selection - Modern Compact Design */}
+        {userStatus === 'not_joined' && (
+          <View style={styles.modernMainEventTicketCard}>
+            <View style={styles.modernMainEventHeader}>
+              <Ionicons name="ticket-outline" size={18} color="#2788ff" />
+              <Text style={styles.modernMainEventTitle}>Tickets</Text>
+            </View>
+            <View style={styles.modernMainEventStepper}>
+              <TouchableOpacity
+                style={[styles.modernMainEventButton, mainEventTickets <= 1 && styles.modernMainEventButtonDisabled]}
+                onPress={() => handleMainEventTicketChange(String(Math.max(1, mainEventTickets - 1)))}
+                disabled={mainEventTickets <= 1}
+              >
+                <Ionicons name="remove" size={16} color={mainEventTickets <= 1 ? "#ccc" : "#2788ff"} />
+              </TouchableOpacity>
+              
+              <Text style={styles.modernMainEventValue}>{mainEventTickets}</Text>
+              
+              <TouchableOpacity
+                style={[styles.modernMainEventButton, (typeof getCapacity() === 'number' && mainEventTickets >= Number(getCapacity())) && styles.modernMainEventButtonDisabled]}
+                onPress={() => {
+                  const maxCap = typeof getCapacity() === 'number' ? getCapacity() : 999;
+                  handleMainEventTicketChange(String(Math.min(Number(maxCap), mainEventTickets + 1)));
+                }}
+                disabled={typeof getCapacity() === 'number' && mainEventTickets >= Number(getCapacity())}
+              >
+                <Ionicons name="add" size={16} color={(typeof getCapacity() === 'number' && mainEventTickets >= Number(getCapacity())) ? "#ccc" : "#2788ff"} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modernMainEventMax}>Max: {getCapacity()}</Text>
+          </View>
+        )}
+
         {/* Sub Events Section */}
         {event.subEvents && event.subEvents.length > 0 && (
           <View style={styles.subEventsContainer}>
@@ -434,70 +616,114 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
             {event.subEvents.map((subEvent, index) => {
               const subEventId = String(subEvent.subEventId);
               const isSelected = selectedSubEvents.has(subEventId);
+              const ticketQuantity = subEventTickets[subEventId] || 0;
+              const isRestricted = restrictedStatuses.includes(userStatus);
               
               return (
-                <TouchableOpacity 
-                  key={subEventId} 
-                  style={[
-                    styles.subEventCard, 
-                    isSelected && styles.subEventCardSelected,
-                    restrictedStatuses.includes(userStatus) && styles.disabledSubEventCard
-                  ]}
-                  onPress={() => toggleSubEventSelection(subEventId)}
-                  activeOpacity={0.7}
-                  disabled={restrictedStatuses.includes(userStatus)}
-                >
-                  <View style={styles.subEventHeader}>
-                    <View style={styles.subEventTitleRow}>
-                      <View style={styles.subEventCheckbox}>
-                        {restrictedStatuses.includes(userStatus) ? (
-                          // For restricted users, show their committed selections with checkmarks
-                          <Ionicons 
-                            name={isSelected ? "checkmark-circle" : "ellipse-outline"} 
-                            size={20} 
-                            color={isSelected ? "#2788ff" : "#ccc"} 
-                          />
-                        ) : (
-                          <Ionicons 
-                            name={isSelected ? "checkmark-circle" : "ellipse-outline"} 
-                            size={20} 
-                            color={isSelected ? "#2788ff" : "#ccc"} 
-                          />
-                        )}
-                      </View>
-                      <Text style={[
-                        styles.subEventName, 
-                        isSelected && styles.subEventNameSelected,
-                        restrictedStatuses.includes(userStatus) && styles.disabledSubEventName
-                      ]}>
-                        {subEvent.itemName || `Sub Event ${index + 1}`}
-                      </Text>
-                    </View>
-                    <View style={[styles.subEventBadge, subEvent.isPaid ? styles.paidBadge : styles.freeBadge]}>
-                      <Text style={styles.subEventBadgeText}>
-                        {subEvent.isPaid ? `$${Number(subEvent.fee || 0)}` : 'Free'}
-                      </Text>
-                    </View>
-                  </View>
-                  
-                  <View style={styles.subEventDetails}>
-                    <View style={styles.subEventDetailItem}>
-                      <Ionicons name="people" size={16} color="#666" />
-                      <Text style={styles.subEventDetailText}>
-                        Capacity: {String(subEvent.maxAttendees || 'Unlimited')}
-                      </Text>
-                    </View>
-                    
-                    {subEvent.joinedCount !== undefined && (
-                      <View style={styles.subEventDetailItem}>
-                        <Ionicons name="person-add" size={16} color="#666" />
-                        <Text style={styles.subEventDetailText}>
-                          Joined: {String(subEvent.joinedCount || 0)}
+                <View key={subEventId} style={styles.subEventCardContainer}>
+                  <TouchableOpacity 
+                    style={[
+                      styles.subEventCard, 
+                      isSelected && styles.subEventCardSelected,
+                      isRestricted && styles.disabledSubEventCard
+                    ]}
+                    onPress={() => toggleSubEventSelection(subEventId)}
+                    activeOpacity={0.7}
+                    disabled={isRestricted}
+                  >
+                    <View style={styles.subEventHeader}>
+                      <View style={styles.subEventTitleRow}>
+                        <View style={styles.subEventCheckbox}>
+                          {isRestricted ? (
+                            // For restricted users, show their committed selections with checkmarks
+                            <Ionicons 
+                              name={isSelected ? "checkmark-circle" : "ellipse-outline"} 
+                              size={20} 
+                              color={isSelected ? "#2788ff" : "#ccc"} 
+                            />
+                          ) : (
+                            <Ionicons 
+                              name={isSelected ? "checkmark-circle" : "ellipse-outline"} 
+                              size={20} 
+                              color={isSelected ? "#2788ff" : "#ccc"} 
+                            />
+                          )}
+                        </View>
+                        <Text style={[
+                          styles.subEventName, 
+                          isSelected && styles.subEventNameSelected,
+                          isRestricted && styles.disabledSubEventName
+                        ]}>
+                          {subEvent.itemName || `Sub Event ${index + 1}`}
                         </Text>
                       </View>
-                    )}
-                  </View>
-                </TouchableOpacity>
+                      <View style={[styles.subEventBadge, subEvent.isPaid ? styles.paidBadge : styles.freeBadge]}>
+                        <Text style={styles.subEventBadgeText}>
+                          {subEvent.isPaid ? `$${Number(subEvent.fee || 0)}` : 'Free'}
+                        </Text>
+                      </View>
+                    </View>
+                    
+                    <View style={styles.subEventDetails}>
+                      <View style={styles.subEventDetailItem}>
+                        <Ionicons name="people" size={16} color="#666" />
+                        <Text style={styles.subEventDetailText}>
+                          Capacity: {String(subEvent.maxAttendees || 'Unlimited')}
+                        </Text>
+                      </View>
+                      
+                      {subEvent.joinedCount !== undefined && (
+                        <View style={styles.subEventDetailItem}>
+                          <Ionicons name="person-add" size={16} color="#666" />
+                          <Text style={styles.subEventDetailText}>
+                            Joined: {String(subEvent.joinedCount || 0)}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                  
+                  {/* Modern Simple Little Ticket Quantity Input for Selected Sub-Events */}
+                  {isSelected && userStatus === 'not_joined' && (
+                    <View style={styles.modernSubEventTicketContainer}>
+                      <View style={styles.modernTicketHeader}>
+                        <Ionicons name="person-outline" size={16} color="#666" />
+                        <Text style={styles.modernTicketLabel}>Tickets</Text>
+                      </View>
+                      <View style={styles.modernTicketStepper}>
+                        <TouchableOpacity
+                          style={[styles.modernStepperButton, ticketQuantity <= 0 && styles.modernStepperButtonDisabled]}
+                          onPress={() => handleSubEventTicketChange(subEventId, String(Math.max(0, ticketQuantity - 1)))}
+                          disabled={ticketQuantity <= 0}
+                        >
+                          <Ionicons name="remove" size={14} color={ticketQuantity <= 0 ? "#ccc" : "#2788ff"} />
+                        </TouchableOpacity>
+                        
+                        <Text style={styles.modernTicketValue}>{ticketQuantity}</Text>
+                        
+                        <TouchableOpacity
+                          style={[styles.modernStepperButton, ticketQuantity >= (typeof subEvent.maxAttendees === 'number' ? subEvent.maxAttendees : Number(subEvent.maxAttendees) || 999) && styles.modernStepperButtonDisabled]}
+                          onPress={() => {
+                            const maxCap = typeof subEvent.maxAttendees === 'number' ? subEvent.maxAttendees : Number(subEvent.maxAttendees) || 999;
+                            handleSubEventTicketChange(subEventId, String(Math.min(maxCap, ticketQuantity + 1)));
+                          }}
+                          disabled={ticketQuantity >= (typeof subEvent.maxAttendees === 'number' ? subEvent.maxAttendees : Number(subEvent.maxAttendees) || 999)}
+                        >
+                          <Ionicons name="add" size={14} color={ticketQuantity >= (Number(subEvent.maxAttendees) || 999) ? "#ccc" : "#2788ff"} />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  )}
+                  
+                  {/* Show committed ticket quantity for restricted users */}
+                  {isSelected && isRestricted && ticketQuantity > 0 && (
+                    <View style={styles.committedTicketContainer}>
+                      <Text style={styles.committedTicketText}>
+                        Committed: {ticketQuantity} ticket{ticketQuantity !== 1 ? 's' : ''}
+                      </Text>
+                    </View>
+                  )}
+                </View>
               );
             })}
           </View>
@@ -649,7 +875,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 50,
+    marginBottom: 16, // Changed from 50 to 16 for proper spacing
     marginTop: -10,
     shadowColor: '#000',
     shadowOpacity: 0.04,
@@ -663,7 +889,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 16,
     marginBottom: 50,
-    marginTop: -38, // Increased margin for better spacing
+    marginTop: 16, // Changed from 0 to 16 for proper spacing from Tickets
     shadowColor: '#000',
     shadowOpacity: 0.04,
     shadowRadius: 6,
@@ -866,6 +1092,206 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 8,
   },
+
+  // Ticket Selection Card
+  ticketSelectionCard: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 16,
+    marginTop: 10,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  ticketSelectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2788ff',
+    marginBottom: 12,
+    textAlign: 'left',
+  },
+
+  // Ticket Quantity Input Styles
+  ticketQuantityContainer: {
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  ticketQuantityLabel: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+    fontWeight: '500',
+  },
+  ticketQuantityInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  ticketQuantityInput: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'center',
+  },
+  ticketQuantityInputDisabled: {
+    backgroundColor: '#e0e0e0',
+    color: '#888',
+  },
+  ticketQuantityButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderLeftWidth: 1,
+    borderColor: '#ccc',
+  },
+  ticketQuantityButtonDisabled: {
+    opacity: 0.5,
+  },
+  ticketQuantityMax: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+
+  // Committed Ticket Indicator
+  committedTicketContainer: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    marginTop: 10,
+    alignSelf: 'flex-start',
+  },
+  committedTicketText: {
+    fontSize: 12,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+
+  // Sub Event Card Container
+  subEventCardContainer: {
+    marginBottom: 12,
+  },
+
+  // Sub Event Ticket Container
+  subEventTicketContainer: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+
+  // Modern Compact Main Event Ticket Selection
+  modernMainEventTicketCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 10,
+    marginTop: 16, // Changed from 10 to 16 for better spacing from Due Date
+    marginBottom: 16, // Changed from 20 to 16 for consistent spacing
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  modernMainEventHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  modernMainEventTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#2788ff',
+    marginLeft: 6,
+  },
+  modernMainEventStepper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  modernMainEventButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  modernMainEventButtonDisabled: {
+    opacity: 0.5,
+  },
+  modernMainEventValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'center',
+    minWidth: 40,
+  },
+  modernMainEventMax: {
+    fontSize: 11,
+    color: '#999',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+
+  // Modern Simple Little Ticket Quantity Input
+  modernSubEventTicketContainer: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  modernTicketHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  modernTicketLabel: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 8,
+  },
+  modernTicketStepper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  modernStepperButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  modernStepperButtonDisabled: {
+    opacity: 0.5,
+  },
+  modernTicketValue: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'center',
+    minWidth: 50,
+  },
+
+
 });
 
 export default EventDetailScreen;
