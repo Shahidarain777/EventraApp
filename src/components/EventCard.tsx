@@ -305,6 +305,9 @@ const EventCard = ({
                       else if (event.joinedMembers?.some((m) => m.status?.toString() === "payment_pending")) {
                         navigation.navigate('InvoiceScreen', { event });
                       }
+                      else if (event.joinedMembers?.some((m) => m.status?.toString() === "member")) {
+                        navigation.navigate('GenerateTicketScreen', { event });
+                      }
                       else {
                         navigation.navigate('EventDetailScreen', { event });
                       }

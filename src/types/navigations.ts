@@ -7,6 +7,7 @@ export type RootStackParamList = {
   EventDetailScreen: { event: Event };
   ManageEventScreen: { event: Event };
   InvoiceScreen: { event: Event };
+  GenerateTicketScreen: { event: Event };
   ReportProblemScreen: undefined;
   CommunityGuidelinesScreen: undefined;
   SettingsScreen: undefined;
