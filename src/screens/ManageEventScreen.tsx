@@ -520,22 +520,30 @@ const [previewImageUrl, setPreviewImageUrl] = React.useState<string | null>(null
                   )}
 
                   <View style={styles.iconGroup}>
-                    {/* Tick Button */}
-                    <Pressable
-                      style={styles.iconBtn}
-                      onPress={() => handleApprovePayment(member)}
-                      disabled={paymentActionLoading}
-                    >
-                      <Ionicons name="checkmark-circle-outline" size={26} color="#43a047" />
-                    </Pressable>
-                    {/* Cross Button */}
-                    <Pressable
-                      style={styles.iconBtn}
-                      onPress={() => setSelectedPayment(member)}
-                      disabled={paymentActionLoading}
-                    >
-                      <Ionicons name="close-circle-outline" size={26} color="#ed6462" />
-                    </Pressable>
+                    {/* Tick & Cross Buttons with loading indicator */}
+                    {paymentActionLoading && selectedPayment && selectedPayment.userId === member.userId ? (
+                      <ActivityIndicator size="small" color="#00a2ff" style={{ marginHorizontal: 10 }} />
+                    ) : (
+                      <>
+                        <Pressable
+                          style={styles.iconBtn}
+                          onPress={() => {
+                            setSelectedPayment(member);
+                            handleApprovePayment(member);
+                          }}
+                          disabled={paymentActionLoading}
+                        >
+                          <Ionicons name="checkmark-circle-outline" size={26} color="#43a047" />
+                        </Pressable>
+                        <Pressable
+                          style={styles.iconBtn}
+                          onPress={() => setSelectedPayment(member)}
+                          disabled={paymentActionLoading}
+                        >
+                          <Ionicons name="close-circle-outline" size={26} color="#ed6462" />
+                        </Pressable>
+                      </>
+                    )}
                   </View>
                   </View>
                 ))}
