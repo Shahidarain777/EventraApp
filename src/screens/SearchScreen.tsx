@@ -46,7 +46,7 @@ const SearchScreen = () => {
   };
 
   return (
-    <LinearGradient colors={["#075cf8ff", "#4f89e6ff"]} style={styles.container}>
+    <LinearGradient colors={["#0059ffff", "#2174faff"]} style={styles.container}>
       <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.searchBarRow}>
           <Ionicons name="search-outline" size={22} color="#8fa1c7" style={styles.icon} />
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#ffffffff',
-    borderRadius: 30,
+    borderRadius: 20,
     paddingVertical: 2,
     paddingHorizontal: 14,
     margin: 0,

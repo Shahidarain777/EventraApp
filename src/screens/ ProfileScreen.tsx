@@ -239,141 +239,84 @@ const ProfileScreen = () => {
       </View> */}
 
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Profile Picture Section */}
-        <View style={styles.profileImageSection}>
-          <TouchableOpacity 
-            style={styles.profileImageContainer} 
-            onPress={handleProfileImagePick}
-            disabled={uploadingImage}
-          >
-            {user?.profileImage ? (
-              <Image
-                source={{
-                  uri: (() => {
-                    if (user.profileImage.startsWith('http')) return user.profileImage;
-                    // If already starts with /uploads, just prepend baseURL
-                    if (user.profileImage.startsWith('/uploads')) {
-                      return `${api.defaults.baseURL?.replace(/\/api$/, '')}${user.profileImage}`;
-                    }
-                    // If starts with /, but not /uploads, add /uploads
-                    if (user.profileImage.startsWith('/')) {
-                      return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads${user.profileImage}`;
-                    }
-                    // Otherwise, add /uploads/
-                    return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads/${user.profileImage}`;
-                  })()
-                }}
-                style={styles.profileImage}
-              />
-            ) : (
-              <View style={styles.placeholderImage}>
-                <Ionicons name="person-outline" size={90} color="#007BFF" />
-              </View>
-            )}
-            
-            {/* Show loading indicator while uploading */}
-            {uploadingImage && (
-              <View style={styles.loadingOverlay}>
-                <ActivityIndicator size="large" color="#007BFF" />
-              </View>
-            )}
-            
-            <View style={styles.editIconContainer}>
-              <Ionicons name="camera-outline" size={20} color="#ffffffff" />
+        {/* Profile Info Horizontal Card */}
+        <View style={styles.profileHorizontalCard}>
+          <View style={styles.profileHorizontalRow}>
+            <TouchableOpacity 
+              style={styles.profileImageHorizontalContainer} 
+              onPress={handleProfileImagePick}
+              disabled={uploadingImage}
+            >
+              {user?.profileImage ? (
+                <Image
+                  source={{
+                    uri: (() => {
+                      if (user.profileImage.startsWith('http')) return user.profileImage;
+                      if (user.profileImage.startsWith('/uploads')) {
+                        return `${api.defaults.baseURL?.replace(/\/api$/, '')}${user.profileImage}`;
+                      }
+                      if (user.profileImage.startsWith('/')) {
+                        return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads${user.profileImage}`;
+                      }
+                      return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads/${user.profileImage}`;
+                    })()
+                  }}
+                  style={styles.profileImageHorizontal}
+                />
+              ) : (
+                <View style={styles.placeholderImageHorizontal}>
+                  <Ionicons name="person-outline" size={60} color="#007BFF" />
+                </View>
+              )}
+              {uploadingImage && (
+                <View style={styles.loadingOverlayHorizontal}>
+                  <ActivityIndicator size="large" color="#007BFF" />
+                </View>
+              )}
+            </TouchableOpacity>
+            <View style={styles.profileTextColumn}>
+              <Text style={styles.profileName}>{user?.name || 'Eventra'}</Text>
+              <Text style={styles.profileEmail}>{user?.email || 'appeventra@gmail.com'}</Text>
             </View>
+          </View>
+          <TouchableOpacity style={styles.editProfileBtn} onPress={() => navigation.navigate('EditProfileScreen' as never)}>
+            <Text style={styles.editProfileBtnText}>Edit Profile</Text>
           </TouchableOpacity>
-          
-          {uploadingImage && (
-            <Text style={styles.uploadingText}>Uploading...</Text>
-          )}
         </View>
-
-        {/* User Information */}
-        <View style={styles.userInfoSection}>
-          <View style={styles.infoCard}>
-            <View style={styles.infoRow}>
-              <Ionicons name="person-circle-outline" size={20} color="#007BFF" />
-              <View style={styles.infoTextContainer}>
-                <Text style={styles.infoLabel}>Name</Text>
-                <Text style={styles.infoValue}>{user?.name || 'John Doe'}</Text>
-              </View>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Ionicons name="mail-outline" size={20} color="#007BFF" />
-              <View style={styles.infoTextContainer}>
-                <Text style={styles.infoLabel}>Email</Text>
-                <Text style={styles.infoValue}>{user?.email || 'user@example.com'}</Text>
-              </View>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Ionicons name="key-outline" size={20} color="#007BFF" />
-              <View style={styles.infoTextContainer}>
-                <Text style={styles.infoLabel}>Password</Text>
-                <Text style={styles.infoValue}>••••••••</Text>
-              </View>
-              <TouchableOpacity style={styles.changeButton} onPress={handlePasswordChange}>
-                <Text style={styles.changeButtonText}>Change</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Ionicons name="calendar-outline" size={20} color="#007BFF" />
-              <View style={styles.infoTextContainer}>
-                <Text style={styles.infoLabel}>Member Since</Text>
-                <Text style={styles.infoValue}>
-                  {user?.createdAt 
-                    ? new Date(user.createdAt).toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'long' 
-                      })
-                    : 'January 2024'
-                  }
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Additional Options */}
-          <View style={styles.optionsSection}>
-            <TouchableOpacity 
-              style={styles.optionItem}
-              onPress={() => navigation.navigate('SettingsScreen' as never)}
-            >
-              <Ionicons name="settings-outline" size={20} color="#666" />
-              <Text style={styles.optionText}>Settings</Text>
-              <Ionicons name="chevron-forward" size={20} color="#ccc" />
-            </TouchableOpacity>
-
-           {/* Invoice Button */}
-           <TouchableOpacity 
-             style={styles.optionItem}
-             onPress={() => navigation.navigate('InvoiceScreen' as never)}
-           >
-             <Ionicons name="receipt-outline" size={20} color="#666" />
-             <Text style={styles.optionText}>Invoice</Text>
-             <Ionicons name="chevron-forward" size={20} color="#ccc" />
-           </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.optionItem}
-              onPress={() => navigation.navigate('HelpSupport' as never)}
-            >
-              <Ionicons name="help-circle-outline" size={20} color="#666" />
-              <Text style={styles.optionText}>Help & Support</Text>
-              <Ionicons name="chevron-forward" size={20} color="#ccc" />
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.optionItem}
-              onPress={() => navigation.navigate('CommunityGuidelinesScreen' as never)}
-            >
-              <Ionicons name="document-text-outline" size={20} color="#666" />
-              <Text style={styles.optionText}>Terms & Privacy</Text>
-              <Ionicons name="chevron-forward" size={20} color="#ccc" />
-            </TouchableOpacity>
-          </View>
+        {/* Additional Options */}
+        <View style={styles.optionsSection}>
+          <TouchableOpacity 
+            style={styles.optionItem}
+            onPress={() => navigation.navigate('SettingsScreen' as never)}
+          >
+            <Ionicons name="settings-outline" size={20} color="#666" />
+            <Text style={styles.optionText}>Settings</Text>
+            <Ionicons name="chevron-forward" size={20} color="#ccc" />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.optionItem}
+            onPress={() => navigation.navigate('InvoiceScreen' as never)}
+          >
+            <Ionicons name="receipt-outline" size={20} color="#666" />
+            <Text style={styles.optionText}>Invoice</Text>
+            <Ionicons name="chevron-forward" size={20} color="#ccc" />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.optionItem}
+            onPress={() => navigation.navigate('HelpSupport' as never)}
+          >
+            <Ionicons name="help-circle-outline" size={20} color="#666" />
+            <Text style={styles.optionText}>Help & Support</Text>
+            <Ionicons name="chevron-forward" size={20} color="#ccc" />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.optionItem}
+            onPress={() => navigation.navigate('CommunityGuidelinesScreen' as never)}
+          >
+            <Ionicons name="document-text-outline" size={20} color="#666" />
+            <Text style={styles.optionText}>Terms & Privacy</Text>
+            <Ionicons name="chevron-forward" size={20} color="#ccc" />
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -391,6 +334,103 @@ const ProfileScreen = () => {
 export default ProfileScreen;
 
 const styles = StyleSheet.create({
+  profileHorizontalCard: {
+    backgroundColor: '#0059ffff',
+    borderRadius: 16,
+    padding: 18,
+    marginHorizontal: 16,
+    marginTop: 24,
+    marginBottom: 18,
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+  },
+  profileHorizontalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+  },
+  profileImageHorizontalContainer: {
+    marginRight: 16,
+    position: 'relative',
+  },
+  profileImageHorizontal: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 3,
+    borderColor: '#fff',
+    backgroundColor: '#e6f2ea',
+  },
+  placeholderImageHorizontal: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#e6f2ea',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#fff',
+  },
+  loadingOverlayHorizontal: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profileTextColumn: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+  profileName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 2,
+  },
+  profileEmail: {
+    fontSize: 14,
+    color: '#e6f2ea',
+    fontWeight: '500',
+  },
+  profileBadge: {
+    backgroundColor: '#fff',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+  },
+  profileBadgeText: {
+    color: '#43b36a',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  editProfileBtn: {
+    marginTop: 12,
+    alignSelf: 'flex-end',
+    backgroundColor: '#fff',
+    paddingHorizontal: 18,
+    paddingVertical: 7,
+    borderRadius: 20,
+    elevation: 1,
+  },
+  editProfileBtnText: {
+    color: '#43b36a',
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
   safeArea: {
     flex: 1,
     backgroundColor: '#f8f9fa',

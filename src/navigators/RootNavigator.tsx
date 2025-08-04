@@ -34,6 +34,7 @@ const RootNavigator = () => {
           <Stack.Screen name="BlockedUsers" component={BlockedUsersScreen} />
          <Stack.Screen name="InvoiceScreen" component={require('../screens/InvoiceScreen').default} />
           <Stack.Screen name="GenerateTicketScreen" component={require('../screens/GenerateTicketScreen').default} />
+          <Stack.Screen name="EditProfileScreen" component={require('../screens/EditProfileScreen').default} />
         </>
       ) : (
         <Stack.Screen name="Auth" component={AuthNavigator} />

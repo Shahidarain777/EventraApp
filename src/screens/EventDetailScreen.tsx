@@ -546,44 +546,7 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
           <DueDate event={event} styles={styles} />
         </View>
 
-        {/* Main Event Ticket Selection - Modern Compact Design or Committed Tickets */}
-        {userStatus === 'not_joined' ? (
-          <View style={styles.modernMainEventTicketCard}>
-            <View style={styles.modernMainEventHeader}>
-              <Ionicons name="ticket-outline" size={18} color="#2788ff" />
-              <Text style={styles.modernMainEventTitle}>Tickets</Text>
-            </View>
-            <View style={styles.modernMainEventStepper}>
-              <TouchableOpacity
-                style={[styles.modernMainEventButton, mainEventTickets <= 1 && styles.modernMainEventButtonDisabled]}
-                onPress={() => handleMainEventTicketChange(String(Math.max(1, mainEventTickets - 1)))}
-                disabled={mainEventTickets <= 1}
-              >
-                <Ionicons name="remove" size={16} color={mainEventTickets <= 1 ? "#ccc" : "#2788ff"} />
-              </TouchableOpacity>
-              <Text style={styles.modernMainEventValue}>{mainEventTickets}</Text>
-              <TouchableOpacity
-                style={[styles.modernMainEventButton, (typeof getCapacity() === 'number' && mainEventTickets >= Number(getCapacity())) && styles.modernMainEventButtonDisabled]}
-                onPress={() => {
-                  const maxCap = typeof getCapacity() === 'number' ? getCapacity() : 999;
-                  handleMainEventTicketChange(String(Math.min(Number(maxCap), mainEventTickets + 1)));
-                }}
-                disabled={typeof getCapacity() === 'number' && mainEventTickets >= Number(getCapacity())}
-              >
-                <Ionicons name="add" size={16} color={(typeof getCapacity() === 'number' && mainEventTickets >= Number(getCapacity())) ? "#ccc" : "#2788ff"} />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.modernMainEventMax}>Max: {getCapacity()}</Text>
-          </View>
-        ) : null}
-        {/* Show committed main event tickets for restricted users */}
-        {restrictedStatuses.includes(userStatus) && mainEventTickets > 0 && (
-          <View style={styles.committedTicketContainer}>
-            <Text style={styles.committedTicketText}>
-              Committed: {mainEventTickets} main event ticket{mainEventTickets !== 1 ? 's' : ''}
-            </Text>
-          </View>
-        )}
+        
 
         {/* Sub Events Section */}
         {event.subEvents && event.subEvents.length > 0 && (

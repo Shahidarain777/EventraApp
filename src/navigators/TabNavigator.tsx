@@ -66,6 +66,7 @@ const TabNavigator = () => {
             <Ionicons name="search-outline" color={color} size={size} />
           ),
           tabBarLabel: 'Search',
+          headerShown: false,
         }}
       />
       <Tab.Screen 
