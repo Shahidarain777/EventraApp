@@ -1,10 +1,11 @@
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import React, { useRef } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Share, Alert } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import ViewShot from 'react-native-view-shot';
 import { useRoute } from '@react-navigation/native';
+import Share from 'react-native-share';
 
 
 const getCurrentMember = (event: any, userId: string) => {
@@ -39,31 +40,36 @@ const GenerateTicketScreen = () => {
 
   const isValid = event.dateTime?.end ? new Date(event.dateTime.end) > new Date() : false;
 
-  const handleDownload = async () => {
-    try {
-      if (viewShotRef.current) {
-        const uri = await viewShotRef.current.capture();
-        Alert.alert('Ticket Saved', 'Ticket image saved to your device.');
-      } else {
-        Alert.alert('Error', 'Ticket view not ready.');
-      }
-    } catch (err) {
-      Alert.alert('Error', 'Failed to save ticket.');
-    }
-  };
+//   const handleDownload = async () => {
+//     try {
+//       if (viewShotRef.current) {
+//         const uri = await viewShotRef.current.capture();
+//         Alert.alert('Ticket Saved', 'Ticket image saved to your device.');
+//       } else {
+//         Alert.alert('Error', 'Ticket view not ready.');
+//       }
+//     } catch (err) {
+//       Alert.alert('Error', 'Failed to save ticket.');
+//     }
+//   };
 
   const handleShare = async () => {
-    try {
-      if (viewShotRef.current) {
-        const uri = await viewShotRef.current.capture();
-        await Share.share({ url: uri, title: 'My Event Ticket' });
-      } else {
-        Alert.alert('Error', 'Ticket view not ready.');
-      }
-    } catch (err) {
-      Alert.alert('Error', 'Failed to share ticket.');
+  try {
+    if (viewShotRef.current) {
+      const uri = await viewShotRef.current.capture();
+      await Share.open({
+        url: uri,
+        title: 'My Event Ticket',
+        type: 'image/png',
+        failOnCancel: false,
+      });
+    } else {
+      Alert.alert('Error', 'Ticket view not ready.');
     }
-  };
+  } catch (err) {
+    Alert.alert('Error', 'Failed to share ticket.');
+  }
+};
 
   return (
     <View style={styles.container}>
@@ -129,9 +135,9 @@ const GenerateTicketScreen = () => {
         </Text>
       </ViewShot>
       <View style={styles.actionRow}>
-        <TouchableOpacity style={styles.actionBtn} onPress={handleDownload}>
+        {/* <TouchableOpacity style={styles.actionBtn} onPress={handleDownload}>
           <Text style={styles.actionBtnText}>Download Ticket</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TouchableOpacity style={styles.actionBtn} onPress={handleShare}>
           <Text style={styles.actionBtnText}>Share Ticket</Text>
         </TouchableOpacity>
