@@ -301,7 +301,11 @@ const EventCard = ({
                     if (!isEventEnded) {
                       if (event.hostId?.toString() === currentUserId) {
                         navigation.navigate('ManageEventScreen', { event });
-                      } else {
+                      }
+                      else if (event.joinedMembers?.some((m) => m.status?.toString() === "payment_pending")) {
+                        navigation.navigate('InvoiceScreen', { event });
+                      }
+                      else {
                         navigation.navigate('EventDetailScreen', { event });
                       }
                     }
