@@ -64,6 +64,7 @@ export interface Event {
       mainEvent: number;
       subEvents: { [key: string]: number };
     };
+    rejectionReason: string; // Reason for rejection if applicable
   }>;
 
   payments?: Array<{
