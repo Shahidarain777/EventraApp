@@ -26,8 +26,16 @@ const ProfileScreen = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation();
   const user = useAppSelector((state) => state.auth.user);
+  const events = useSelector((state: any) => state.events.events);
   const [uploadingImage, setUploadingImage] = useState(false);
   const token = useSelector((state: RootState) => state.auth.token);
+
+  // Calculate invoice count from events with payment_pending status for current user
+  const currentUserId = user?._id?.toString() || user?._id?.toString() || '';
+  const invoiceCount = events?.filter((event: any) =>
+    Array.isArray(event.joinedMembers) &&
+    event.joinedMembers.some((m: any) => m.userId?.toString() === currentUserId && m.status === 'payment_pending')
+  ).length;
 
   // Load profile image from database and AsyncStorage on component mount
   useEffect(() => {
@@ -284,6 +292,16 @@ const ProfileScreen = () => {
           </TouchableOpacity>
         </View>
         {/* Additional Options */}
+        {/* Invoice Tab Button after profile card */}
+        <View style={styles.invoiceCardWrapper}>
+          <TouchableOpacity style={styles.invoiceCardBtn} onPress={() => navigation.navigate('InvoiceScreen' as never)}>
+            <Ionicons name="receipt-outline" size={38} color="#2788ff" style={{ marginBottom: 8 }} />
+            <Text style={styles.invoiceCardLabel}>Invoice</Text>
+            <View style={styles.invoiceCountPill}>
+              <Text style={styles.invoiceCountText}>{invoiceCount}</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
         <View style={styles.optionsSection}>
           <TouchableOpacity 
             style={styles.optionItem}
@@ -291,14 +309,6 @@ const ProfileScreen = () => {
           >
             <Ionicons name="settings-outline" size={20} color="#666" />
             <Text style={styles.optionText}>Settings</Text>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.optionItem}
-            onPress={() => navigation.navigate('InvoiceScreen' as never)}
-          >
-            <Ionicons name="receipt-outline" size={20} color="#666" />
-            <Text style={styles.optionText}>Invoice</Text>
             <Ionicons name="chevron-forward" size={20} color="#ccc" />
           </TouchableOpacity>
           <TouchableOpacity 
@@ -334,6 +344,69 @@ const ProfileScreen = () => {
 export default ProfileScreen;
 
 const styles = StyleSheet.create({
+  invoiceCardWrapper: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 18,
+  },
+  invoiceCardBtn: {
+    backgroundColor: '#fff',
+    borderRadius: 22,
+    width: '90%',
+    height: 150,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    paddingVertical: 18,
+    paddingHorizontal: 8,
+  },
+  invoiceCardLabel: {
+    
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#222',
+    marginBottom: 10,
+  },
+  invoiceCountPill: {
+    backgroundColor: '#eaf6ff',
+    borderRadius: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 4,
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  invoiceCountText: {
+    color: '#2788ff',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  invoiceTabWrapper: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  invoiceTabBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 28,
+    paddingHorizontal: 40,
+    paddingVertical: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    marginVertical: 8,
+  },
+  invoiceTabText: {
+    color: '#0059ffff',
+    fontWeight: 'bold',
+    fontSize: 22,
+    marginLeft: 6,
+  },
   profileHorizontalCard: {
     backgroundColor: '#0059ffff',
     borderRadius: 16,
@@ -403,20 +476,6 @@ const styles = StyleSheet.create({
     color: '#e6f2ea',
     fontWeight: '500',
   },
-  profileBadge: {
-    backgroundColor: '#fff',
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 10,
-  },
-  profileBadgeText: {
-    color: '#43b36a',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
   editProfileBtn: {
     marginTop: 12,
     alignSelf: 'flex-end',
@@ -427,7 +486,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   editProfileBtnText: {
-    color: '#43b36a',
+    color: '#0059ffff',
     fontWeight: 'bold',
     fontSize: 15,
   },
@@ -455,11 +514,13 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    backgroundColor: '#f7faff',
+
   },
   profileImageSection: {
     alignItems: 'center',
     paddingVertical: 30,
-    backgroundColor: '#fff',
+    backgroundColor: '#f7faff',
     marginBottom: 10,
   },
   profileImageContainer: {
