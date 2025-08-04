@@ -133,6 +133,10 @@ const [selectedPayment, setSelectedPayment] = React.useState<any>(null);
   const declinedPercent = totalCount ? Math.round((declinedCount / totalCount) * 100) : 0;
   const pendingPercent = totalCount ? 100 - confirmedPercent - declinedPercent : 0;
 
+
+  // Add at the top of your component
+const [proofPreviewVisible, setProofPreviewVisible] = React.useState(false);
+const [previewImageUrl, setPreviewImageUrl] = React.useState<string | null>(null);
   // PieChart data
   const attendeeChartData = [
     {
@@ -434,44 +438,105 @@ const [selectedPayment, setSelectedPayment] = React.useState<any>(null);
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Payment Verification Pending</Text>
+              <Text style={{ color: '#888', fontSize: 14, marginBottom: 8, textAlign: 'center' }}>
+                Tap on proof image to view larger
+              </Text>
               <View style={styles.memberList}>
                 {paymentPendingMembers.map((member: any, idx: number) => (
                   <View key={member.id || idx} style={styles.memberRow}>
-                    <Image
-                      source={
-                        member.profileImage
-                          ? { uri: member.profileImage }
-                          : require('../../assets/EventraLogo.png')
-                      }
-                      style={styles.profileImage}
-                    />
+                    {/* Profile Image */}
+                    {member.profileImage ? (
+                      <Image
+                        source={{
+                          uri: (() => {
+                            if (member.profileImage.startsWith('http')) return member.profileImage;
+                            if (member.profileImage.startsWith('/uploads')) {
+                              return `${api.defaults.baseURL?.replace(/\/api$/, '')}${member.profileImage}`;
+                            }
+                            if (member.profileImage.startsWith('/')) {
+                              return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads${member.profileImage}`;
+                            }
+                            return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads/${member.profileImage}`;
+                          })()
+                        }}
+                        style={styles.profileImage}
+                      />
+                    ) : (
+                      <View style={styles.placeholderImage}>
+                        <Ionicons name="person-outline" size={38} color="#007BFF" />
+                      </View>
+                    )}
+
+                    {/* Member Name */}
                     <View style={{ flex: 1 }}>
                       <Text style={styles.memberName}>{member.name || 'No Name'}</Text>
-                      <Text style={{ fontSize: 12, color: '#444' }}>Amount: {member.amount}</Text>
-                      <Text style={{ fontSize: 12, color: '#444' }}>Payment Method: {member.paymentMethod}</Text>
+                      {/* <Text style={styles.memberName}>{"Amount: " + (member.amount || 'No Amount')}</Text> */}
+
                     </View>
-                    <View style={styles.iconGroup}>
-                      {paymentActionLoading && selectedPayment?.userId === member.userId ? (
-                        <ActivityIndicator size="small" color="#00a2ff" style={{ marginHorizontal: 10 }} />
-                      ) : (
-                        <>
-                          <Pressable
-                            style={styles.iconBtn}
-                            onPress={() => handleApprovePayment(member)}
-                            disabled={paymentActionLoading}
-                          >
-                            <Ionicons name="checkmark-circle-outline" size={26} color="#43a047" />
-                          </Pressable>
-                          <Pressable
-                            style={styles.iconBtn}
-                            onPress={() => setSelectedPayment(member)}
-                            disabled={paymentActionLoading}
-                          >
-                            <Ionicons name="close-circle-outline" size={26} color="#ed6462" />
-                          </Pressable>
-                        </>
-                      )}
+
+                    {/* Proof Image (pattern as requested) */}
+                    
+                    {member.proofImages && member.proofImages.length > 0 ? (
+                    member.proofImages.map((img: string, i: number) => (
+                      <TouchableOpacity
+                        key={i}
+                        onPress={() => {
+                          setPreviewImageUrl(
+                            (() => {
+                              if (img.startsWith('http')) return img;
+                              if (img.startsWith('/uploads')) {
+                                return `${api.defaults.baseURL?.replace(/\/api$/, '')}${img}`;
+                              }
+                              if (img.startsWith('/')) {
+                                return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads${img}`;
+                              }
+                              return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads/${img}`;
+                            })()
+                          );
+                          setProofPreviewVisible(true);
+                        }}
+                      >
+                        <Image
+                          source={{
+                            uri: (() => {
+                              if (img.startsWith('http')) return img;
+                              if (img.startsWith('/uploads')) {
+                                return `${api.defaults.baseURL?.replace(/\/api$/, '')}${img}`;
+                              }
+                              if (img.startsWith('/')) {
+                                return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads${img}`;
+                              }
+                              return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads/${img}`;
+                            })()
+                          }}
+                          style={[styles.profileImage, { marginLeft: 8 }]}
+                        />
+                      </TouchableOpacity>
+                    ))
+                  ) : (
+                    <View style={[styles.placeholderImage, { marginLeft: 8 }]}>
+                      <Ionicons name="image-outline" size={38} color="#bbb" />
                     </View>
+                  )}
+
+                  <View style={styles.iconGroup}>
+                    {/* Tick Button */}
+                    <Pressable
+                      style={styles.iconBtn}
+                      onPress={() => handleApprovePayment(member)}
+                      disabled={paymentActionLoading}
+                    >
+                      <Ionicons name="checkmark-circle-outline" size={26} color="#43a047" />
+                    </Pressable>
+                    {/* Cross Button */}
+                    <Pressable
+                      style={styles.iconBtn}
+                      onPress={() => setSelectedPayment(member)}
+                      disabled={paymentActionLoading}
+                    >
+                      <Ionicons name="close-circle-outline" size={26} color="#ed6462" />
+                    </Pressable>
+                  </View>
                   </View>
                 ))}
               </View>
@@ -486,79 +551,100 @@ const [selectedPayment, setSelectedPayment] = React.useState<any>(null);
               >
                 <Text style={styles.closeModalText}>Close</Text>
               </TouchableOpacity>
+              
             </View>
           </View>
         </Modal>
 
         {/* Rejection Reason Modal */}
         <Modal
-          visible={!!selectedPayment && !paymentActionLoading}
-          animationType="fade"
-          transparent={true}
-          onRequestClose={() => {
-            setSelectedPayment(null);
-            setRejectReason('');
-          }}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Reject Payment</Text>
-              <Text style={{ marginBottom: 10 }}>Please enter a reason for rejection:</Text>
-              <View style={{ width: '100%', marginBottom: 16 }}>
-                <TextInput
-                  style={{
-                    borderWidth: 1,
-                    borderColor: '#ccc',
-                    borderRadius: 8,
-                    padding: 8,
-                    minHeight: 40,
-                  }}
-                  placeholder="Enter reason..."
-                  value={rejectReason}
-                  onChangeText={setRejectReason}
-                  multiline
-                />
-              </View>
-              <View
+        visible={!!selectedPayment && !paymentActionLoading}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => {
+          setSelectedPayment(null);
+          setRejectReason('');
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Reject Payment</Text>
+            <Text style={{ marginBottom: 10 }}>Please enter a reason for rejection:</Text>
+            <View style={{ width: '100%', marginBottom: 16 }}>
+              <TextInput
                 style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  width: '100%',
+                  borderWidth: 1,
+                  borderColor: '#ccc',
+                  borderRadius: 8,
+                  padding: 8,
+                  minHeight: 40,
                 }}
+                placeholder="Enter reason..."
+                value={rejectReason}
+                onChangeText={setRejectReason}
+                multiline
+              />
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                width: '100%',
+              }}
+            >
+              <TouchableOpacity
+                style={[styles.closeModalBtn, { backgroundColor: '#ed6462', flex: 1, marginRight: 8 }]}
+                onPress={async () => {
+                  if (!rejectReason.trim()) {
+                    Alert.alert('Error', 'Please enter a reason for rejection.');
+                    return;
+                  }
+                  // Update member status to "payment_pending"
+                  setPaymentActionLoading(true);
+                  try {
+                    await api.put(
+                      '/event_members',
+                      {
+                        eventId: Number(event.eventId),
+                        userId: selectedPayment.userId,
+                        status: 'payment_pending',
+                        rejectionReason: rejectReason,
+                      },
+                      {
+                        headers: { Authorization: `Bearer ${token}` },
+                      }
+                    );
+                    Alert.alert('Rejected', `${selectedPayment.name || 'Member'} status set to payment_pending.`);
+                    setPaymentPendingMembers((prev: any) => prev.filter((m: any) => m.userId !== selectedPayment.userId));
+                  } catch (err) {
+                    Alert.alert('Error', 'Failed to reject payment.');
+                  }
+                  setRejectReason('');
+                  setSelectedPayment(null);
+                  setPaymentActionLoading(false);
+                }}
+                disabled={paymentActionLoading}
               >
-                <TouchableOpacity
-                  style={[styles.closeModalBtn, { backgroundColor: '#ed6462', flex: 1, marginRight: 8 }]}
-                  onPress={() => {
-                    if (!rejectReason.trim()) {
-                      Alert.alert('Error', 'Please enter a reason for rejection.');
-                      return;
-                    }
-                    handleRejectPayment(selectedPayment, rejectReason);
-                    setRejectReason('');
-                    // setSelectedPayment(null); // handled in API
-                  }}
-                  disabled={paymentActionLoading}
-                >
-                  {paymentActionLoading ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Text style={styles.closeModalText}>Reject</Text>
-                  )}
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.closeModalBtn, { backgroundColor: '#ccc', flex: 1, marginLeft: 8 }]}
-                  onPress={() => {
-                    setSelectedPayment(null);
-                    setRejectReason('');
-                  }}
-                  disabled={paymentActionLoading}
-                >
-                  <Text style={[styles.closeModalText, { color: '#333' }]}>Cancel</Text>
-                </TouchableOpacity>
-              </View>
+                {paymentActionLoading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.closeModalText}>Reject</Text>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.closeModalBtn, { backgroundColor: '#ccc', flex: 1, marginLeft: 8 }]}
+                onPress={() => {
+                  setSelectedPayment(null);
+                  setRejectReason('');
+                }}
+                disabled={paymentActionLoading}
+              >
+                <Text style={[styles.closeModalText, { color: '#333' }]}>Cancel</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        </Modal>
+        </View>
+      </Modal>
 
         {/* Approval Pending Modal */}
         <Modal
@@ -573,14 +659,28 @@ const [selectedPayment, setSelectedPayment] = React.useState<any>(null);
               <View style={styles.memberList}>
                 {pendingMembers.map((member: any, idx: number) => (
                   <View key={member.id || idx} style={styles.memberRow}>
-                    <Image
-                      source={
-                        member.profileImage
-                          ? { uri: member.profileImage }
-                          : require('../../assets/EventraLogo.png')
-                      }
-                      style={styles.profileImage}
-                    />
+                    {/* Profile Image (pattern as requested) */}
+                    {member.profileImage ? (
+                      <Image
+                        source={{
+                          uri: (() => {
+                            if (member.profileImage.startsWith('http')) return member.profileImage;
+                            if (member.profileImage.startsWith('/uploads')) {
+                              return `${api.defaults.baseURL?.replace(/\/api$/, '')}${member.profileImage}`;
+                            }
+                            if (member.profileImage.startsWith('/')) {
+                              return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads${member.profileImage}`;
+                            }
+                            return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads/${member.profileImage}`;
+                          })()
+                        }}
+                        style={styles.profileImage}
+                      />
+                    ) : (
+                      <View style={styles.placeholderImage}>
+                        <Ionicons name="person-outline" size={38} color="#007BFF" />
+                      </View>
+                    )}
                     <Text style={styles.memberName}>{member.name || 'No Name'}</Text>
                     <View style={styles.iconGroup}>
                       {approvalActionLoading && selectedMemberId === member.userId ? (
@@ -610,6 +710,7 @@ const [selectedPayment, setSelectedPayment] = React.useState<any>(null);
           </View>
         </Modal>
 
+
         {/* Member List Modal */}
         <Modal
           visible={modalVisible}
@@ -625,14 +726,28 @@ const [selectedPayment, setSelectedPayment] = React.useState<any>(null);
                   .filter((member: any) => member.status === 'member')
                   .map((member: any, idx: number) => (
                     <View key={member.id || idx} style={styles.memberRow}>
-                      <Image
-                        source={
-                          member.profileImage
-                            ? { uri: member.profileImage }
-                            : require('../../assets/EventraLogo.png')
-                        }
-                        style={styles.profileImage}
-                      />
+                      {/* Profile Image (pattern as requested) */}
+                      {member.profileImage ? (
+                        <Image
+                          source={{
+                            uri: (() => {
+                              if (member.profileImage.startsWith('http')) return member.profileImage;
+                              if (member.profileImage.startsWith('/uploads')) {
+                                return `${api.defaults.baseURL?.replace(/\/api$/, '')}${member.profileImage}`;
+                              }
+                              if (member.profileImage.startsWith('/')) {
+                                return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads${member.profileImage}`;
+                              }
+                              return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads/${member.profileImage}`;
+                            })()
+                          }}
+                          style={styles.profileImage}
+                        />
+                      ) : (
+                        <View style={styles.placeholderImage}>
+                          <Ionicons name="person-outline" size={38} color="#007BFF" />
+                        </View>
+                      )}
                       <Text style={styles.memberName}>{member.name || 'No Name'}</Text>
                       <View style={styles.iconGroup}>
                         <Pressable style={styles.iconBtn}>
@@ -651,6 +766,41 @@ const [selectedPayment, setSelectedPayment] = React.useState<any>(null);
             </View>
           </View>
         </Modal>
+
+        <Modal
+        visible={proofPreviewVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setProofPreviewVisible(false)}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.8)',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+          {previewImageUrl && (
+            <Image
+              source={{ uri: previewImageUrl }}
+              style={{ width: '90%', height: '70%', resizeMode: 'contain', borderRadius: 16 }}
+            />
+          )}
+          <TouchableOpacity
+            style={{
+              position: 'absolute',
+              top: 40,
+              right: 30,
+              backgroundColor: '#fff',
+              borderRadius: 20,
+              padding: 8,
+            }}
+            onPress={() => setProofPreviewVisible(false)}
+          >
+            <Ionicons name="close" size={28} color="#333" />
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
       </View>
     </ScrollView>
   );
@@ -757,6 +907,16 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: '#00a2ff',
     marginLeft: 2,
+  },
+
+  placeholderImage: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#e0e7ef',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
 
 

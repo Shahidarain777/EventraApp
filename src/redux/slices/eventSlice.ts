@@ -65,7 +65,7 @@ export interface Event {
       subEvents: { [key: string]: number };
     };
   }>;
-  
+
   payments?: Array<{
     id: string | number;
     name: string;
@@ -78,7 +78,7 @@ export interface Event {
     accountHolderName: string;
     accountNumber: string;
     bankName: string;
-    proofImages?: string[];
+    proofImages: string[];
   }>;
 
   accountHolderName: string;
