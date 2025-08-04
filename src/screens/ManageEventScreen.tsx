@@ -586,6 +586,7 @@ const [previewImageUrl, setPreviewImageUrl] = React.useState<string | null>(null
                   borderRadius: 8,
                   padding: 8,
                   minHeight: 40,
+                  color: '#333',
                 }}
                 placeholder="Enter reason..."
                 value={rejectReason}
@@ -622,6 +623,18 @@ const [previewImageUrl, setPreviewImageUrl] = React.useState<string | null>(null
                         headers: { Authorization: `Bearer ${token}` },
                       }
                     );
+
+                    await api.put(
+                    '/payments',
+                    {
+                      eventId: Number(event.eventId),
+                      userId: selectedPayment.userId,
+                      paymentStatus: 'rejected',
+                    },
+                    {
+                      headers: { Authorization: `Bearer ${token}` },
+                    }
+                  );
                     Alert.alert('Rejected', `${selectedPayment.name || 'Member'} status set to payment_pending.`);
                     setPaymentPendingMembers((prev: any) => prev.filter((m: any) => m.userId !== selectedPayment.userId));
                   } catch (err) {
