@@ -74,10 +74,20 @@ const GenerateTicketScreen = () => {
         />
         <Text style={styles.eventTitle}>{event.title}</Text>
         <Text style={styles.eventDate}>
-          {event.dateTime?.start ? new Date(event.dateTime.start).toLocaleString() : ''} - {event.dateTime?.end ? new Date(event.dateTime.end).toLocaleString() : ''}
+          {event.dateTime?.start ? new Date(event.dateTime.start).toLocaleString() : ''}
+        </Text>
+        <Text style={styles.eventDate}>
+          {event.dateTime?.end ? new Date(event.dateTime.end).toLocaleString() : ''}
         </Text>
         <Text style={styles.eventVenue}>{event.location?.venueName || ''}</Text>
-        <Text style={styles.eventAddress}>{event.location?.address || ''}</Text>
+        <Text style={styles.eventAddress}>
+            {[
+                event.location?.city,
+                event.location?.state,
+                event.location?.country
+            ].filter(Boolean).join(', ')}
+            </Text>
+            
         <View style={styles.memberRow}>
           {member.profileImage ? (
             <Image
