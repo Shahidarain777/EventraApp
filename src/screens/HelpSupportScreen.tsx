@@ -16,7 +16,7 @@ const HelpSupportScreen = () => {
   const navigation = useNavigation();
 
   const openEmail = () => {
-    const email = 'support@eventra.com';
+    const email = 'appeventra@gmail.com';
     const subject = 'Support Request';
     const mailto = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
     
@@ -48,7 +48,7 @@ const HelpSupportScreen = () => {
     {
       icon: 'mail-outline',
       title: 'Email Support',
-      subtitle: 'support@eventra.com',
+      subtitle: 'appeventra@gmail.com',
       action: openEmail,
     },
     {

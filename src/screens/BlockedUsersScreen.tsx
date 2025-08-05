@@ -27,18 +27,18 @@ const BlockedUsersScreen = () => {
   
   // Mock data for blocked users
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([
-    {
-      id: '1',
-      name: 'John Smith',
-      email: 'john.smith@example.com',
-      blockedDate: '2024-01-15',
-    },
-    {
-      id: '2',
-      name: 'Sarah Johnson',
-      email: 'sarah.j@example.com',
-      blockedDate: '2024-01-10',
-    },
+    // {
+    //   id: '1',
+    //   name: 'John Smith',
+    //   email: 'john.smith@example.com',
+    //   blockedDate: '2024-01-15',
+    // },
+    // {
+    //   id: '2',
+    //   name: 'Sarah Johnson',
+    //   email: 'sarah.j@example.com',
+    //   blockedDate: '2024-01-10',
+    // },
   ]);
 
   const handleUnblockUser = (userId: string, userName: string) => {
