@@ -62,7 +62,7 @@ export interface Event {
     selectedSubEvents: number[]; // Array of subEventIds
     totalAmount: number; // Total amount for selected sub-events
     ticketQuantities?: {
-      mainEvent: number;
+      // mainEvent: number;
       subEvents: { [key: string]: number };
     };
     rejectionReason: string; // Reason for rejection if applicable

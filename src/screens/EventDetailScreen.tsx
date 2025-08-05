@@ -245,7 +245,7 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
           (member: any) => member.userId?.toString() === currentUserId?.toString()
         );
         if (currentUserMember && currentUserMember.ticketQuantities) {
-          mainEventQty = currentUserMember.ticketQuantities.mainEvent || 1;
+          // mainEventQty = currentUserMember.ticketQuantities.mainEvent || 1;
           subEventQtyObj = currentUserMember.ticketQuantities.subEvents || {};
           selectedSubEventIds = Object.keys(subEventQtyObj);
         }

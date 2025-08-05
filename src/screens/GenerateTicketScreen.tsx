@@ -8,18 +8,21 @@ import { useRoute } from '@react-navigation/native';
 import Share from 'react-native-share';
 
 
-const getCurrentMember = (event: any, userId: string) => {
-  if (!event || !event.joinedMembers) return null;
-  return event.joinedMembers.find((m: any) => m.userId?.toString() === userId);
-};
 
 const GenerateTicketScreen = () => {
+
+const currentUserId = useSelector((state: any) =>
+    state.auth.user?._id?.toString() || state.auth.user?.id?.toString() || ''
+  );
+ const getCurrentMember = (event: any) =>
+    event?.joinedMembers?.find((m: any) => m.userId?.toString() === currentUserId);
+
   const viewShotRef = useRef<any>(null);
   const route = useRoute();
   const { event } = route.params as { event: any };
   const userId = useSelector((state: RootState) => state.auth.user?._id?.toString() || '');
-  const member = getCurrentMember(event, userId);
-
+  const member = getCurrentMember(event);
+  const [selectedEvent, setSelectedEvent] = React.useState<any>(null);
   if (!event || !member) {
     return (
       <View style={styles.container}>
@@ -28,15 +31,32 @@ const GenerateTicketScreen = () => {
     );
   }
 
-  const ticketData = {
-    eventId: event.eventId,
-    eventTitle: event.title,
-    date: event.dateTime?.start,
-    memberId: member.userId,
-    memberName: member.name,
-    paymentStatus: member.paymentStatus,
-    ticketId: member.ticketId || member.userId,
+  const getTicketBreakdown = (member: any, event: any) => {
+    const mainTickets = member?.ticketQuantities?.mainEvent || 0;
+    const subTickets = member?.ticketQuantities?.subEvents || {};
+    const subEventDetails = event?.subEvents || [];
+    return { mainTickets, subTickets, subEventDetails };
   };
+
+  const ticketData = {
+  eventId: event.eventId,
+  eventTitle: event.title,
+  date: event.dateTime?.start,
+  memberId: member.userId,
+  memberName: member.name,
+  paymentStatus: member.paymentStatus,
+  // ticketId: member.ticketId || member.userId,
+  // Add ticket info for QR and sharing
+  tickets: Object.entries(member.ticketQuantities?.subEvents || {}).map(([subEventId, NoOfTickets]) => {
+    // Find sub event name from event.subEvents
+    const subEvent = event.subEvents?.find((sub: any) => (sub._id?.toString() || sub.id?.toString()) === subEventId);
+    return {
+      subEventId,
+      // subEventName: subEvent?.itemName || `Sub Event ${subEventId}`,
+      NoOfTickets,
+    };
+  }),
+};
 
   const isValid = event.dateTime?.end ? new Date(event.dateTime.end) > new Date() : false;
 
@@ -70,6 +90,14 @@ const GenerateTicketScreen = () => {
     Alert.alert('Error', 'Failed to share ticket.');
   }
 };
+
+  const mainTickets = member.ticketId || member.userId;
+  // Show only sub event tickets using member.ticketQuantities.subEvents
+  const subEventTickets = member.ticketQuantities?.subEvents || {};
+  // Get sub event details from event.subEvents if available, else use keys from subEventTickets
+  const subEventDetails = event.subEvents
+    ? event.subEvents.filter((sub: any) => Object.keys(subEventTickets).includes(sub._id?.toString() || sub.id?.toString()))
+    : Object.keys(subEventTickets).map((key) => ({ _id: key, itemName: `Sub Event ${key}` }));
 
   return (
     <View style={styles.container}>
@@ -121,7 +149,15 @@ const GenerateTicketScreen = () => {
         </View>
 
         <Text style={styles.paymentStatus}>Payment: {member.paymentStatus}</Text>
-        <Text style={styles.ticketId}>Ticket #: {member.ticketId || member.userId}</Text>
+        <Text style={[styles.detailLabel, { marginTop: 8 }]}>Event Tickets:</Text>
+        {getTicketBreakdown(member, event).subEventDetails.map((sub: any) => (
+          <Text key={sub.subEventId || sub._id} style={styles.detailValue}>
+            {sub.itemName}:{' '}
+            {getTicketBreakdown(member, event).subTickets[
+              sub.subEventId || sub._id
+            ] || 0}
+          </Text>
+        ))}
         {/* QR Code */}
         <View style={styles.qrContainer}>
           <QRCode value={JSON.stringify(ticketData)} size={160} />
@@ -230,6 +266,25 @@ const styles = StyleSheet.create({
     color: '#43a047',
     marginBottom: 2,
   },
+  ticketInfoBox: {
+    backgroundColor: '#f7faff',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 8,
+    width: '100%',
+    alignItems: 'flex-start',
+  },
+  ticketInfoTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#2788ff',
+    marginBottom: 2,
+  },
+  ticketInfoText: {
+    fontSize: 14,
+    color: '#222',
+    marginBottom: 2,
+  },
   ticketId: {
     fontSize: 14,
     color: '#2788ff',
@@ -277,6 +332,19 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     fontSize: 15,
+  },
+
+  detailLabel: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: 'bold',
+    marginBottom: 3,
+  },
+  detailValue: {
+    fontSize: 14,
+    color: '#1b6dc1',
+    fontWeight: '600',
+    marginBottom: 3,
   },
 });
 

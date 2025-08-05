@@ -242,12 +242,12 @@ const InvoiceScreen: React.FC = () => {
                   <Text style={styles.detailValue}>{selectedEvent.bankName || '-'}</Text>
                 </Text>
 
-                <Text style={[styles.detailLabel, { marginTop: 8 }]}>Tickets:</Text>
+                {/* <Text style={[styles.detailLabel, { marginTop: 8 }]}>Tickets:</Text>
                 <Text style={styles.detailValue}>
                   Main Event:{' '}
                   {getTicketBreakdown(getCurrentMember(selectedEvent), selectedEvent).mainTickets}
-                </Text>
-                <Text style={[styles.detailLabel, { marginTop: 8 }]}>Sub Event Tickets:</Text>
+                </Text> */}
+                <Text style={[styles.detailLabel, { marginTop: 8 }]}>Event Tickets:</Text>
                 {getTicketBreakdown(getCurrentMember(selectedEvent), selectedEvent).subEventDetails.map((sub: any) => (
                   <Text key={sub.subEventId || sub._id} style={styles.detailValue}>
                     {sub.itemName}:{' '}
