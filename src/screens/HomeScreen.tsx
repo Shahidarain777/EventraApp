@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   StatusBar,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
@@ -29,14 +30,46 @@ const HomeScreen = () => {
   >();
   const dispatch = useDispatch<AppDispatch>();
   const eventsRaw = useSelector((state: RootState) => state.events.events);
-  // Sort events by createdAt descending (newest first)
-  const events = Array.isArray(eventsRaw)
-    ? [...eventsRaw].sort((a, b) => {
-        const aDate = new Date(a.createdAt || a.dateTime?.start || 0).getTime();
-        const bDate = new Date(b.createdAt || b.dateTime?.start || 0).getTime();
-        return bDate - aDate;
-      })
-    : [];
+const userCity = useSelector((state: RootState) =>
+  state.auth.user?.Address?.city?.toLowerCase() || ''
+);
+
+const userState = useSelector((state: RootState) =>
+  state.auth.user?.Address?.state?.toLowerCase() || ''
+);
+
+const userCountry = useSelector((state: RootState) =>
+  state.auth.user?.Address?.country?.toLowerCase() || ''
+);
+
+const events = Array.isArray(eventsRaw)
+  ? [...eventsRaw].sort((a, b) => {
+      // Compare by city, then state, then country
+      const aCity = a.location?.city?.toLowerCase() || '';
+      const bCity = b.location?.city?.toLowerCase() || '';
+      const aState = a.location?.state?.toLowerCase() || '';
+      const bState = b.location?.state?.toLowerCase() || '';
+      const aCountry = a.location?.country?.toLowerCase() || '';
+      const bCountry = b.location?.country?.toLowerCase() || '';
+
+      // Priority: city > state > country
+      const aPriority =
+        (aCity === userCity ? 3 : 0) +
+        (aState === userState ? 2 : 0) +
+        (aCountry === userCountry ? 1 : 0);
+      const bPriority =
+        (bCity === userCity ? 3 : 0) +
+        (bState === userState ? 2 : 0) +
+        (bCountry === userCountry ? 1 : 0);
+
+      if (aPriority !== bPriority) return bPriority - aPriority;
+
+      // Then newest first
+      const aDate = new Date(a.createdAt || a.dateTime?.start || 0).getTime();
+      const bDate = new Date(b.createdAt || b.dateTime?.start || 0).getTime();
+      return bDate - aDate;
+    })
+  : [];
   const loading = useSelector((state: RootState) => state.events.loading);
   const error = useSelector((state: RootState) => state.events.error);
 

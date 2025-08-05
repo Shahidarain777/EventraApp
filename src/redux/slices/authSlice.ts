@@ -12,6 +12,11 @@ interface User {
   createdAt?: string; // Add creation date field
   profileImage?: string; // Add profile image URL field
   isEmailVerified?: boolean; // Add email verification status
+  Address?: {
+    city?: string;
+    state?: string;
+    country?: string;
+  };
   // Add more fields if needed
 }
 
