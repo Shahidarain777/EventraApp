@@ -462,8 +462,7 @@ const styles = StyleSheet.create({
   createdTime: {
     fontSize: 12,
     color: '#888',
-    marginTop: 2,
-    marginLeft: 2,
+    marginTop: -3,
   },
   hostRow: {
     flexDirection: 'row',

@@ -28,7 +28,15 @@ const HomeScreen = () => {
     >
   >();
   const dispatch = useDispatch<AppDispatch>();
-  const events = useSelector((state: RootState) => state.events.events);
+  const eventsRaw = useSelector((state: RootState) => state.events.events);
+  // Sort events by createdAt descending (newest first)
+  const events = Array.isArray(eventsRaw)
+    ? [...eventsRaw].sort((a, b) => {
+        const aDate = new Date(a.createdAt || a.dateTime?.start || 0).getTime();
+        const bDate = new Date(b.createdAt || b.dateTime?.start || 0).getTime();
+        return bDate - aDate;
+      })
+    : [];
   const loading = useSelector((state: RootState) => state.events.loading);
   const error = useSelector((state: RootState) => state.events.error);
 
