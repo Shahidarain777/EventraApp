@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, TextInput } from 'react-native';
 import EventCard from '../components/EventCard';
+import { useNavigation } from '@react-navigation/native';
 import { Event } from '../redux/slices/eventSlice';
 import { RouteProp } from '@react-navigation/native';
 import DueDate from '../components/DueDate';
@@ -14,6 +15,7 @@ type EventDetailScreenProps = {
 
 const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
   const { event } = route.params;
+  const navigation = useNavigation();
   
   // State for user's join status
   const [userStatus, setUserStatus] = useState<string>('not_joined');
@@ -324,15 +326,22 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
       switch (status) {
         case 'member':
           message = 'Successfully joined the event!';
+          Alert.alert('Success', message);
           break;
         case 'approval_pending':
           message = 'Your join request has been submitted and is awaiting approval.';
+          Alert.alert('Success', message);
           break;
         case 'payment_pending':
           message = `Join request submitted! Please complete payment of $${totalFee.toFixed(2)} to confirm your membership.`;
+          Alert.alert('Success', message, [
+            {
+              text: 'OK',
+              onPress: () => (navigation as any).navigate('InvoiceScreen'),
+            },
+          ]);
           break;
       }
-      Alert.alert('Success', message);
     } catch (error: any) {
       Alert.alert('Error', error?.response?.data?.message || 'Failed to join event. Please try again.');
     } finally {
