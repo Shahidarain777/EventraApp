@@ -18,6 +18,10 @@ const TABS = ['My Event', 'Joined Event'] as const;
 type TabType = typeof TABS[number];
 
 const MyEventsScreen = () => {
+  // Get user's location
+  const userCity = useSelector((state: RootState) => state.auth.user?.Address?.city?.toLowerCase() || '');
+  const userState = useSelector((state: RootState) => state.auth.user?.Address?.state?.toLowerCase() || '');
+  const userCountry = useSelector((state: RootState) => state.auth.user?.Address?.country?.toLowerCase() || '');
   const dispatch = useDispatch<AppDispatch>();
   const events = useSelector((state: RootState) => state.events.events);
   const loading = useSelector((state: RootState) => state.events.loading);
@@ -29,10 +33,23 @@ const MyEventsScreen = () => {
     dispatch(fetchEvents());
   }, [dispatch]);
 
-  // My Events: Only show events where hostId matches logged-in user's id
-  const myEvents = events.filter(
-    (event: Event) => event.hostId === userId
-  );
+  // My Events: Only show events where hostId matches logged-in user's id, sorted by location priority and newest first
+  const myEvents = events
+    .filter((event: Event) => event.hostId === userId)
+    .sort((a, b) => {
+      const aCity = a.location?.city?.toLowerCase() || '';
+      const bCity = b.location?.city?.toLowerCase() || '';
+      const aState = a.location?.state?.toLowerCase() || '';
+      const bState = b.location?.state?.toLowerCase() || '';
+      const aCountry = a.location?.country?.toLowerCase() || '';
+      const bCountry = b.location?.country?.toLowerCase() || '';
+      const aPriority = (aCity === userCity ? 3 : 0) + (aState === userState ? 2 : 0) + (aCountry === userCountry ? 1 : 0);
+      const bPriority = (bCity === userCity ? 3 : 0) + (bState === userState ? 2 : 0) + (bCountry === userCountry ? 1 : 0);
+      if (aPriority !== bPriority) return bPriority - aPriority;
+      const aDate = new Date(a.createdAt || a.dateTime?.start || 0).getTime();
+      const bDate = new Date(b.createdAt || b.dateTime?.start || 0).getTime();
+      return bDate - aDate;
+    });
 
   // Joined Events: Only show events where user is a joined member with specific statuses
   const joinedStatuses = [
@@ -42,12 +59,28 @@ const MyEventsScreen = () => {
     'member',
     'canceled',
   ];
-  const joinedEvents = events.filter((event: Event) =>
-    Array.isArray(event.joinedMembers) &&
-    event.joinedMembers.some(
-      (m) => m.userId?.toString() === userId?.toString() && joinedStatuses.includes(m.status)
+  // Joined Events: Only show events where user is a joined member with specific statuses, sorted by location priority and newest first
+  const joinedEvents = events
+    .filter((event: Event) =>
+      Array.isArray(event.joinedMembers) &&
+      event.joinedMembers.some(
+        (m) => m.userId?.toString() === userId?.toString() && joinedStatuses.includes(m.status)
+      )
     )
-  );
+    .sort((a, b) => {
+      const aCity = a.location?.city?.toLowerCase() || '';
+      const bCity = b.location?.city?.toLowerCase() || '';
+      const aState = a.location?.state?.toLowerCase() || '';
+      const bState = b.location?.state?.toLowerCase() || '';
+      const aCountry = a.location?.country?.toLowerCase() || '';
+      const bCountry = b.location?.country?.toLowerCase() || '';
+      const aPriority = (aCity === userCity ? 3 : 0) + (aState === userState ? 2 : 0) + (aCountry === userCountry ? 1 : 0);
+      const bPriority = (bCity === userCity ? 3 : 0) + (bState === userState ? 2 : 0) + (bCountry === userCountry ? 1 : 0);
+      if (aPriority !== bPriority) return bPriority - aPriority;
+      const aDate = new Date(a.createdAt || a.dateTime?.start || 0).getTime();
+      const bDate = new Date(b.createdAt || b.dateTime?.start || 0).getTime();
+      return bDate - aDate;
+    });
 
   return (
     <SafeAreaView style={styles.container}>
@@ -109,20 +142,20 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     backgroundColor: '#ffffffff',
-    borderRadius: 30,
+    borderRadius: 10,
     padding: 4,
     marginHorizontal: 16,
-    marginTop: 5,
-    marginBottom: 8,
+    marginTop: -5,
+    marginBottom: 2,
     alignSelf: 'center',
-    width: '90%',
+    width: '100%',
     justifyContent: 'space-between',
   },
   tabButton: {
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
-    borderRadius: 24,
+    borderRadius: 15,
   },
   tabButtonActive: {
     backgroundColor: '#075cf8ff',
