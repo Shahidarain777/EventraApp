@@ -178,6 +178,20 @@ const EventCard = ({
     ]).start(() => setShowHeart(false));
   };
 
+  // Helper to get relative time string
+  const getRelativeTime = (dateString?: string) => {
+    if (!dateString) return '';
+    const now = new Date();
+    const created = new Date(dateString);
+    const diffMs = now.getTime() - created.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+    if (diffSec < 60) return 'just now';
+    if (diffSec < 3600) return `${Math.floor(diffSec / 60)} min ago`;
+    if (diffSec < 86400) return `${Math.floor(diffSec / 3600)} hour${Math.floor(diffSec / 3600) > 1 ? 's' : ''} ago`;
+    if (diffSec < 2592000) return `${Math.floor(diffSec / 86400)} day${Math.floor(diffSec / 86400) > 1 ? 's' : ''} ago`;
+    return created.toLocaleDateString();
+  };
+
   return (
     <>
       <View style={styles.eventCard}>
@@ -206,7 +220,10 @@ const EventCard = ({
                 <Icon name="account-circle" size={32} color="#bbb" />
               </View>
             )}
-            <Text style={styles.organizerName}>{event.hostName}</Text>
+            <View>
+              <Text style={styles.organizerName}>{event.hostName}</Text>
+              <Text style={styles.createdTime}>{getRelativeTime(event.createdAt)}</Text>
+            </View>
           </View>
 
           <View style={styles.categoryInfoPrice}>
@@ -442,6 +459,12 @@ export default EventCard;
 // ...styles unchanged, same as your provided styles...
 
 const styles = StyleSheet.create({
+  createdTime: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 2,
+    marginLeft: 2,
+  },
   hostRow: {
     flexDirection: 'row',
     alignItems: 'center',

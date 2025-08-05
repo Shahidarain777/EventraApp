@@ -12,6 +12,7 @@ export interface Event {
   imageUrl: string[];
   hostName: string;
   hostProfileImage: string;
+  createdAt: string; // Use Date for consistency, but can be string if API returns ISO format
   dateTime: {
     start: string;
     end: string;
