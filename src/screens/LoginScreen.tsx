@@ -223,11 +223,8 @@ const styles = StyleSheet.create({
     height: 120,
     marginBottom: 12,
     alignSelf: 'center',
-    // backgroundColor: 'white',
     borderRadius: 16,
   },
-  // Remove card/box styles, use simple layout
-  // headerSimple removed, title now inside form
   formSimpleCentered: {
     width: '90%',
     alignSelf: 'center',
@@ -306,7 +303,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
     opacity: 0.95,
-    //textDecorationLine: 'underline',
     marginLeft:16,
     marginRight:20,
   },
