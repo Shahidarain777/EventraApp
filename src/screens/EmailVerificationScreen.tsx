@@ -18,12 +18,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import api from '../api/axios';
 
 const EmailVerificationScreen = () => {
-  // Fix navigation and route typing
-  // Import your navigation types if available
-  // import { RootStackParamList } from '../types/navigations';
-  // import { StackNavigationProp, RouteProp } from '@react-navigation/native';
-  // const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  // const route = useRoute<RouteProp<RootStackParamList, 'EmailVerificationScreen'>>();
+
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const [loading, setLoading] = useState(false);
