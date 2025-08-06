@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import React, { useRef } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
+import { Linking } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import ViewShot from 'react-native-view-shot';
 import { useRoute } from '@react-navigation/native';
@@ -114,13 +115,28 @@ const currentUserId = useSelector((state: any) =>
           {event.dateTime?.end ? new Date(event.dateTime.end).toLocaleString() : ''}
         </Text>
         <Text style={styles.eventVenue}>{event.location?.venueName || ''}</Text>
-        <Text style={styles.eventAddress}>
-            {[
-                event.location?.city,
-                event.location?.state,
-                event.location?.country
-            ].filter(Boolean).join(', ')}
+        {event.location?.type === 'online' && event.location?.link ? (
+          
+          <TouchableOpacity onPress={() => {
+            let url = event.location.link;
+            if (url && !/^http?:\/\//i.test(url)) {
+              url = 'http://' + url;
+            }
+            Linking.openURL(url);
+          }}>
+            <Text style={[styles.eventAddress, { color: '#2788ff', textDecorationLine: 'underline' }]}> 
+              {event.location.link}
             </Text>
+          </TouchableOpacity>
+        ) : (
+          <Text style={styles.eventAddress}>
+            {[
+              event.location?.city,
+              event.location?.state,
+              event.location?.country
+            ].filter(Boolean).join(', ')}
+          </Text>
+        )}
             
         <View style={styles.memberRow}>
           {member.profileImage ? (
@@ -148,16 +164,22 @@ const currentUserId = useSelector((state: any) =>
           <Text style={styles.memberName}>{member.name}</Text>
         </View>
 
-        <Text style={styles.paymentStatus}>Payment: {member.paymentStatus}</Text>
-        <Text style={[styles.detailLabel, { marginTop: 8 }]}>Event Tickets:</Text>
-        {getTicketBreakdown(member, event).subEventDetails.map((sub: any) => (
-          <Text key={sub.subEventId || sub._id} style={styles.detailValue}>
-            {sub.itemName}:{' '}
-            {getTicketBreakdown(member, event).subTickets[
-              sub.subEventId || sub._id
-            ] || 0}
-          </Text>
-        ))}
+        {event.price === 'Free' || Number(event.price) === 0 ? (
+          <Text style={[styles.paymentStatus, { color: '#43a047', fontWeight: 'bold', marginTop: 8 }]}>Payment: Free</Text>
+        ) : (
+          <>
+            <Text style={styles.paymentStatus}>Payment: {member.paymentStatus}</Text>
+            <Text style={[styles.detailLabel, { marginTop: 8 }]}>Event Tickets:</Text>
+            {getTicketBreakdown(member, event).subEventDetails.map((sub: any) => (
+              <Text key={sub.subEventId || sub._id} style={styles.detailValue}>
+                {sub.itemName}:{' '}
+                {getTicketBreakdown(member, event).subTickets[
+                  sub.subEventId || sub._id
+                ] || 0}
+              </Text>
+            ))}
+          </>
+        )}
         {/* QR Code */}
         <View style={styles.qrContainer}>
           <QRCode value={JSON.stringify(ticketData)} size={160} />
@@ -235,7 +257,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#222',
     fontWeight: '600',
-    marginBottom: 2,
+    marginBottom: -10,
     textAlign: 'center',
   },
   eventAddress: {
