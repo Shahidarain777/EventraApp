@@ -13,12 +13,10 @@ import {
 import { logout, updateProfileImage, fetchUserProfileImage } from '../redux/slices/authSlice';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { launchImageLibrary } from 'react-native-image-picker';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import api from '../api/axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 
@@ -30,14 +28,12 @@ const ProfileScreen = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const token = useSelector((state: RootState) => state.auth.token);
 
-  // Calculate invoice count from events with payment_pending status for current user
-  const currentUserId = user?._id?.toString() || user?._id?.toString() || '';
+  const currentUserId = user?._id?.toString() || '';
   const invoiceCount = events?.filter((event: any) =>
     Array.isArray(event.joinedMembers) &&
     event.joinedMembers.some((m: any) => m.userId?.toString() === currentUserId && m.status === 'payment_pending')
   ).length;
 
-  // Load profile image from database and AsyncStorage on component mount
   useEffect(() => {
     loadProfileImage();
   }, [user?._id]);
@@ -46,19 +42,13 @@ const ProfileScreen = () => {
     if (!user?._id) return;
 
     try {
-      // First, try to fetch from database
       const result = await dispatch(fetchUserProfileImage(user._id));
-      
       if (result.payload) {
-        // Save to AsyncStorage for offline access
         await saveProfileImageToStorage(result.payload as string);
       } else {
-        // Fallback: load from AsyncStorage if database call fails
         await loadProfileImageFromStorage();
       }
     } catch (error) {
-      console.log('Failed to fetch profile image from database, trying AsyncStorage:', error);
-      // Fallback: load from AsyncStorage
       await loadProfileImageFromStorage();
     }
   };
@@ -69,9 +59,7 @@ const ProfileScreen = () => {
       if (savedProfileImage && user && !user.profileImage) {
         dispatch(updateProfileImage(savedProfileImage));
       }
-    } catch (error) {
-      console.log('Failed to load profile image from storage:', error);
-    }
+    } catch {}
   };
 
   const saveProfileImageToStorage = async (imageUrl: string) => {
@@ -79,9 +67,7 @@ const ProfileScreen = () => {
       if (user?._id) {
         await AsyncStorage.setItem(`profileImage_${user._id}`, imageUrl);
       }
-    } catch (error) {
-      console.log('Failed to save profile image to storage:', error);
-    }
+    } catch {}
   };
 
   const handleLogout = () => {
@@ -89,22 +75,16 @@ const ProfileScreen = () => {
       'Logout',
       'Are you sure you want to logout?',
       [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
+        { text: 'Cancel', style: 'cancel' },
         {
           text: 'Logout',
           style: 'destructive',
           onPress: async () => {
-            // Clear profile image from storage on logout
             try {
               if (user?._id) {
                 await AsyncStorage.removeItem(`profileImage_${user._id}`);
               }
-            } catch (error) {
-              console.log('Failed to clear profile image from storage:', error);
-            }
+            } catch {}
             dispatch(logout());
           },
         },
@@ -115,104 +95,68 @@ const ProfileScreen = () => {
   const handleProfileImagePick = () => {
     launchImageLibrary({
       mediaType: 'photo',
-      quality: 0.3, // Reduced quality to 30% to stay under 1MB
-      maxWidth: 800, // Limit width to 800px
-      maxHeight: 800, // Limit height to 800px
+      quality: 0.3,
+      maxWidth: 800,
+      maxHeight: 800,
       selectionLimit: 1,
     }, async (response) => {
       if (response.didCancel || response.errorCode) return;
-      
       if (response.assets && response.assets[0]) {
         const asset = response.assets[0];
-        
-        if (!asset.uri) {
-          Alert.alert('Error', 'Failed to get image URI');
-          return;
+        if (!asset.uri) return;
+
+        if (asset.fileSize && asset.fileSize > 20 * 1024 * 1024) {
+          Alert.alert('Image too large', 'Please select a smaller image.');
         }
 
-                // Check file size (optional warning)
-        if (asset.fileSize && asset.fileSize > 20 * 1024 * 1024) { // 20MB
-          Alert.alert(
-            'Image too large', 
-            'Please select a smaller image or the app will compress it automatically.'
-          );
-        }
-
-        // Show uploading state
         setUploadingImage(true);
-        
-        try {
-          // Create FormData for multipart upload
 
+        try {
           const formData = new FormData();
           formData.append('image', {
             uri: asset.uri,
             type: asset.type || 'image/jpeg',
             name: asset.fileName || `profile_${Date.now()}.jpg`,
           } as any);
-          // Add eventId for backend compatibility (use 'profile' as a special value)
           formData.append('eventId', 'profile');
 
-          console.log('Uploading image:', {
-            size: asset.fileSize,
-            type: asset.type,
-            name: asset.fileName
-          });
-
-          // Upload image to your API
-          // Always use /upload_image, backend will use JWT for userId
           const response = await api.post('/upload_image', formData, {
             headers: {
               'Content-Type': 'multipart/form-data',
-              Authorization: `Bearer ${token}`,  // Use token here
+              Authorization: `Bearer ${token}`,
             },
             timeout: 30000,
           });
 
-          // Use the backend's returned image.url for the profile image
           const uploadedImage = response.data?.image;
-          if (uploadedImage && uploadedImage.url) {
-
+          if (uploadedImage?.url) {
             const imageUrl = uploadedImage.url;
 
-            // 1. Update user profile with new image URL (PUT request)
             if (user && user._id) {
               try {
                 await api.put(`/users/${user._id}`, { profileImage: imageUrl }, {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
+                  headers: { Authorization: `Bearer ${token}` },
                 });
-              } catch (err) {
-                console.error('Failed to update user profile image:', err);
-                // Optionally show a warning, but don't block the UI
-              }
+              } catch {}
+
+              dispatch(updateProfileImage(imageUrl));
+              await saveProfileImageToStorage(imageUrl);
+              Alert.alert('Success', 'Profile image updated successfully!');
             }
-
-
-            // 2. Update Redux state and save to AsyncStorage
-            dispatch(updateProfileImage(imageUrl));
-            await saveProfileImageToStorage(imageUrl);
-
-            Alert.alert('Success', 'Profile image updated successfully!');
           } else if (response.status === 201) {
-            // If status is 201 but no image object, still treat as success
             Alert.alert('Success', 'Profile image updated successfully!');
           } else {
             throw new Error('Invalid response from server');
           }
         } catch (error: any) {
-          console.error('Image upload error:', error);
-          
           let errorMessage = 'Failed to upload image. Please try again.';
           if (error.response?.status === 413) {
-            errorMessage = 'Image is too large. Please select a smaller image.';
+            errorMessage = 'Image is too large.';
           } else if (error.response?.status === 404) {
-            errorMessage = 'Upload service not found. Please contact support.';
+            errorMessage = 'Upload service not found.';
           } else if (error.code === 'ECONNABORTED') {
-            errorMessage = 'Upload timeout. Please check your connection and try again.';
+            errorMessage = 'Upload timeout.';
           }
-          
           Alert.alert('Upload Failed', errorMessage);
         } finally {
           setUploadingImage(false);
@@ -221,33 +165,9 @@ const ProfileScreen = () => {
     });
   };
 
-  // const updateUserProfileImage = async (imageUrl: string) => {
-  //   try {
-  //     // You'll need to create this API endpoint to update user profile
-  //     await api.put('/profile/image', { profileImageUrl: imageUrl });
-  //   } catch (error) {
-  //     console.error('Failed to update user profile:', error);
-  //     // Don't show error to user as the image was uploaded successfully
-  //   }
-  // };
-
-  const handlePasswordChange = () => {
-    Alert.alert(
-      'Change Password',
-      'This feature will be available soon.',
-      [{ text: 'OK' }]
-    );
-  };
-
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Header */}
-      {/* <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profile</Text>
-      </View> */}
-
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Profile Info Horizontal Card */}
         <View style={styles.profileHorizontalCard}>
           <View style={styles.profileHorizontalRow}>
             <TouchableOpacity 
@@ -291,8 +211,7 @@ const ProfileScreen = () => {
             <Text style={styles.editProfileBtnText}>Edit Profile</Text>
           </TouchableOpacity>
         </View>
-        {/* Additional Options */}
-        {/* Invoice Tab Button after profile card */}
+
         <View style={styles.invoiceCardWrapper}>
           <TouchableOpacity style={styles.invoiceCardBtn} onPress={() => navigation.navigate('InvoiceScreen' as never)}>
             <Ionicons name="receipt-outline" size={38} color="#2788ff" style={{ marginBottom: 8 }} />
@@ -302,27 +221,19 @@ const ProfileScreen = () => {
             </View>
           </TouchableOpacity>
         </View>
+
         <View style={styles.optionsSection}>
-          <TouchableOpacity 
-            style={styles.optionItem}
-            onPress={() => navigation.navigate('SettingsScreen' as never)}
-          >
+          <TouchableOpacity style={styles.optionItem} onPress={() => navigation.navigate('SettingsScreen' as never)}>
             <Ionicons name="settings-outline" size={20} color="#666" />
             <Text style={styles.optionText}>Settings</Text>
             <Ionicons name="chevron-forward" size={20} color="#ccc" />
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.optionItem}
-            onPress={() => navigation.navigate('HelpSupport' as never)}
-          >
+          <TouchableOpacity style={styles.optionItem} onPress={() => navigation.navigate('HelpSupport' as never)}>
             <Ionicons name="help-circle-outline" size={20} color="#666" />
             <Text style={styles.optionText}>Help & Support</Text>
             <Ionicons name="chevron-forward" size={20} color="#ccc" />
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.optionItem}
-            onPress={() => navigation.navigate('CommunityGuidelinesScreen' as never)}
-          >
+          <TouchableOpacity style={styles.optionItem} onPress={() => navigation.navigate('CommunityGuidelinesScreen' as never)}>
             <Ionicons name="document-text-outline" size={20} color="#666" />
             <Text style={styles.optionText}>Terms & Privacy</Text>
             <Ionicons name="chevron-forward" size={20} color="#ccc" />
@@ -330,7 +241,6 @@ const ProfileScreen = () => {
         </View>
       </ScrollView>
 
-      {/* Logout Button at Bottom */}
       <View style={styles.logoutContainer}>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={20} color="#fff" />
