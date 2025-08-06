@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#222',
     fontWeight: '600',
-    marginBottom: -10,
+    marginBottom: -2,
     textAlign: 'center',
   },
   eventAddress: {
