@@ -18,7 +18,7 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { RootStackParamList, TabParamList } from '../types/navigations';
 import { fetchEvents, Event } from '../redux/slices/eventSlice';
-import EventCard from '../components/EventCard'; // <-- Import your EventCard
+import EventCard from '../components/EventCard';
 import EmailVerificationBanner from '../components/EmailVerificationBanner';
 
 const HomeScreen = () => {
