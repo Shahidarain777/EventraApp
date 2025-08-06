@@ -14,16 +14,14 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
-import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { launchImageLibrary } from 'react-native-image-picker';
 import api from '../api/axios';
+import { useAppSelector } from '../redux/hooks';
 import { RootState } from '../redux/store';
 
 const EditProfileScreen = () => {
   const navigation = useNavigation();
-  const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
-  // const token = useAppSelector(state => state.auth.token);  // <-- Added token from redux here
   const token = useAppSelector((state: RootState) => state.auth.token);
 
   const [formData, setFormData] = useState({
@@ -72,11 +70,10 @@ const EditProfileScreen = () => {
             name: asset.fileName || `profile_${Date.now()}.jpg`,
           } as any);
 
-          // Upload image to your API
           const response = await api.post('/upload_image', formData, {
             headers: {
               'Content-Type': 'multipart/form-data',
-              Authorization: `Bearer ${token}`,  // Use token here
+              Authorization: `Bearer ${token}`,
             },
             timeout: 30000,
           });
@@ -88,7 +85,6 @@ const EditProfileScreen = () => {
             throw new Error('Invalid response from server');
           }
         } catch (error: any) {
-          console.error('Image upload error:', error);
           Alert.alert('Upload Failed', 'Failed to upload image. Please try again.');
         } finally {
           setUploadingImage(false);
@@ -118,7 +114,6 @@ const EditProfileScreen = () => {
 
     setIsLoading(true);
     try {
-      // Prepare update payload (only allowed fields)
       const updatePayload: any = {
         name: formData.name,
         email: formData.email,
@@ -126,7 +121,6 @@ const EditProfileScreen = () => {
       };
       if (profileImage) updatePayload.profileImage = profileImage;
 
-      // Call backend PUT /users/:id
       if (!user?._id) throw new Error('User ID missing');
       await api.put(`/users/${user._id}`, updatePayload, {
         headers: {
@@ -139,8 +133,7 @@ const EditProfileScreen = () => {
         'Profile updated successfully!',
         [{ text: 'OK', onPress: () => navigation.goBack() }]
       );
-    } catch (error) {
-      console.error('Profile update error:', error);
+    } catch {
       Alert.alert('Error', 'Failed to update profile. Please try again.');
     } finally {
       setIsLoading(false);
@@ -167,7 +160,6 @@ const EditProfileScreen = () => {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Profile Picture Section */}
         <View style={styles.imageSection}>
           <TouchableOpacity 
             style={styles.imageContainer} 
@@ -199,7 +191,6 @@ const EditProfileScreen = () => {
           )}
         </View>
 
-        {/* Form Section */}
         <View style={styles.formSection}>
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>
@@ -267,7 +258,6 @@ const EditProfileScreen = () => {
           </View>
         </View>
 
-        {/* Additional Options */}
         <View style={styles.additionalSection}>
           <Text style={styles.sectionTitle}>Account Security</Text>
 
@@ -297,7 +287,6 @@ const EditProfileScreen = () => {
         <View style={styles.bottomSpacing} />
       </ScrollView>
 
-      {/* Loading Overlay */}
       {isLoading && (
         <View style={styles.loadingScreen}>
           <ActivityIndicator size="large" color="#007BFF" />
