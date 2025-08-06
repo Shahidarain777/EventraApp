@@ -25,7 +25,6 @@ const InvoiceScreen: React.FC = () => {
   const [proofImages, setProofImages] = React.useState<string[]>([]);
   const [uploadError, setUploadError] = React.useState<string | null>(null);
 
-  // For ViewShot
   const viewShotRef = useRef<any>(null);
 
   const handleCardPress = (event: any) => {
@@ -78,7 +77,6 @@ const InvoiceScreen: React.FC = () => {
     setUploadError(null);
 
     try {
-      // 1. Upload images and collect URLs
       const uploadedUrls: string[] = [];
       for (const uri of proofImages) {
         const formData = new FormData();
@@ -159,7 +157,6 @@ const InvoiceScreen: React.FC = () => {
       if (viewShotRef.current) {
         const uri = await viewShotRef.current.capture();
         Alert.alert('Invoice Saved', 'Invoice image saved to your device.');
-        // You can add logic to save to gallery if needed
       } else {
         Alert.alert('Error', 'Invoice view not ready.');
       }
@@ -338,7 +335,6 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    // justifyContent: 'space-between',
     padding: 12,
     borderRadius: 10,
   },
@@ -412,14 +408,11 @@ const styles = StyleSheet.create({
   },
   actionRow: {
     flexDirection: 'row',
-    //  justifyContent: 'space-around',
     alignItems: 'center',
     width: '10%',
     marginTop: -30,
     marginBottom: 1,
     marginRight: 140,
-    // flexWrap: 'wrap',
-    // gap: 0,
   },
   actionBtn: {
     alignItems: 'center',
