@@ -354,9 +354,6 @@ const CreateEventScreen = () => {
   return (
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
       <Text style={styles.title}>Create Event</Text>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      {eventError ? <Text style={styles.error}>{eventError}</Text> : null}
-
       {/* Card style for event images upload at top */}
       <View style={styles.imageCard}>
         <Text style={styles.eventImagesLabel}>Event Images</Text>
@@ -696,6 +693,13 @@ const CreateEventScreen = () => {
         onSave={handleLocationSave}
         initialData={locationData || undefined}
       />
+      {/* Show error messages at the bottom */}
+      {(error || eventError) && (
+        <View style={{ marginTop: 18, marginBottom: 10, alignItems: 'center', width: '100%' }}>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+          {eventError ? <Text style={styles.error}>{eventError}</Text> : null}
+        </View>
+      )}
     </ScrollView>
   );
 };
