@@ -16,7 +16,6 @@ import {
 import { PieChart } from 'react-native-gifted-charts';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import api from '../api/axios';
-import EventCard from '../components/EventCard'; // <-- Import your EventCard
 
 const TabButton = ({
   icon,
@@ -113,8 +112,6 @@ const ManageEventScreen = () => {
   const [paymentPendingMembers, setPaymentPendingMembers] = React.useState([]);
   const [rejectReason, setRejectReason] = React.useState('');
 const [selectedPayment, setSelectedPayment] = React.useState<any>(null);
-// Or, if you have a type for payment/member:
-// const [selectedPayment, setSelectedPayment] = React.useState<MemberType | null>(null);
 
   // New states for loading indicators
   const [paymentActionLoading, setPaymentActionLoading] = React.useState(false);
@@ -318,13 +315,8 @@ const [previewImageUrl, setPreviewImageUrl] = React.useState<string | null>(null
   return (
     <ScrollView>
       <View style={styles.container}>
-        {/* <View style={styles.eventCardWrapper}>
-          <EventCard event={event} />
-        </View> */}
 
         <Text style={styles.sectionTitle}>Event Management Actions</Text>
-
-        {/* New Tab Button Grid */}
         <View style={styles.tabGrid}>
           <TabButton
             icon="create-outline"
@@ -470,8 +462,6 @@ const [previewImageUrl, setPreviewImageUrl] = React.useState<string | null>(null
                     {/* Member Name */}
                     <View style={{ flex: 1 }}>
                       <Text style={styles.memberName}>{member.name || 'No Name'}</Text>
-                      {/* <Text style={styles.memberName}>{"Amount: " + (member.amount || 'No Amount')}</Text> */}
-
                     </View>
 
                     {/* Proof Image (pattern as requested) */}
@@ -730,7 +720,6 @@ const [previewImageUrl, setPreviewImageUrl] = React.useState<string | null>(null
             </View>
           </View>
         </Modal>
-
 
         {/* Member List Modal */}
         <Modal
@@ -999,7 +988,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: 1,
   },
-  // ...rest of your styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.3)',
