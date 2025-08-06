@@ -1,21 +1,19 @@
-import DateTimeSelector from '../components/DateTimeSelector';
-
 import React, { useState } from 'react';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, ScrollView, Switch } from 'react-native';
-import ImageUploadCard from '../components/ImageUploadCard';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import RNPickerSelect from 'react-native-picker-select';
 import api from '../api/axios';
-import LocationSelectorModal from '../components/LocationSelectorModal';
-
 import Ionicons from 'react-native-vector-icons/Ionicons';
+
+import DateTimeSelector from '../components/DateTimeSelector';
+import ImageUploadCard from '../components/ImageUploadCard';
+import LocationSelectorModal from '../components/LocationSelectorModal';
 
 interface LocationData {
   type: 'venue' | 'online';
-  // For venue
   venueName?: string;
   address?: string;
   city?: string;
@@ -23,7 +21,6 @@ interface LocationData {
   country?: string;
   latitude?: number;
   longitude?: number;
-  // For online
   link?: string;
   platform?: string;
 }
@@ -34,14 +31,12 @@ const EditEventScreen = () => {
   const { event } = route.params as { event: any };
   const userId = useSelector((state: RootState) => state.auth.user?._id);
   const token = useSelector((state: RootState) => state.auth.token);
-  const { categories, loading: categoriesLoading, error: categoriesError } = useSelector((state: RootState) => state.categories);
+  const { categories, loading: categoriesLoading } = useSelector((state: RootState) => state.categories);
 
-  // State for all event fields
   const [locationData, setLocationData] = useState<LocationData | null>(
     event?.location
       ? {
           ...event.location,
-          // fallback for legacy events: if type missing, guess from fields
           type: event.location.type || (event.location.link ? 'online' : 'venue'),
         }
       : null
@@ -56,7 +51,7 @@ const EditEventScreen = () => {
   const [visibility, setVisibility] = useState(event?.visibility || 'public');
   const [approvalRequired, setApprovalRequired] = useState(event?.approvalRequired || 'no');
   const [capacity, setCapacity] = useState(event?.maxAttendees ? String(event.maxAttendees) : '');
-  const [capacityStep, setCapacityStep] = useState(1);
+  const [capacityStep] = useState(1);
   const [isPaid, setIsPaid] = useState(event?.isPaid || false);
   const [joiningFee, setJoiningFee] = useState(event?.price ? String(event.price) : '');
   const [currency, setCurrency] = useState(event?.currency || 'PKR');
@@ -70,24 +65,6 @@ const EditEventScreen = () => {
     fee: string;
     isPaid: boolean;
   }>>(event?.subEvents || []);
-
-  // Sub-events functions (copied from CreateEventScreen)
-  const addSubEvent = () => {
-    setSubEvents(prev => [
-      ...prev,
-      { itemName: '', maxAttendees: '', fee: '', isPaid: false }
-    ]);
-  };
-
-  const removeSubEvent = (index: number) => {
-    setSubEvents(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const updateSubEvent = (index: number, field: string, value: string | boolean) => {
-    setSubEvents(prev => prev.map((event, i) =>
-      i === index ? { ...event, [field]: value } : event
-    ));
-  };
   const [error, setError] = useState('');
 
   if (!event) return <Text>Event not found.</Text>;
@@ -102,11 +79,9 @@ const EditEventScreen = () => {
       setShowOtherCategory(false);
       setCategoryId(value);
     }
-  }
+  };
 
   const handleSubmit = async () => {
-
-    // Validate location
     if (!locationData) return setError('Location is required');
     if (locationData.type === 'venue') {
       if (!locationData.address && !locationData.venueName) {
@@ -117,7 +92,6 @@ const EditEventScreen = () => {
         return setError('Online event link is required');
       }
     }
-
 
     let locationObj;
     if (locationData.type === 'venue') {
@@ -132,12 +106,10 @@ const EditEventScreen = () => {
         venueName: locationData.venueName || ''
       };
     } else {
-      // For online events, only send online-specific fields
       locationObj = {
         type: 'online',
         link: locationData.link || '',
         platform: locationData.platform || '',
-        // Explicitly set empty values for venue fields to avoid backend validation issues
         city: '',
         state: '',
         country: '',
@@ -167,7 +139,7 @@ const EditEventScreen = () => {
         currency,
         subEvents,
       };
-      const res = await api.put('/events', { ...body, eventId: Number(event.eventId) }, {
+      await api.put('/events', { ...body, eventId: Number(event.eventId) }, {
         headers: { Authorization: `Bearer ${token}` },
       });
       Alert.alert('Success', 'Event updated!');
@@ -177,18 +149,32 @@ const EditEventScreen = () => {
     }
   };
 
-  // Location handler
+  const addSubEvent = () => {
+    setSubEvents(prev => [
+      ...prev,
+      { itemName: '', maxAttendees: '', fee: '', isPaid: false }
+    ]);
+  };
+
+  const removeSubEvent = (index: number) => {
+    setSubEvents(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const updateSubEvent = (index: number, field: string, value: string | boolean) => {
+    setSubEvents(prev => prev.map((event, i) =>
+      i === index ? { ...event, [field]: value } : event
+    ));
+  };
+
   const handleLocationSave = (data: LocationData) => {
     setLocationData(data);
     setLocationModalVisible(false);
   };
 
-  // Get location display text
   const getLocationDisplayText = () => {
     if (!locationData) {
       return 'Set a location or an online event link';
     }
-    
     if (locationData.type === 'venue') {
       if (locationData.venueName) {
         return locationData.venueName;
@@ -214,7 +200,6 @@ const EditEventScreen = () => {
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
       <Text style={styles.title}>Edit Event</Text>
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      {/* Event Images */}
       <View style={{ width: '100%', backgroundColor: '#f7f7f7', borderRadius: 20, padding: 24, marginBottom: 18, alignItems: 'center' }}>
         <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#2788ff', marginBottom: 10 }}>Event Images</Text>
         <ImageUploadCard
@@ -345,7 +330,6 @@ const EditEventScreen = () => {
         >
           <Text style={{ color: '#2788ff', fontWeight: 'bold', fontSize: 18 }}>-</Text>
         </TouchableOpacity>
-
         <TouchableOpacity
             style={styles.stepBtn}
             onPress={() => {
@@ -373,14 +357,12 @@ const EditEventScreen = () => {
           <Text style={{ color: '#2788ff', fontWeight: 'bold', fontSize: 18 }}>+</Text>
         </TouchableOpacity>
       </View>
-      {/* Date & Time Picker */}
       <DateTimeSelector
         startDate={date.start}
         endDate={date.end}
         onStartDateChange={d => setDate(prev => ({ ...prev, start: d }))}
         onEndDateChange={d => setDate(prev => ({ ...prev, end: d }))}
       />
-      {/* Paid toggle and fee input */}
       <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
         <Text style={[styles.label, { flex: 1 }]}>Is Paid?</Text>
         <Switch
@@ -392,11 +374,9 @@ const EditEventScreen = () => {
       </View>
       {isPaid && (
         <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 14, backgroundColor: '#f7f7f7', borderRadius: 10, borderWidth: 1, borderColor: '#e0e0e0', paddingHorizontal: 10, paddingVertical: 2 }}>
-          {/* Currency Dropdown */}
           <TouchableOpacity style={{ paddingHorizontal: 10, paddingVertical: 8, backgroundColor: '#eaf0fa', borderRadius: 8, marginRight: 6, borderWidth: 1, borderColor: '#dbe6fa' }} onPress={() => setCurrency(currency === 'PKR' ? 'USD' : 'PKR')}>
             <Text style={{ color: '#2788ff', fontWeight: 'bold', fontSize: 16 }}>{currency}</Text>
           </TouchableOpacity>
-          {/* Amount Input with Stepper Dropdown */}
           <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', minWidth: 0 }}>
             <TouchableOpacity
               style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#eaf0fa', justifyContent: 'center', alignItems: 'center', marginHorizontal: 4, borderWidth: 1, borderColor: '#dbe6fa' }}
@@ -429,7 +409,6 @@ const EditEventScreen = () => {
           </View>
         </View>
       )}
-      {/* Sub Events Section */}
       <Text style={styles.label}>Sub Events</Text>
       {subEvents.map((subEvent, index) => (
         <View key={index} style={styles.subEventCardStyle}>
@@ -486,12 +465,9 @@ const EditEventScreen = () => {
         <Ionicons name="add-circle" size={24} color="#2788ff" />
         <Text style={styles.addSubEventBtnTextStyle}>Add Sub-Event</Text>
       </TouchableOpacity>
-
       <TouchableOpacity style={styles.button} onPress={handleSubmit}>
         <Text style={styles.buttonText}>Save Changes</Text>
       </TouchableOpacity>
-
-      {/* Location Selector Modal */}
       <LocationSelectorModal
         visible={locationModalVisible}
         onClose={() => setLocationModalVisible(false)}
@@ -523,8 +499,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     alignSelf: 'flex-start',
   },
-
-  // Sub Event Styles for matching reference image
   subEventCardStyle : {
     backgroundColor: '#fff',
     borderRadius: 14,
@@ -606,7 +580,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 16,
   },
-
   input: {
     width: '100%',
     backgroundColor: '#f7f7f7',
@@ -620,8 +593,6 @@ const styles = StyleSheet.create({
     color: '#222',
     fontWeight: '500',
   },
-
-  
   stepBtn: {
     width: 32,
     height: 32,
@@ -673,8 +644,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     alignSelf: 'center',
   },
-
-  // Location Card Styles
   locationCard: {
     width: '100%',
     backgroundColor: '#f7f7f7',
