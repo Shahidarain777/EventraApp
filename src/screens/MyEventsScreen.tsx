@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  ActivityIndicator,
   SafeAreaView,
   RefreshControl,
   TouchableOpacity,
@@ -18,7 +17,6 @@ const TABS = ['My Event', 'Joined Event'] as const;
 type TabType = typeof TABS[number];
 
 const MyEventsScreen = () => {
-  // Get user's location
   const userCity = useSelector((state: RootState) => state.auth.user?.Address?.city?.toLowerCase() || '');
   const userState = useSelector((state: RootState) => state.auth.user?.Address?.state?.toLowerCase() || '');
   const userCountry = useSelector((state: RootState) => state.auth.user?.Address?.country?.toLowerCase() || '');
@@ -33,7 +31,6 @@ const MyEventsScreen = () => {
     dispatch(fetchEvents());
   }, [dispatch]);
 
-  // My Events: Only show events where hostId matches logged-in user's id, sorted by location priority and newest first
   const myEvents = events
     .filter((event: Event) => event.hostId === userId)
     .sort((a, b) => {
@@ -59,7 +56,6 @@ const MyEventsScreen = () => {
     'member',
     'canceled',
   ];
-  // Joined Events: Only show events where user is a joined member with specific statuses, sorted by location priority and newest first
   const joinedEvents = events
     .filter((event: Event) =>
       Array.isArray(event.joinedMembers) &&
