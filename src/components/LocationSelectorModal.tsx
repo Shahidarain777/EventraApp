@@ -63,7 +63,7 @@ const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({
   const [onlineLink, setOnlineLink] = useState(initialData?.link || '');
   const [platform, setPlatform] = useState(initialData?.platform || '');
   
-  // Map modal
+  // Map modal (react-native-modal inside LocationPickerModal, avoid nesting RN Modal)
   const [mapModalVisible, setMapModalVisible] = useState(false);
 
   const handleSave = () => {
@@ -128,9 +128,20 @@ const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({
     }
   };
 
-  const handleMapLocationPick = (lat: number, lng: number) => {
-    setLatitude(lat.toString());
-    setLongitude(lng.toString());
+  const handleMapLocationPick = (details: {
+    latitude: number;
+    longitude: number;
+    city?: string;
+    state?: string;
+    country?: string;
+    address?: string;
+  }) => {
+    setLatitude(details.latitude?.toString() || '');
+    setLongitude(details.longitude?.toString() || '');
+    setCity(details.city || '');
+    setState(details.state || '');
+    setCountry(details.country || '');
+    setAddress(details.address || '');
     setMapModalVisible(false);
   };
 
@@ -195,27 +206,22 @@ const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({
           >
             {activeTab === 'venue' ? (
               <View style={styles.venueContent}>
-                {/* Search Location with Map Button in same row */}
+                {/* Use Map Modal for location search and selection */}
                 <View style={styles.searchRow}>
-                  <View style={styles.searchContainer}>
-                    <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
-                    <TextInput
-                      style={styles.searchInput}
-                      placeholder="Search location"
-                      placeholderTextColor="#888"
-                      value={address}
-                      onChangeText={setAddress}
-                    />
-                  </View>
-
                   <TouchableOpacity
-                    style={styles.mapButton}
+                    style={[styles.mapButton, { flex: 1, justifyContent: 'center' }]}
                     onPress={() => setMapModalVisible(true)}
                   >
                     <Ionicons name="location" size={20} color="#2788ff" />
-                    <Text style={styles.mapButtonText}>Map</Text>
+                    <Text style={styles.mapButtonText}>Search & Select Location on Map</Text>
                   </TouchableOpacity>
                 </View>
+                {address ? (
+                  <View style={{ marginBottom: 8 }}>
+                    <Text style={{ fontSize: 15, color: '#2788ff', fontWeight: '500' }}>Selected Address:</Text>
+                    <Text style={{ fontSize: 15, color: '#333' }}>{address}</Text>
+                  </View>
+                ) : null}
 
                 <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 8, color: '#4F8CFF' }}>Venue Details</Text>
                 <TextInput
@@ -296,13 +302,8 @@ const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({
         </View>
       </View>
 
-      {/* Map Modal */}
-      <Modal
-        visible={mapModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setMapModalVisible(false)}
-      >
+      {/* Map Modal: render picker directly; it uses react-native-modal internally */}
+      {mapModalVisible && (
         <LocationPickerModal
           visible={true}
           onClose={() => setMapModalVisible(false)}
@@ -316,7 +317,7 @@ const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({
               : undefined
           }
         />
-      </Modal>
+      )}
     </Modal>
   );
 };

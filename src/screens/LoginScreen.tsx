@@ -22,6 +22,7 @@ import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { loginUser } from '../redux/slices/authSlice';
 import CheckBox from '@react-native-community/checkbox';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { StatusBar } from 'react-native';
 
 type RootNav = NativeStackNavigationProp<RootStackParamList, 'Auth'>;
 type SignUpNav = NativeStackNavigationProp<AuthStackParamList, 'Signup'>;

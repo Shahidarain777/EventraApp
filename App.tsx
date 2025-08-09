@@ -10,7 +10,7 @@ import { loginFromStorage, updateProfileImage, fetchUserProfileImage } from './s
 import { PersistGate } from 'redux-persist/integration/react';
 import { navigationRef } from './src/navigators/NavigationService';
 import { setupInterceptors } from './src/api/setupInterceptors';
-
+import 'react-native-get-random-values';
 // Setup API interceptors once when app starts
 setupInterceptors();
 
