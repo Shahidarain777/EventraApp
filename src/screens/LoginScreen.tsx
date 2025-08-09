@@ -104,7 +104,9 @@ const LoginScreen = () => {
   };
 
   return (
-    <LinearGradient colors={["#075cf8ff", "#4f89e6ff"]} style={styles.container}>
+    <View style={{ flex: 1 }}>
+      <StatusBar barStyle="light-content" backgroundColor="#075cf8" />
+    <LinearGradient colors={["#075cf8", "#2876f4"]} style={StyleSheet.absoluteFill}>
       <SafeAreaView style={{ flex: 1, width: '100%' }}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -195,6 +197,7 @@ const LoginScreen = () => {
           </View>
       </SafeAreaView>
     </LinearGradient>
+    </View>
   );
 };
 

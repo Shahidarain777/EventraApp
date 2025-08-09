@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
+import { View,StatusBar, Text, StyleSheet, Animated, Easing } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 
 export default function SplashTransitionScreen({ navigation }: any) {
   const translateX = useRef(new Animated.Value(-200)).current;
@@ -27,11 +28,13 @@ export default function SplashTransitionScreen({ navigation }: any) {
   }, [navigation, translateX, opacity]);
 
   return (
-    <View style={styles.container}>
-      <View style={{ alignItems: 'center', marginBottom: 18 }}>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <StatusBar barStyle="light-content" backgroundColor="#075cf8" />
+      <LinearGradient colors={["#075cf8", "#2876f4"]} style={StyleSheet.absoluteFill} />
+      <View style={{ alignItems: 'center', justifyContent: 'center', width: '100%', position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}>
         <Animated.Image
           source={require('../../assets/EventraLogo.png')}
-          style={{ width: 210, height: 210, marginBottom: 8, opacity, transform: [{ translateX }] }}
+          style={{ width: 210, height: 210, opacity, transform: [{ translateX }] }}
           resizeMode="contain"
         />
       </View>

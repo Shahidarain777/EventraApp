@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { StatusBar } from 'react-native';
 import {
   View,
   Text,
@@ -74,109 +75,111 @@ const SignupScreen = () => {
   };
 
   return (
-    <LinearGradient colors={["#075cf8ff", "#4f89e6ff"]} style={styles.container}>
-      <SafeAreaView style={{ flex: 1, width: '100%' }}>
-        <View style={styles.flexContainer}>
-          <ScrollView
-            style={{ flex: 1, width: '100%' }}
-            contentContainerStyle={{ paddingBottom: 32 }}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.signupContent}>
-              <View style={styles.logoContainer}>
-                <Image source={require('../../assets/EventraLogo.png')} style={styles.logoRect} resizeMode="contain" />
-              </View>
-              <Text style={styles.loginTitle}>Signup</Text>
-
-              <View style={styles.inputRow}>
-                <Ionicons name="person-outline" size={22} color="#8fa1c7" style={styles.icon} />
-                <TextInput
-                  style={styles.inputRowInput}
-                  placeholder="Name"
-                  placeholderTextColor="#8fa1c7"
-                  value={name}
-                  onChangeText={setName}
-                  selectionColor="#4F8CFF"
-                  autoCapitalize="words"
-                />
-              </View>
-              <View style={styles.inputRow}>
-                <Ionicons name="mail-outline" size={22} color="#8fa1c7" style={styles.icon} />
-                <TextInput
-                  style={styles.inputRowInput}
-                  placeholder="Email"
-                  placeholderTextColor="#8fa1c7"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  selectionColor="#4F8CFF"
-                />
-              </View>
-              <View style={styles.inputRow}>
-                <Ionicons name="lock-closed-outline" size={22} color="#8fa1c7" style={styles.icon} />
-                <TextInput
-                  style={styles.inputRowInput}
-                  placeholder="Password"
-                  placeholderTextColor="#8fa1c7"
-                  secureTextEntry={!showPassword}
-                  value={password}
-                  onChangeText={setPassword}
-                  selectionColor="#4F8CFF"
-                />
-                <TouchableOpacity onPress={() => setShowPassword((prev) => !prev)}>
-                  <Ionicons
-                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                    size={22}
-                    color="#8fa1c7"
-                    style={styles.icon}
-                  />
-                </TouchableOpacity>
-              </View>
-              <View style={styles.inputRow}>
-                <Ionicons name="information-outline" size={22} color="#8fa1c7" style={styles.icon} />
-                <TextInput
-                  style={styles.inputRowInput}
-                  placeholder="Bio (optional)"
-                  placeholderTextColor="#8fa1c7"
-                  value={bio}
-                  onChangeText={setBio}
-                  multiline
-                  numberOfLines={2}
-                  maxLength={120}
-                />
-              </View>
-              <View style={styles.addressRowFlat}>
-                <View style={styles.addressCol}>
-                  <AddressPicker
-                    country={country}
-                    setCountry={setCountry}
-                    state={state}
-                    setState={setState}
-                    city={city}
-                    setCity={setCity}
+    <View style={{ flex: 1 }}>
+      <StatusBar barStyle="light-content" backgroundColor="#075cf8" />
+      <LinearGradient colors={["#075cf8", "#2876f4"]} style={StyleSheet.absoluteFill}>
+        <SafeAreaView style={{ flex: 1, width: '100%' }}>
+          <View style={styles.flexContainer}>
+            <ScrollView
+              style={{ flex: 1, width: '100%' }}
+              contentContainerStyle={{ paddingBottom: 32 }}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={styles.signupContent}>
+                <View style={styles.logoContainer}>
+                  <Image source={require('../../assets/EventraLogo.png')} style={styles.logoRect} resizeMode="contain" />
+                </View>
+                <Text style={styles.loginTitle}>Signup</Text>
+                <View style={styles.inputRow}>
+                  <Ionicons name="person-outline" size={22} color="#8fa1c7" style={styles.icon} />
+                  <TextInput
+                    style={styles.inputRowInput}
+                    placeholder="Name"
+                    placeholderTextColor="#8fa1c7"
+                    value={name}
+                    onChangeText={setName}
+                    selectionColor="#4F8CFF"
+                    autoCapitalize="words"
                   />
                 </View>
+                <View style={styles.inputRow}>
+                  <Ionicons name="mail-outline" size={22} color="#8fa1c7" style={styles.icon} />
+                  <TextInput
+                    style={styles.inputRowInput}
+                    placeholder="Email"
+                    placeholderTextColor="#8fa1c7"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    selectionColor="#4F8CFF"
+                  />
+                </View>
+                <View style={styles.inputRow}>
+                  <Ionicons name="lock-closed-outline" size={22} color="#8fa1c7" style={styles.icon} />
+                  <TextInput
+                    style={styles.inputRowInput}
+                    placeholder="Password"
+                    placeholderTextColor="#8fa1c7"
+                    secureTextEntry={!showPassword}
+                    value={password}
+                    onChangeText={setPassword}
+                    selectionColor="#4F8CFF"
+                  />
+                  <TouchableOpacity onPress={() => setShowPassword((prev) => !prev)}>
+                    <Ionicons
+                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                      size={22}
+                      color="#8fa1c7"
+                      style={styles.icon}
+                    />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.inputRow}>
+                  <Ionicons name="information-outline" size={22} color="#8fa1c7" style={styles.icon} />
+                  <TextInput
+                    style={styles.inputRowInput}
+                    placeholder="Bio (optional)"
+                    placeholderTextColor="#8fa1c7"
+                    value={bio}
+                    onChangeText={setBio}
+                    multiline
+                    numberOfLines={2}
+                    maxLength={120}
+                  />
+                </View>
+                <View style={styles.addressRowFlat}>
+                  <View style={styles.addressCol}>
+                    <AddressPicker
+                      country={country}
+                      setCountry={setCountry}
+                      state={state}
+                      setState={setState}
+                      city={city}
+                      setCity={setCity}
+                    />
+                  </View>
+                </View>
               </View>
-            </View>
-            <TouchableOpacity style={styles.signupBtnModern} onPress={handleSignup} disabled={loading}>
-              {loading ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.signupBtnText}>Sign Up</Text>
-              )}
-            </TouchableOpacity>
-            <View style={styles.loginLinkBottom}>
-              <Text style={styles.loginLinkBottomText}>
-                Already have an account?{' '}
-                <Text style={styles.loginLinkBlue} onPress={() => navigation.goBack()}>Login</Text>
-              </Text>
-            </View>
-          </ScrollView>
-        </View>
-      </SafeAreaView>
-    </LinearGradient>
+              <TouchableOpacity style={styles.signupBtnModern} onPress={handleSignup} disabled={loading}>
+                {loading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.signupBtnText}>Sign Up</Text>
+                )}
+              </TouchableOpacity>
+              <View style={styles.loginLinkBottom}>
+                <Text style={styles.loginLinkBottomText}>
+                  Already have an account?{' '}
+                  <Text style={styles.loginLinkBlue} onPress={() => navigation.goBack()}>Login</Text>
+                </Text>
+              </View>
+            </ScrollView>
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
+    </View>
   );
 };
 
