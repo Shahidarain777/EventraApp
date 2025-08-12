@@ -160,23 +160,632 @@
   ]
 },
   {
-    "name": "India",
+  "name": "India",
+  "states": [
+    {
+      "name": "Maharashtra",
+      "cities": ["Mumbai", "Pune", "Nagpur", "Nashik", "Aurangabad", "Solapur", "Thane", "Kolhapur", "Amravati", "Satara", "Sangli", "Jalgaon", "Akola", "Dhule", "Latur", "Ahmednagar", "Chandrapur"]
+    },
+    {
+      "name": "West Bengal",
+      "cities": ["Kolkata", "Howrah", "Durgapur", "Siliguri", "Asansol", "Barrackpore", "Kharagpur", "Haldia", "Bally", "Baharampur", "Malda", "Raiganj"]
+    },
+    {
+      "name": "Uttar Pradesh",
+      "cities": ["Lucknow", "Kanpur", "Agra", "Varanasi", "Noida", "Ghaziabad", "Meerut", "Allahabad", "Aligarh", "Moradabad", "Bareilly", "Saharanpur", "Gorakhpur", "Jhansi", "Rampur"]
+    },
+    {
+      "name": "Punjab",
+      "cities": ["Amritsar", "Ludhiana", "Jalandhar", "Patiala", "Bathinda", "Mohali", "Hoshiarpur", "Moga", "Pathankot", "Firozpur", "Muktsar", "Barnala", "Kapurthala"]
+    },
+    {
+      "name": "Tamil Nadu",
+      "cities": ["Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem", "Tirunelveli", "Vellore", "Erode", "Tiruppur", "Thoothukudi", "Nagercoil", "Kanchipuram"]
+    },
+    {
+      "name": "Karnataka",
+      "cities": ["Bangalore", "Mysore", "Hubli", "Mangalore", "Belgaum", "Gulbarga", "Davangere", "Bellary", "Shimoga", "Tumkur", "Bidar", "Hassan"]
+    },
+    {
+      "name": "Gujarat",
+      "cities": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar", "Junagadh", "Gandhinagar", "Anand", "Navsari", "Mehsana", "Porbandar"]
+    },
+    {
+      "name": "Rajasthan",
+      "cities": ["Jaipur", "Jodhpur", "Udaipur", "Kota", "Ajmer", "Bikaner", "Alwar", "Bhilwara", "Sikar", "Pali", "Tonk", "Churu"]
+    },
+    {
+      "name": "Kerala",
+      "cities": ["Thiruvananthapuram", "Kochi", "Kozhikode", "Kollam", "Thrissur", "Alappuzha", "Palakkad", "Kannur", "Kottayam", "Malappuram"]
+    },
+    {
+      "name": "Bihar",
+      "cities": ["Patna", "Gaya", "Bhagalpur", "Muzaffarpur", "Purnia", "Darbhanga", "Arrah", "Begusarai", "Katihar", "Munger"]
+    }
+  ]
+},
+ {
+  "name": "United Kingdom",
+  "states": [
+    {
+      "name": "England",
+      "cities": [
+        "London", "Manchester", "Birmingham", "Liverpool", "Leeds", "Sheffield", "Bristol", "Newcastle upon Tyne", "Nottingham", "Leicester", "Coventry", "Bradford", "Derby", "Southampton", "Portsmouth", "Brighton", "Plymouth", "Stoke-on-Trent", "Wolverhampton", "Reading", "Norwich", "Luton", "Swindon", "Milton Keynes", "Preston", "Sunderland", "York", "Blackpool", "Bolton", "Ipswich", "Bournemouth", "Cambridge", "Oxford", "Huddersfield", "Slough", "Peterborough", "Gloucester", "Exeter", "Chelmsford", "Colchester", "Crawley", "Maidstone", "Eastbourne", "Basildon", "Warrington", "Stockport", "Solihull", "Gateshead", "Wakefield", "Salford", "Basingstoke", "Hastings", "Chester", "High Wycombe", "Hartlepool", "Darlington", "Stevenage", "Woking", "Rotherham", "Oldham", "Barnsley", "Halifax", "Mansfield", "Doncaster", "Grimsby", "Scunthorpe", "Hemel Hempstead", "Aylesbury", "Bath", "Bracknell", "Worthing", "Weston-super-Mare", "Bury", "Burton upon Trent", "Worcester", "Barrow-in-Furness", "Eastleigh", "Telford", "Shrewsbury"
+      ]
+    },
+    {
+      "name": "Scotland",
+      "cities": [
+        "Edinburgh", "Glasgow", "Aberdeen", "Dundee", "Inverness", "Stirling", "Paisley", "East Kilbride", "Livingston", "Hamilton", "Cumbernauld", "Kirkcaldy", "Ayr", "Perth", "Motherwell", "Greenock", "Dunfermline", "Coatbridge", "Airdrie", "Kilmarnock", "Elgin", "Dumfries", "Falkirk", "Alloa", "Peterhead", "Irvine", "Arbroath", "St Andrews", "Montrose", "Forfar", "Fraserburgh", "Lerwick", "Oban"
+      ]
+    },
+    {
+      "name": "Wales",
+      "cities": [
+        "Cardiff", "Swansea", "Newport", "Bangor", "Wrexham", "Barry", "Merthyr Tydfil", "Bridgend", "Llanelli", "Neath", "Port Talbot", "Aberystwyth", "Cwmbran", "Pontypridd", "Rhondda", "Caerphilly", "Colwyn Bay", "Abergavenny", "Llandudno", "Carmarthen", "Chepstow", "Monmouth", "Holyhead"
+      ]
+    },
+    {
+      "name": "Northern Ireland",
+      "cities": [
+        "Belfast", "Derry", "Lisburn", "Newry", "Armagh", "Craigavon", "Bangor", "Antrim", "Ballymena", "Coleraine", "Londonderry", "Omagh", "Dungannon", "Newtownabbey", "Carrickfergus", "Strabane", "Downpatrick", "Enniskillen", "Larne", "Portadown"
+      ]
+    }
+  ]
+},
+{
+  "name": "Australia",
+  "states": [
+    {
+      "name": "New South Wales",
+      "cities": [
+        "Sydney", "Newcastle", "Wollongong", "Parramatta", "Penrith", "Dubbo", "Coffs Harbour", "Tamworth", "Albury", "Wagga Wagga", "Port Macquarie", "Bathurst", "Orange", "Goulburn", "Broken Hill", "Lismore", "Armidale", "Nowra", "Maitland", "Tweed Heads", "Queanbeyan", "Grafton"
+      ]
+    },
+    {
+      "name": "Victoria",
+      "cities": [
+        "Melbourne", "Geelong", "Ballarat", "Bendigo", "Shepparton", "Mildura", "Warrnambool", "Horsham", "Wangaratta", "Traralgon", "Sunbury", "Echuca", "Sale", "Morwell", "Colac", "Bairnsdale", "Castlemaine"
+      ]
+    },
+    {
+      "name": "Queensland",
+      "cities": [
+        "Brisbane", "Gold Coast", "Cairns", "Townsville", "Toowoomba", "Mackay", "Rockhampton", "Bundaberg", "Hervey Bay", "Gladstone", "Mount Isa", "Maryborough", "Gympie", "Ipswich", "Redcliffe", "Logan City", "Bowen", "Emerald"
+      ]
+    },
+    {
+      "name": "Western Australia",
+      "cities": [
+        "Perth", "Fremantle", "Bunbury", "Geraldton", "Albany", "Kalgoorlie", "Karratha", "Broome", "Port Hedland", "Esperance", "Mandurah", "Busselton", "Carnarvon", "Kwinana", "Joondalup"
+      ]
+    },
+    {
+      "name": "South Australia",
+      "cities": [
+        "Adelaide", "Mount Gambier", "Whyalla", "Gawler", "Port Pirie", "Port Augusta", "Victor Harbor", "Murray Bridge", "Port Lincoln", "Port Noarlunga", "Port Wakefield", "Kadina", "Peterborough"
+      ]
+    },
+    {
+      "name": "Tasmania",
+      "cities": [
+        "Hobart", "Launceston", "Devonport", "Burnie", "Ulverstone", "Kingston", "Glenorchy", "Sorell", "New Norfolk", "Westbury", "Deloraine"
+      ]
+    },
+    {
+      "name": "Northern Territory",
+      "cities": [
+        "Darwin", "Alice Springs", "Katherine", "Tennant Creek", "Nhulunbuy", "Jabiru", "Yulara"
+      ]
+    },
+    {
+      "name": "Australian Capital Territory",
+      "cities": [
+        "Canberra", "Belconnen", "Gungahlin", "Woden", "Tuggeranong", "Kingston", "Phillip"
+      ]
+    }
+  ]
+},
+{
+  "name": "United Arab Emirates",
+  "states": [
+    {
+      "name": "Abu Dhabi",
+      "cities": [
+        "Abu Dhabi", "Al Ain", "Madinat Zayed", "Ghayathi", "Ruwais", "Bani Yas", "Mussafah", "Khalifa City"
+      ]
+    },
+    {
+      "name": "Dubai",
+      "cities": [
+        "Dubai", "Jebel Ali", "Hatta", "Deira", "Bur Dubai", "Jumeirah", "Al Barsha", "Business Bay", "Dubai Marina"
+      ]
+    },
+    {
+      "name": "Sharjah",
+      "cities": [
+        "Sharjah", "Khor Fakkan", "Kalba", "Dibba Al Hisn", "Al Dhaid", "Mleiha"
+      ]
+    },
+    {
+      "name": "Ajman",
+      "cities": [
+        "Ajman", "Masfout", "Manama", "Al Jurf"
+      ]
+    },
+    {
+      "name": "Umm Al Quwain",
+      "cities": [
+        "Umm Al Quwain", "Falaj Al Mualla"
+      ]
+    },
+    {
+      "name": "Ras Al Khaimah",
+      "cities": [
+        "Ras Al Khaimah", "Al Jazirah Al Hamra", "Digdaga", "Rams"
+      ]
+    },
+    {
+      "name": "Fujairah",
+      "cities": [
+        "Fujairah", "Dibba Al-Fujairah", "Masafi", "Qidfa", "Mirbah"
+      ]
+    }
+  ]
+},
+  {
+    "name": "Saudi Arabia",
     "states": [
       {
-        "name": "Maharashtra",
-        "cities": ["Mumbai", "Pune", "Nagpur", "Nashik", "Aurangabad"]
+        "name": "Riyadh",
+        "cities": ["Riyadh", "Al Kharj", "Al Majma'ah", "Al Zulfi", "Dawadmi", "Shaqra", "Wadi ad-Dawasir", "Afif", "Al Quway'iyah", "Al Muzahmiyah", "Hotat Bani Tamim"]
       },
       {
-        "name": "Punjab",
-        "cities": ["Amritsar", "Ludhiana", "Jalandhar", "Patiala", "Bathinda"]
+        "name": "Makkah",
+        "cities": ["Makkah", "Jeddah", "Taif", "Rabigh", "Al Lith", "Khulais", "Al Qunfudhah", "Turabah"]
       },
       {
-        "name": "Uttar Pradesh",
-        "cities": ["Lucknow", "Kanpur", "Agra", "Varanasi", "Noida"]
+        "name": "Madinah",
+        "cities": ["Madinah", "Yanbu", "Al Ula", "Badr", "Mahd adh Dhahab", "Khaybar"]
       },
       {
-        "name": "West Bengal",
-        "cities": ["Kolkata", "Howrah", "Durgapur", "Siliguri", "Asansol"]
+        "name": "Eastern Province",
+        "cities": ["Dammam", "Al Khobar", "Dhahran", "Jubail", "Qatif", "Hofuf", "Al Mubarraz", "Hafar Al-Batin", "Khafji", "Ras Tanura", "Abqaiq", "Buqayq"]
+      },
+      {
+        "name": "Al-Qassim",
+        "cities": ["Buraydah", "Unaizah", "Ar Rass", "Al Bukayriyah", "Al Badayea", "Al Mithnab"]
+      },
+      {
+        "name": "Asir",
+        "cities": ["Abha", "Khamis Mushait", "Bisha", "Muhayil", "Sarat Abidah", "Ahad Rafidah", "Tanomah"]
+      },
+      {
+        "name": "Jazan",
+        "cities": ["Jazan", "Sabya", "Abu Arish", "Samtah", "Baish", "Ahad Al Masarihah"]
+      },
+      {
+        "name": "Hail",
+        "cities": ["Hail", "Baqaa", "Ash Shinan"]
+      },
+      {
+        "name": "Tabuk",
+        "cities": ["Tabuk", "Umluj", "Duba", "Haql", "Tayma"]
+      },
+      {
+        "name": "Najran",
+        "cities": ["Najran", "Sharurah", "Hubuna"]
+      },
+      {
+        "name": "Al Bahah",
+        "cities": ["Al Bahah", "Baljurashi", "Al Mandaq", "Al Aqiq", "Qilwah"]
+      },
+      {
+        "name": "Al Jawf",
+        "cities": ["Sakaka", "Qurayyat", "Dumat Al Jandal", "Tabarjal"]
+      },
+      {
+        "name": "Northern Borders",
+        "cities": ["Arar", "Rafha", "Turaif", "Al Uwayqilah"]
+      }
+    ]
+  },
+  {
+    "name": "Qatar",
+    "states": [
+      {
+        "name": "Doha",
+        "cities": ["Doha", "Al Sadd", "Al Mansoura", "Najma", "Msheireb", "Al Bidda"]
+      },
+      {
+        "name": "Al Rayyan",
+        "cities": ["Al Rayyan", "Education City", "Al Gharrafa", "Al Waab", "Al Luqta", "Muaither"]
+      },
+      {
+        "name": "Al Wakrah",
+        "cities": ["Al Wakrah", "Al Wukair", "Mesaieed"]
+      },
+      {
+        "name": "Umm Salal",
+        "cities": ["Umm Salal Ali", "Umm Salal Muhammad", "Izghawa"]
+      },
+      {
+        "name": "Al Daayen",
+        "cities": ["Lusail", "Al Kheesa", "Al Ebb", "Wadi Al Banat", "Al Sakhama"]
+      },
+      {
+        "name": "Al Khor and Al Thakhira",
+        "cities": ["Al Khor", "Al Thakhira", "Simaisma"]
+      },
+      {
+        "name": "Al Shamal",
+        "cities": ["Madinat ash Shamal", "Al Ruwais", "Abu Dhalouf"]
+      },
+      {
+        "name": "Al Shahaniya",
+        "cities": ["Al Shahaniya", "Dukhan", "Rawdat Rashed", "Al Nasraniya"]
+      }
+    ]
+  },
+  {
+    "name": "Oman",
+    "states": [
+      {
+        "name": "Muscat",
+        "cities": ["Muscat", "Muttrah", "Bawshar", "Seeb", "Qurayyat", "Al Amerat"]
+      },
+      {
+        "name": "Dhofar",
+        "cities": ["Salalah", "Taqah", "Mirbat", "Rakhyut", "Thumrait"]
+      },
+      {
+        "name": "Musandam",
+        "cities": ["Khasab", "Bukha", "Diba Al-Bayah", "Lima"]
+      },
+      {
+        "name": "Al Batinah North",
+        "cities": ["Sohar", "Shinas", "Liwa", "Saham", "Al Khaburah", "Suwayq"]
+      },
+      {
+        "name": "Al Batinah South",
+        "cities": ["Rustaq", "Barka", "Al Awabi", "Nakhal", "Wadi Al Maawil"]
+      },
+      {
+        "name": "Ad Dakhiliyah",
+        "cities": ["Nizwa", "Bahla", "Adam", "Izki", "Manah", "Samail", "Al Hamra"]
+      },
+      {
+        "name": "Ad Dhahirah",
+        "cities": ["Ibri", "Yanqul", "Dhank"]
+      },
+      {
+        "name": "Al Buraimi",
+        "cities": ["Al Buraimi", "Mahdah", "Al Sinainah"]
+      },
+      {
+        "name": "North Al Sharqiyah",
+        "cities": ["Ibra", "Al Mudhaibi", "Bidiyah", "Qabil"]
+      },
+      {
+        "name": "South Al Sharqiyah",
+        "cities": ["Sur", "Jalan Bani Bu Ali", "Jalan Bani Bu Hassan", "Masirah", "Al Kamil Wal Wafi"]
+      },
+      {
+        "name": "Al Wusta",
+        "cities": ["Haima", "Duqm", "Mahout", "Al Jazir"]
+      }
+    ]
+  },
+  {
+    "name": "Kuwait",
+    "states": [
+      {
+        "name": "Al Asimah",
+        "cities": ["Kuwait City", "Sharq", "Dasman", "Mirqab", "Shuwaikh", "Bneid Al Qar"]
+      },
+      {
+        "name": "Hawalli",
+        "cities": ["Hawalli", "Salmiya", "Jabriya", "Mishref", "Bayan", "Rumaithiya", "Salwa"]
+      },
+      {
+        "name": "Farwaniya",
+        "cities": ["Farwaniya", "Khaitan", "Riggae", "Sabah Al Nasser", "Ishbiliya"]
+      },
+      {
+        "name": "Mubarak Al Kabeer",
+        "cities": ["Abu Al Hasaniya", "Abu Fatira", "Adan", "Al Qurain", "Al Qusour", "Fnaitees", "Sabhan"]
+      },
+      {
+        "name": "Ahmadi",
+        "cities": ["Ahmadi", "Fahaheel", "Mangaf", "Mahboula", "Abu Halifa", "Egaila", "Wafra"]
+      },
+      {
+        "name": "Jahra",
+        "cities": ["Jahra", "Sulaibiya", "Taima", "Saad Al Abdullah", "Al Nayem"]
+      }
+    ]
+  },
+  {
+    "name": "Bahrain",
+    "states": [
+      {
+        "name": "Capital Governorate",
+        "cities": [
+          "Manama", "Juffair", "Adliya", "Hoora", "Seef", "Zinj", "Sitra"
+        ]
+      },
+      {
+        "name": "Muharraq Governorate",
+        "cities": [
+          "Muharraq", "Arad", "Al Hidd", "Busaiteen", "Samaheej", "Diyar Al Muharraq"
+        ]
+      },
+      {
+        "name": "Northern Governorate",
+        "cities": [
+          "Hamad Town", "Budaiya", "Saar", "Barbar", "Diraz", "Jannusan", "Karranah", "A'ali"
+        ]
+      },
+      {
+        "name": "Southern Governorate",
+        "cities": [
+          "Riffa", "Isa Town", "Zallaq", "Awali", "Askar", "Jaw", "Sakhir"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Jordan",
+    "states": [
+      {
+        "name": "Amman",
+        "cities": [
+          "Amman", "Sahab", "Wadi as-Seer", "Marka", "Sweileh", "Al Jubeiha", "Abu Alanda"
+        ]
+      },
+      {
+        "name": "Irbid",
+        "cities": [
+          "Irbid", "Ar Ramtha", "Al Husn", "Bani Kenana", "Bani Ubayd", "Al Mazar ash Shamali"
+        ]
+      },
+      {
+        "name": "Zarqa",
+        "cities": [
+          "Zarqa", "Russeifa", "Hashimiyah", "Azraq"
+        ]
+      },
+      {
+        "name": "Balqa",
+        "cities": [
+          "As-Salt", "Fuheis", "Mahes", "Deir Alla"
+        ]
+      },
+      {
+        "name": "Karak",
+        "cities": [
+          "Al Karak", "Mu'tah", "Qatraneh", "Ghawr as-Safi"
+        ]
+      },
+      {
+        "name": "Madaba",
+        "cities": [
+          "Madaba", "Ma'in", "Dhiban"
+        ]
+      },
+      {
+        "name": "Mafraq",
+        "cities": [
+          "Al Mafraq", "Ruweished", "Sabha", "Subhieh"
+        ]
+      },
+      {
+        "name": "Tafilah",
+        "cities": [
+          "At-Tafilah", "Busaira", "Al Hasa"
+        ]
+      },
+      {
+        "name": "Ma'an",
+        "cities": [
+          "Ma'an", "Wadi Musa (Petra)", "Shobak", "Al Husseiniya"
+        ]
+      },
+      {
+        "name": "Ajloun",
+        "cities": [
+          "Ajloun", "Anjara", "Kufranjah"
+        ]
+      },
+      {
+        "name": "Jerash",
+        "cities": [
+          "Jerash", "Souf", "Sakib"
+        ]
+      },
+      {
+        "name": "Aqaba",
+        "cities": [
+          "Aqaba", "Wadi Rum", "Al Quweira"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Lebanon",
+    "states": [
+      {
+        "name": "Beirut",
+        "cities": [
+          "Beirut"
+        ]
+      },
+      {
+        "name": "Mount Lebanon",
+        "cities": [
+          "Jounieh", "Byblos (Jbeil)", "Baabda", "Aley", "Zouk Mikael", "Jdeideh", "Bchamoun"
+        ]
+      },
+      {
+        "name": "North",
+        "cities": [
+          "Tripoli", "Batroun", "Zgharta", "Bcharre", "Amioun"
+        ]
+      },
+      {
+        "name": "Akkar",
+        "cities": [
+          "Halba", "Qoubaiyat", "Bebnine"
+        ]
+      },
+      {
+        "name": "Bekaa",
+        "cities": [
+          "Zahle", "Taalabaya", "Qabb Elias", "Joub Jannine"
+        ]
+      },
+      {
+        "name": "Baalbek-Hermel",
+        "cities": [
+          "Baalbek", "Hermel", "Nabi Chit"
+        ]
+      },
+      {
+        "name": "South",
+        "cities": [
+          "Sidon (Saida)", "Tyre (Sour)", "Jezzine"
+        ]
+      },
+      {
+        "name": "Nabatieh",
+        "cities": [
+          "Nabatieh", "Bint Jbeil", "Marjayoun", "Hasbaya"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Egypt",
+    "states": [
+      {
+        "name": "Cairo",
+        "cities": [
+          "Cairo", "Nasr City", "Heliopolis", "Maadi", "New Cairo", "Shubra"
+        ]
+      },
+      {
+        "name": "Giza",
+        "cities": [
+          "Giza", "6th of October City", "Sheikh Zayed City", "Hawamdeya"
+        ]
+      },
+      {
+        "name": "Alexandria",
+        "cities": [
+          "Alexandria", "Borg El Arab", "Agami"
+        ]
+      },
+      {
+        "name": "Dakahlia",
+        "cities": [
+          "Mansoura", "Mit Ghamr", "Talkha"
+        ]
+      },
+      {
+        "name": "Sharqia",
+        "cities": [
+          "Zagazig", "10th of Ramadan City", "Bilbeis"
+        ]
+      },
+      {
+        "name": "Gharbia",
+        "cities": [
+          "Tanta", "El Mahalla El Kubra", "Kafr El Zayat"
+        ]
+      },
+      {
+        "name": "Monufia",
+        "cities": [
+          "Shebin El-Kom", "Menouf", "Sadat City"
+        ]
+      },
+      {
+        "name": "Qalyubia",
+        "cities": [
+          "Banha", "Qalyub", "Shubra El Kheima", "Khanka"
+        ]
+      },
+      {
+        "name": "Faiyum",
+        "cities": [
+          "Faiyum", "Tamia", "Ibshaway"
+        ]
+      },
+      {
+        "name": "Beni Suef",
+        "cities": [
+          "Beni Suef", "Beba", "Al Wasta"
+        ]
+      },
+      {
+        "name": "Minya",
+        "cities": [
+          "Minya", "Mallawi", "Beni Mazar"
+        ]
+      },
+      {
+        "name": "Assiut",
+        "cities": [
+          "Asyut", "Manfalut", "Abnoub"
+        ]
+      },
+      {
+        "name": "Sohag",
+        "cities": [
+          "Sohag", "Akhmim", "Tahta"
+        ]
+      },
+      {
+        "name": "Qena",
+        "cities": [
+          "Qena", "Nag Hammadi", "Qus"
+        ]
+      },
+      {
+        "name": "Luxor",
+        "cities": [
+          "Luxor", "Esna", "Armant"
+        ]
+      },
+      {
+        "name": "Aswan",
+        "cities": [
+          "Aswan", "Kom Ombo", "Edfu"
+        ]
+      },
+      {
+        "name": "Red Sea",
+        "cities": [
+          "Hurghada", "Safaga", "Marsa Alam", "El Quseir"
+        ]
+      },
+      {
+        "name": "Ismailia",
+        "cities": [
+          "Ismailia", "Fayed", "Qantara"
+        ]
+      },
+      {
+        "name": "Suez",
+        "cities": [
+          "Suez", "Ataqa", "Arbaeen"
+        ]
+      },
+      {
+        "name": "Port Said",
+        "cities": [
+          "Port Said", "Port Fuad"
+        ]
       }
     ]
   },
@@ -185,61 +794,736 @@
     "states": [
       {
         "name": "California",
-        "cities": ["Los Angeles", "San Francisco", "San Diego", "Sacramento", "San Jose"]
+        "cities": ["Los Angeles", "San Francisco", "San Diego", "San Jose", "Sacramento", "Fresno", "Long Beach", "Oakland", "Bakersfield", "Anaheim", "Irvine", "Riverside", "Stockton", "Modesto", "Oxnard"]
       },
       {
         "name": "Texas",
-        "cities": ["Houston", "Dallas", "Austin", "San Antonio", "Fort Worth"]
+        "cities": ["Houston", "Dallas", "Austin", "San Antonio", "Fort Worth", "El Paso", "Arlington", "Plano", "Corpus Christi", "Lubbock", "Irving", "Garland", "Frisco", "McKinney"]
       },
       {
         "name": "New York",
-        "cities": ["New York City", "Buffalo", "Rochester", "Albany", "Syracuse"]
+        "cities": ["New York City", "Buffalo", "Rochester", "Yonkers", "Syracuse", "Albany", "New Rochelle", "Mount Vernon", "Schenectady", "Utica", "White Plains", "Troy", "Niagara Falls"]
       },
       {
         "name": "Florida",
-        "cities": ["Miami", "Orlando", "Tampa", "Jacksonville", "Tallahassee"]
+        "cities": ["Miami", "Orlando", "Tampa", "Jacksonville", "St. Petersburg", "Hialeah", "Tallahassee", "Fort Lauderdale", "Port St. Lucie", "Cape Coral", "Hollywood", "Gainesville", "Coral Springs"]
+      },
+      {
+        "name": "Illinois",
+        "cities": ["Chicago", "Aurora", "Naperville", "Joliet", "Rockford", "Springfield", "Peoria", "Elgin", "Waukegan", "Champaign"]
+      },
+      {
+        "name": "Pennsylvania",
+        "cities": ["Philadelphia", "Pittsburgh", "Allentown", "Erie", "Reading", "Scranton", "Bethlehem", "Lancaster", "Harrisburg", "York"]
+      },
+      {
+        "name": "Ohio",
+        "cities": ["Columbus", "Cleveland", "Cincinnati", "Toledo", "Akron", "Dayton", "Parma", "Canton", "Youngstown", "Lorain"]
+      },
+      {
+        "name": "Georgia",
+        "cities": ["Atlanta", "Augusta", "Columbus", "Macon", "Savannah", "Athens", "Sandy Springs", "Roswell", "Johns Creek", "Albany"]
+      },
+      {
+        "name": "North Carolina",
+        "cities": ["Charlotte", "Raleigh", "Greensboro", "Durham", "Winston-Salem", "Fayetteville", "Cary", "Wilmington", "High Point", "Concord"]
+      },
+      {
+        "name": "Michigan",
+        "cities": ["Detroit", "Grand Rapids", "Warren", "Sterling Heights", "Ann Arbor", "Lansing", "Flint", "Dearborn", "Livonia", "Troy"]
+      },
+      {
+        "name": "Washington",
+        "cities": ["Seattle", "Spokane", "Tacoma", "Vancouver", "Bellevue", "Kent", "Everett", "Renton", "Spokane Valley", "Federal Way"]
+      },
+      {
+        "name": "Arizona",
+        "cities": ["Phoenix", "Tucson", "Mesa", "Chandler", "Scottsdale", "Glendale", "Gilbert", "Tempe", "Peoria", "Surprise"]
+      },
+      {
+        "name": "Massachusetts",
+        "cities": ["Boston", "Worcester", "Springfield", "Lowell", "Cambridge", "New Bedford", "Brockton", "Quincy", "Lynn", "Fall River"]
+      },
+      {
+        "name": "Virginia",
+        "cities": ["Virginia Beach", "Norfolk", "Chesapeake", "Richmond", "Newport News", "Alexandria", "Hampton", "Roanoke", "Portsmouth", "Suffolk"]
+      },
+      {
+        "name": "New Jersey",
+        "cities": ["Newark", "Jersey City", "Paterson", "Elizabeth", "Edison", "Woodbridge", "Lakewood", "Toms River", "Hamilton Township", "Trenton"]
+      },
+      {
+        "name": "Colorado",
+        "cities": ["Denver", "Colorado Springs", "Aurora", "Fort Collins", "Lakewood", "Thornton", "Arvada", "Westminster", "Pueblo", "Centennial"]
+      },
+      {
+        "name": "Tennessee",
+        "cities": ["Nashville", "Memphis", "Knoxville", "Chattanooga", "Clarksville", "Murfreesboro", "Franklin", "Jackson", "Johnson City", "Bartlett"]
+      },
+      {
+        "name": "Indiana",
+        "cities": ["Indianapolis", "Fort Wayne", "Evansville", "South Bend", "Carmel", "Fishers", "Bloomington", "Hammond", "Gary", "Lafayette"]
+      },
+      {
+        "name": "Missouri",
+        "cities": ["Kansas City", "St. Louis", "Springfield", "Columbia", "Independence", "Lee's Summit", "O'Fallon", "St. Joseph", "St. Charles", "Blue Springs"]
+      },
+      {
+        "name": "Wisconsin",
+        "cities": ["Milwaukee", "Madison", "Green Bay", "Kenosha", "Racine", "Appleton", "Waukesha", "Eau Claire", "Oshkosh", "Janesville"]
       }
     ]
   },
   {
-    "name": "United Kingdom",
+    "name": "Canada",
     "states": [
       {
-        "name": "England",
-        "cities": ["London", "Manchester", "Birmingham", "Liverpool", "Leeds"]
+        "name": "Ontario",
+        "cities": ["Toronto", "Ottawa", "Mississauga", "Brampton", "Hamilton", "London", "Markham", "Vaughan", "Kitchener", "Windsor", "Richmond Hill", "Oakville"]
       },
       {
-        "name": "Scotland",
-        "cities": ["Edinburgh", "Glasgow", "Aberdeen", "Dundee", "Inverness"]
+        "name": "Quebec",
+        "cities": ["Montreal", "Quebec City", "Laval", "Gatineau", "Longueuil", "Sherbrooke", "Saguenay", "Trois-Rivières", "Terrebonne", "Lévis"]
       },
       {
-        "name": "Wales",
-        "cities": ["Cardiff", "Swansea", "Newport", "Bangor", "Wrexham"]
+        "name": "British Columbia",
+        "cities": ["Vancouver", "Surrey", "Burnaby", "Richmond", "Coquitlam", "Kelowna", "Abbotsford", "Victoria", "Langley", "Nanaimo"]
       },
       {
-        "name": "Northern Ireland",
-        "cities": ["Belfast", "Derry", "Lisburn", "Newry", "Armagh"]
+        "name": "Alberta",
+        "cities": ["Calgary", "Edmonton", "Red Deer", "Lethbridge", "St. Albert", "Medicine Hat", "Grande Prairie", "Airdrie", "Spruce Grove", "Fort McMurray"]
+      },
+      {
+        "name": "Manitoba",
+        "cities": ["Winnipeg", "Brandon", "Steinbach", "Thompson", "Portage la Prairie", "Selkirk"]
+      },
+      {
+        "name": "Saskatchewan",
+        "cities": ["Saskatoon", "Regina", "Prince Albert", "Moose Jaw", "Swift Current", "North Battleford"]
+      },
+      {
+        "name": "Nova Scotia",
+        "cities": ["Halifax", "Sydney", "Dartmouth", "Truro", "New Glasgow"]
+      },
+      {
+        "name": "New Brunswick",
+        "cities": ["Moncton", "Saint John", "Fredericton", "Dieppe", "Edmundston"]
+      },
+      {
+        "name": "Newfoundland and Labrador",
+        "cities": ["St. John's", "Mount Pearl", "Corner Brook", "Gander", "Grand Falls-Windsor"]
+      },
+      {
+        "name": "Prince Edward Island",
+        "cities": ["Charlottetown", "Summerside", "Stratford", "Cornwall", "Montague"]
+      },
+      {
+        "name": "Northwest Territories",
+        "cities": ["Yellowknife", "Inuvik", "Hay River", "Fort Smith", "Tuktoyaktuk"]
+      },
+      {
+        "name": "Yukon",
+        "cities": ["Whitehorse", "Dawson City", "Watson Lake", "Haines Junction", "Faro"]
+      },
+      {
+        "name": "Nunavut",
+        "cities": ["Iqaluit", "Rankin Inlet", "Arviat", "Cambridge Bay", "Pond Inlet"]
       }
     ]
   },
   {
-    "name": "Australia",
+    "name": "Germany",
     "states": [
       {
-        "name": "New South Wales",
-        "cities": ["Sydney", "Newcastle", "Wollongong", "Parramatta", "Penrith"]
+        "name": "Baden-Württemberg",
+        "cities": ["Stuttgart", "Karlsruhe", "Mannheim", "Freiburg", "Heidelberg", "Ulm", "Heilbronn", "Pforzheim", "Reutlingen", "Tübingen"]
       },
       {
-        "name": "Victoria",
-        "cities": ["Melbourne", "Geelong", "Ballarat", "Bendigo", "Shepparton"]
+        "name": "Bavaria",
+        "cities": ["Munich", "Nuremberg", "Augsburg", "Regensburg", "Ingolstadt", "Würzburg", "Fürth", "Erlangen", "Bayreuth", "Bamberg"]
       },
       {
-        "name": "Queensland",
-        "cities": ["Brisbane", "Gold Coast", "Cairns", "Townsville", "Toowoomba"]
+        "name": "Berlin",
+        "cities": ["Berlin"]
       },
       {
-        "name": "Western Australia",
-        "cities": ["Perth", "Fremantle", "Bunbury", "Geraldton", "Albany"]
+        "name": "Brandenburg",
+        "cities": ["Potsdam", "Cottbus", "Brandenburg an der Havel", "Frankfurt (Oder)", "Oranienburg"]
+      },
+      {
+        "name": "Bremen",
+        "cities": ["Bremen", "Bremerhaven"]
+      },
+      {
+        "name": "Hamburg",
+        "cities": ["Hamburg"]
+      },
+      {
+        "name": "Hesse",
+        "cities": ["Frankfurt", "Wiesbaden", "Kassel", "Darmstadt", "Offenbach", "Hanau"]
+      },
+      {
+        "name": "Lower Saxony",
+        "cities": ["Hanover", "Braunschweig", "Osnabrück", "Oldenburg", "Wolfsburg", "Göttingen", "Hildesheim"]
+      },
+      {
+        "name": "Mecklenburg-Vorpommern",
+        "cities": ["Rostock", "Schwerin", "Neubrandenburg", "Greifswald", "Stralsund"]
+      },
+      {
+        "name": "North Rhine-Westphalia",
+        "cities": ["Cologne", "Düsseldorf", "Dortmund", "Essen", "Duisburg", "Bochum", "Wuppertal", "Bielefeld", "Bonn", "Münster"]
+      },
+      {
+        "name": "Rhineland-Palatinate",
+        "cities": ["Mainz", "Ludwigshafen", "Koblenz", "Trier", "Kaiserslautern", "Worms", "Speyer"]
+      },
+      {
+        "name": "Saarland",
+        "cities": ["Saarbrücken", "Neunkirchen", "Homburg", "Völklingen", "Saarlouis"]
+      },
+      {
+        "name": "Saxony",
+        "cities": ["Leipzig", "Dresden", "Chemnitz", "Zwickau", "Görlitz", "Plauen"]
+      },
+      {
+        "name": "Saxony-Anhalt",
+        "cities": ["Magdeburg", "Halle (Saale)", "Dessau-Roßlau", "Wittenberg", "Bitterfeld-Wolfen"]
+      },
+      {
+        "name": "Schleswig-Holstein",
+        "cities": ["Kiel", "Lübeck", "Flensburg", "Neumünster", "Norderstedt"]
+      },
+      {
+        "name": "Thuringia",
+        "cities": ["Erfurt", "Jena", "Gera", "Weimar", "Gotha"]
+      }
+    ]
+  },
+  {
+    "name": "France",
+    "states": [
+      {
+        "name": "Île-de-France",
+        "cities": ["Paris", "Boulogne-Billancourt", "Saint-Denis", "Argenteuil", "Montreuil", "Nanterre", "Vitry-sur-Seine", "Courbevoie", "Versailles", "Colombes"]
+      },
+      {
+        "name": "Auvergne-Rhône-Alpes",
+        "cities": ["Lyon", "Grenoble", "Saint-Étienne", "Clermont-Ferrand", "Annecy", "Villeurbanne", "Chambéry", "Valence"]
+      },
+      {
+        "name": "Provence-Alpes-Côte d'Azur",
+        "cities": ["Marseille", "Nice", "Toulon", "Aix-en-Provence", "Avignon", "Cannes", "Antibes"]
+      },
+      {
+        "name": "Nouvelle-Aquitaine",
+        "cities": ["Bordeaux", "Limoges", "Poitiers", "Bayonne", "Pau", "La Rochelle", "Périgueux"]
+      },
+      {
+        "name": "Occitanie",
+        "cities": ["Toulouse", "Montpellier", "Nîmes", "Perpignan", "Béziers", "Tarbes", "Albi"]
+      },
+      {
+        "name": "Hauts-de-France",
+        "cities": ["Lille", "Amiens", "Roubaix", "Tourcoing", "Dunkirk", "Calais", "Valenciennes"]
+      },
+      {
+        "name": "Grand Est",
+        "cities": ["Strasbourg", "Reims", "Metz", "Nancy", "Mulhouse", "Colmar", "Troyes"]
+      },
+      {
+        "name": "Pays de la Loire",
+        "cities": ["Nantes", "Angers", "Le Mans", "Saint-Nazaire", "Laval", "Cholet"]
+      },
+      {
+        "name": "Brittany",
+        "cities": ["Rennes", "Brest", "Quimper", "Lorient", "Vannes", "Saint-Malo"]
+      },
+      {
+        "name": "Normandy",
+        "cities": ["Rouen", "Caen", "Le Havre", "Cherbourg-en-Cotentin", "Évreux", "Dieppe"]
+      },
+      {
+        "name": "Bourgogne-Franche-Comté",
+        "cities": ["Dijon", "Besançon", "Belfort", "Chalon-sur-Saône", "Auxerre"]
+      },
+      {
+        "name": "Centre-Val de Loire",
+        "cities": ["Orléans", "Tours", "Bourges", "Blois", "Chartres", "Châteauroux"]
+      },
+      {
+        "name": "Corsica",
+        "cities": ["Ajaccio", "Bastia", "Porto-Vecchio", "Corte"]
+      },
+      {
+        "name": "Guadeloupe",
+        "cities": ["Basse-Terre", "Les Abymes", "Pointe-à-Pitre", "Le Gosier"]
+      },
+      {
+        "name": "Martinique",
+        "cities": ["Fort-de-France", "Le Lamentin", "Le Robert", "Sainte-Marie"]
+      },
+      {
+        "name": "Réunion",
+        "cities": ["Saint-Denis", "Saint-Paul", "Saint-Pierre", "Le Tampon"]
+      },
+      {
+        "name": "French Guiana",
+        "cities": ["Cayenne", "Kourou", "Saint-Laurent-du-Maroni", "Remire-Montjoly"]
+      },
+      {
+        "name": "Mayotte",
+        "cities": ["Mamoudzou", "Dzaoudzi", "Koungou", "Dembeni"]
+      }
+    ]
+  },
+  {
+    "name": "Dubai",
+    "states": [
+      {
+        "name": "Dubai",
+        "cities": ["Dubai", "Jebel Ali", "Hatta", "Deira", "Bur Dubai", "Jumeirah", "Al Barsha", "Dubai Marina", "Downtown Dubai", "Business Bay", "Al Quoz", "Al Karama", "Mirdif", "Al Nahda", "International City", "Dubai Silicon Oasis", "Dubai Academic City"]
+      }
+    ]
+  },
+  {
+    "name": "Mexico",
+    "states": [
+      {
+        "name": "Ciudad de México",
+        "cities": ["Mexico City", "Iztapalapa", "Gustavo A. Madero", "Coyoacán", "Benito Juárez", "Miguel Hidalgo", "Álvaro Obregón", "Cuauhtémoc", "Tlalpan", "Iztacalco", "Venustiano Carranza", "Xochimilco", "Tláhuac", "Azcapotzalco", "La Magdalena Contreras", "Cuajimalpa"]
+      },
+      {
+        "name": "Estado de México",
+        "cities": ["Toluca", "Ecatepec", "Nezahualcóyotl", "Naucalpan", "Tlalnepantla", "Chimalhuacán", "Atizapán de Zaragoza", "Cuautitlán Izcalli", "Metepec", "Texcoco", "Coacalco", "Huixquilucan", "Zinacantepec", "Ixtapaluca", "Tecámac", "Chalco"]
+      },
+      {
+        "name": "Jalisco",
+        "cities": ["Guadalajara", "Zapopan", "Tlaquepaque", "Tonalá", "Puerto Vallarta", "El Salto", "Tepatitlán de Morelos", "Lagos de Moreno", "Ocotlán", "Autlán de Navarro"]
+      },
+      {
+        "name": "Nuevo León",
+        "cities": ["Monterrey", "Guadalupe", "San Nicolás de los Garza", "Apodaca", "San Pedro Garza García", "Santa Catarina", "General Escobedo", "Juárez", "Cadereyta Jiménez"]
+      },
+      {
+        "name": "Puebla",
+        "cities": ["Puebla", "Tehuacán", "San Martín Texmelucan", "Atlixco", "San Pedro Cholula", "San Andrés Cholula", "Teziutlán", "Cholula", "Amozoc"]
+      },
+      {
+        "name": "Guanajuato",
+        "cities": ["León", "Irapuato", "Celaya", "Salamanca", "Guanajuato", "Silao", "San Miguel de Allende", "Dolores Hidalgo"]
+      },
+      {
+        "name": "Veracruz",
+        "cities": ["Veracruz", "Xalapa", "Coatzacoalcos", "Minatitlán", "Poza Rica", "Córdoba", "Orizaba", "Boca del Río", "Tuxpan", "Martínez de la Torre"]
+      },
+      {
+        "name": "Baja California",
+        "cities": ["Tijuana", "Mexicali", "Ensenada", "Tecate", "Playas de Rosarito"]
+      },
+      {
+        "name": "Chihuahua",
+        "cities": ["Chihuahua", "Ciudad Juárez", "Delicias", "Cuauhtémoc", "Hidalgo del Parral", "Nuevo Casas Grandes"]
+      },
+      {
+        "name": "Sonora",
+        "cities": ["Hermosillo", "Ciudad Obregón", "Nogales", "San Luis Río Colorado", "Navojoa", "Guaymas", "Cajeme"]
+      },
+      {
+        "name": "Coahuila",
+        "cities": ["Saltillo", "Torreón", "Monclova", "Piedras Negras", "Acuña", "Ramos Arizpe"]
+      },
+      {
+        "name": "Yucatán",
+        "cities": ["Mérida", "Valladolid", "Tizimín", "Progreso", "Ticul", "Umán", "Kanasín"]
+      },
+      {
+        "name": "Quintana Roo",
+        "cities": ["Cancún", "Playa del Carmen", "Chetumal", "Cozumel", "Tulum", "Isla Mujeres", "Puerto Morelos", "Felipe Carrillo Puerto"]
+      },
+      {
+        "name": "Oaxaca",
+        "cities": ["Oaxaca de Juárez", "Salina Cruz", "Juchitán de Zaragoza", "San Juan Bautista Tuxtepec", "Puerto Escondido", "Huatulco"]
+      },
+      {
+        "name": "Michoacán",
+        "cities": ["Morelia", "Uruapan", "Zamora", "Lázaro Cárdenas", "Zitácuaro", "Pátzcuaro", "Apatzingán"]
+      },
+      {
+        "name": "Querétaro",
+        "cities": ["Santiago de Querétaro", "San Juan del Río", "El Marqués", "Corregidora", "Tequisquiapan", "Pedro Escobedo"]
+      },
+      {
+        "name": "San Luis Potosí",
+        "cities": ["San Luis Potosí", "Soledad de Graciano Sánchez", "Ciudad Valles", "Matehuala", "Rioverde"]
+      },
+      {
+        "name": "Tamaulipas",
+        "cities": ["Reynosa", "Tampico", "Matamoros", "Nuevo Laredo", "Ciudad Victoria", "Madero", "Altamira"]
+      },
+      {
+        "name": "Sinaloa",
+        "cities": ["Culiacán", "Mazatlán", "Los Mochis", "Guasave", "Navolato"]
+      },
+      {
+        "name": "Hidalgo",
+        "cities": ["Pachuca", "Tulancingo", "Tula de Allende", "Tepeji del Río", "Tepeapulco", "Ixmiquilpan"]
+      },
+      {
+        "name": "Morelos",
+        "cities": ["Cuernavaca", "Jiutepec", "Cuautla", "Temixco", "Yautepec", "Emiliano Zapata"]
+      },
+      {
+        "name": "Tabasco",
+        "cities": ["Villahermosa", "Cárdenas", "Comalcalco", "Cunduacán", "Macuspana", "Huimanguillo"]
+      },
+      {
+        "name": "Chiapas",
+        "cities": ["Tuxtla Gutiérrez", "San Cristóbal de las Casas", "Tapachula", "Comitán", "Palenque", "Tonalá"]
+      }
+    ]
+  },
+  {
+    "name": "Iran",
+    "states": [
+      {
+        "name": "Tehran",
+        "cities": ["Tehran", "Rey", "Eslamshahr", "Shahriar", "Malard", "Qods", "Pakdasht", "Pardis", "Qarchak", "Varamin"]
+      },
+      {
+        "name": "Isfahan",
+        "cities": ["Isfahan", "Kashan", "Najafabad", "Khomeyni Shahr", "Shahin Shahr", "Mobarakeh", "Falavarjan"]
+      },
+      {
+        "name": "Fars",
+        "cities": ["Shiraz", "Marvdasht", "Jahrom", "Kazerun", "Fasa", "Firuzabad", "Lar", "Marshan"]
+      },
+      {
+        "name": "Khorasan Razavi",
+        "cities": ["Mashhad", "Neyshabur", "Sabzevar", "Torbat-e Heydarieh", "Quchan", "Chenaran"]
+      },
+      {
+        "name": "East Azerbaijan",
+        "cities": ["Tabriz", "Maragheh", "Marand", "Ahar", "Bonab", "Shabestar", "Sarab"]
+      },
+      {
+        "name": "West Azerbaijan",
+        "cities": ["Urmia", "Khoy", "Mahabad", "Miandoab", "Boukan", "Piranshahr"]
+      },
+      {
+        "name": "Khuzestan",
+        "cities": ["Ahvaz", "Abadan", "Khorramshahr", "Dezful", "Andimeshk", "Mahshahr", "Masjed Soleyman", "Ramhormoz"]
+      },
+      {
+        "name": "Mazandaran",
+        "cities": ["Sari", "Amol", "Babol", "Qaem Shahr", "Behshahr", "Nowshahr", "Chalus", "Tonekabon"]
+      },
+      {
+        "name": "Gilan",
+        "cities": ["Rasht", "Bandar-e Anzali", "Lahijan", "Langarud", "Astara", "Rudsar"]
+      },
+      {
+        "name": "Kerman",
+        "cities": ["Kerman", "Sirjan", "Rafsanjan", "Bam", "Jiroft", "Zarand"]
+      },
+      {
+        "name": "Kermanshah",
+        "cities": ["Kermanshah", "Eslamabad-e Gharb", "Paveh", "Sahneh", "Harsin"]
+      },
+      {
+        "name": "Kurdistan",
+        "cities": ["Sanandaj", "Saqqez", "Baneh", "Marivan", "Qorveh", "Kamyaran"]
+      },
+      {
+        "name": "Qom",
+        "cities": ["Qom"]
+      },
+      {
+        "name": "Qazvin",
+        "cities": ["Qazvin", "Takestan", "Abyek", "Alvand"]
+      },
+      {
+        "name": "Alborz",
+        "cities": ["Karaj", "Fardis", "Eshtehard", "Nazarabad", "Mahdasht"]
+      },
+      {
+        "name": "Yazd",
+        "cities": ["Yazd", "Ardakan", "Meybod", "Bafq"]
+      },
+      {
+        "name": "Hormozgan",
+        "cities": ["Bandar Abbas", "Qeshm", "Bandar Lengeh", "Minab", "Hajiabad", "Kish"]
+      },
+      {
+        "name": "Bushehr",
+        "cities": ["Bushehr", "Borazjan", "Genaveh", "Asaluyeh", "Kharg"]
+      },
+      {
+        "name": "Markazi",
+        "cities": ["Arak", "Saveh", "Mahallat", "Khomein", "Delijan"]
+      },
+      {
+        "name": "Zanjan",
+        "cities": ["Zanjan", "Abhar", "Khorramdarreh", "Mahneshan"]
+      },
+      {
+        "name": "Lorestan",
+        "cities": ["Khorramabad", "Borujerd", "Dorud", "Kuhdasht", "Azna"]
+      },
+      {
+        "name": "Ilam",
+        "cities": ["Ilam", "Dehloran", "Mehran", "Eyvan"]
+      },
+      {
+        "name": "Chaharmahal and Bakhtiari",
+        "cities": ["Shahrekord", "Borujen", "Lordegan", "Farrokhshahr"]
+      },
+      {
+        "name": "Semnan",
+        "cities": ["Semnan", "Shahroud", "Damghan", "Garmsar", "Mehdishahr"]
+      },
+      {
+        "name": "Golestan",
+        "cities": ["Gorgan", "Gonbad-e Kavus", "Aliabad", "Bandar-e Gaz", "Minudasht"]
+      },
+      {
+        "name": "North Khorasan",
+        "cities": ["Bojnurd", "Shirvan", "Esfarayen", "Maneh va Samalqan"]
+      },
+      {
+        "name": "South Khorasan",
+        "cities": ["Birjand", "Qaen", "Nehbandan", "Ferdows"]
+      },
+      {
+        "name": "Sistan and Baluchestan",
+        "cities": ["Zahedan", "Chabahar", "Iranshahr", "Khash", "Saravan", "Zabol"]
+      },
+      {
+        "name": "Ardabil",
+        "cities": ["Ardabil", "Parsabad", "Khalkhal", "Germi", "Meshgin Shahr"]
+      },
+      {
+        "name": "Hamadan",
+        "cities": ["Hamadan", "Malayer", "Nahavand", "Tuyserkan", "Asadabad"]
+      }
+    ]
+  },
+  {
+    "name": "Afghanistan",
+    "states": [
+      {
+        "name": "Kabul",
+        "cities": ["Kabul", "Paghman", "Char Asiab", "Sarobi", "Bagrami", "Deh Sabz"]
+      },
+      {
+        "name": "Kandahar",
+        "cities": ["Kandahar", "Spin Boldak", "Arghandab", "Shah Wali Kot", "Daman"]
+      },
+      {
+        "name": "Herat",
+        "cities": ["Herat", "Shindand", "Guzara", "Obe", "Karukh"]
+      },
+      {
+        "name": "Balkh",
+        "cities": ["Mazar-i-Sharif", "Balkh", "Sholgar", "Dehdadi", "Chahar Bolak"]
+      },
+      {
+        "name": "Nangarhar",
+        "cities": ["Jalalabad", "Khogyani", "Surkhrod", "Behsud", "Kama"]
+      },
+      {
+        "name": "Kunduz",
+        "cities": ["Kunduz", "Khanabad", "Imam Sahib", "Aliabad", "Qalay-i-Zal"]
+      },
+      {
+        "name": "Badakhshan",
+        "cities": ["Fayzabad", "Khash", "Baharak", "Jurm", "Keshem"]
+      },
+      {
+        "name": "Ghazni",
+        "cities": ["Ghazni", "Andar", "Qarabagh", "Nawa", "Khogyani"]
+      },
+      {
+        "name": "Helmand",
+        "cities": ["Lashkar Gah", "Gereshk", "Sangin", "Nad Ali", "Musa Qala"]
+      },
+      {
+        "name": "Farah",
+        "cities": ["Farah", "Bakwa", "Lash wa Juwayn", "Anar Dara", "Khak-e Safed"]
+      },
+      {
+        "name": "Faryab",
+        "cities": ["Maymana", "Andkhoy", "Almar", "Qaisar", "Khwaja Sabz Posh"]
+      },
+      {
+        "name": "Baghlan",
+        "cities": ["Pul-e Khumri", "Baghlan", "Dahana i Ghuri", "Nahrin", "Khenjan"]
+      },
+      {
+        "name": "Bamyan",
+        "cities": ["Bamyan", "Yakawlang", "Panjab", "Waras", "Shibar"]
+      },
+      {
+        "name": "Parwan",
+        "cities": ["Charikar", "Bagram", "Jabal Saraj", "Salang", "Ghorband (Siyahgird)"]
+      },
+      {
+        "name": "Kapisa",
+        "cities": ["Mahmud-e Raqi", "Tagab", "Nijrab", "Kohistan", "Koh Band"]
+      },
+      {
+        "name": "Maidan Wardak",
+        "cities": ["Maidan Shahr", "Jalrez", "Saydabad", "Nirkh", "Chak"]
+      },
+      {
+        "name": "Logar",
+        "cities": ["Pul-e Alam", "Baraki Barak", "Mohammad Agha", "Kharwar", "Azra"]
+      },
+      {
+        "name": "Paktia",
+        "cities": ["Gardez", "Zurmat", "Ahmad Abad", "Sayed Karam", "Jaji"]
+      },
+      {
+        "name": "Paktika",
+        "cities": ["Sharana", "Urgun", "Barmal", "Surobi", "Gayan"]
+      },
+      {
+        "name": "Khost",
+        "cities": ["Khost", "Tani", "Spera", "Gurbuz", "Mandozai"]
+      },
+      {
+        "name": "Uruzgan",
+        "cities": ["Tarinkot", "Chora", "Deh Rawud", "Khas Uruzgan", "Gizab"]
+      },
+      {
+        "name": "Zabul",
+        "cities": ["Qalat", "Shamulzayi", "Arghandab", "Shahjoy", "Mizan"]
+      },
+      {
+        "name": "Daikundi",
+        "cities": ["Nili", "Kijran", "Shahristan", "Miramor", "Sangi Takht"]
+      },
+      {
+        "name": "Nimroz",
+        "cities": ["Zaranj", "Chakhansur", "Kang", "Char Burjak", "Khash Rod"]
+      },
+      {
+        "name": "Samangan",
+        "cities": ["Aibak", "Hazrati Sultan", "Khuram Wa Sarbagh", "Ruyi Du Ab"]
+      },
+      {
+        "name": "Sar-e Pol",
+        "cities": ["Sar-e Pol", "Balkhab", "Sangcharak", "Kohistanat", "Sozma Qala"]
+      },
+      {
+        "name": "Takhar",
+        "cities": ["Taloqan", "Baharak", "Rustaq", "Khwaja Ghar", "Dashti Qala"]
+      },
+      {
+        "name": "Laghman",
+        "cities": ["Mehtarlam", "Qarghayi", "Alingar", "Alishing", "Dawlat Shah"]
+      },
+      {
+        "name": "Ghor",
+        "cities": ["Firozkoh (Chaghcharan)", "Taywara", "Saghar", "Shahrak", "Pasaband"]
+      },
+      {
+        "name": "Panjshir",
+        "cities": ["Bazarak", "Paryan", "Rokha", "Shotul", "Hesarak"]
+      },
+      {
+        "name": "Nuristan",
+        "cities": ["Parun", "Wama", "Waygal", "Kamdesh", "Barg-e Matal"]
+      },
+      {
+        "name": "Kunar",
+        "cities": ["Asadabad", "Chawkay", "Dangam", "Nurgal", "Ghaziabad"]
+      },
+      {
+        "name": "Jawzjan",
+        "cities": ["Sheberghan", "Aqcha", "Qarqin", "Khamyab", "Mingajik"]
+      },
+      {
+        "name": "Badghis",
+        "cities": ["Qala i Naw", "Murghab", "Qadis", "Jawand", "Ab Kamari"]
+      }
+    ]
+  },
+  {
+    "name": "Bangladesh",
+    "states": [
+      {
+        "name": "Dhaka Division",
+        "cities": ["Dhaka", "Gazipur", "Narayanganj", "Tangail", "Manikganj", "Munshiganj", "Narsingdi", "Faridpur", "Gopalganj", "Kishoreganj", "Madaripur", "Rajbari", "Shariatpur"]
+      },
+      {
+        "name": "Chattogram Division",
+        "cities": ["Chattogram", "Cox's Bazar", "Cumilla", "Feni", "Noakhali", "Chandpur", "Brahmanbaria", "Bandarban", "Rangamati", "Khagrachhari", "Lakshmipur"]
+      },
+      {
+        "name": "Rajshahi Division",
+        "cities": ["Rajshahi", "Bogura", "Pabna", "Natore", "Naogaon", "Joypurhat", "Sirajganj", "Chapainawabganj"]
+      },
+      {
+        "name": "Khulna Division",
+        "cities": ["Khulna", "Jashore", "Kushtia", "Satkhira", "Magura", "Narail", "Chuadanga", "Bagerhat", "Meherpur", "Jhenaidah"]
+      },
+      {
+        "name": "Barishal Division",
+        "cities": ["Barishal", "Patuakhali", "Bhola", "Jhalokathi", "Pirojpur", "Barguna"]
+      },
+      {
+        "name": "Sylhet Division",
+        "cities": ["Sylhet", "Moulvibazar", "Habiganj", "Sunamganj"]
+      },
+      {
+        "name": "Rangpur Division",
+        "cities": ["Rangpur", "Dinajpur", "Kurigram", "Gaibandha", "Nilphamari", "Panchagarh", "Thakurgaon", "Lalmonirhat"]
+      },
+      {
+        "name": "Mymensingh Division",
+        "cities": ["Mymensingh", "Jamalpur", "Netrokona", "Sherpur"]
+      }
+    ]
+  },
+  {
+    "name": "South Africa",
+    "states": [
+      {
+        "name": "Gauteng",
+        "cities": ["Johannesburg", "Pretoria", "Soweto", "Sandton", "Midrand", "Centurion", "Benoni", "Boksburg", "Germiston", "Alberton", "Krugersdorp", "Randburg", "Roodepoort", "Springs"]
+      },
+      {
+        "name": "Western Cape",
+        "cities": ["Cape Town", "Stellenbosch", "Paarl", "George", "Mossel Bay", "Hermanus", "Worcester", "Somerset West", "Knysna"]
+      },
+      {
+        "name": "KwaZulu-Natal",
+        "cities": ["Durban", "Pietermaritzburg", "Richards Bay", "Newcastle", "Ulundi", "Empangeni", "Pinetown", "Umhlanga", "Ballito"]
+      },
+      {
+        "name": "Eastern Cape",
+        "cities": ["Gqeberha (Port Elizabeth)", "East London", "Mthatha", "Makhanda (Grahamstown)", "Kariega (Uitenhage)", "Queenstown (Komani)", "Butterworth"]
+      },
+      {
+        "name": "Free State",
+        "cities": ["Bloemfontein", "Welkom", "Bethlehem", "Kroonstad", "Sasolburg", "Phuthaditjhaba"]
+      },
+      {
+        "name": "Limpopo",
+        "cities": ["Polokwane", "Thohoyandou", "Tzaneen", "Makhado (Louis Trichardt)", "Lephalale", "Phalaborwa"]
+      },
+      {
+        "name": "Mpumalanga",
+        "cities": ["Mbombela (Nelspruit)", "eMalahleni (Witbank)", "Middelburg", "Secunda", "Ermelo", "Standerton", "Lydenburg (Mashishing)"]
+      },
+      {
+        "name": "North West",
+        "cities": ["Mahikeng", "Rustenburg", "Klerksdorp", "Potchefstroom", "Brits", "Mmabatho"]
+      },
+      {
+        "name": "Northern Cape",
+        "cities": ["Kimberley", "Upington", "Springbok", "Kuruman", "De Aar", "Colesberg"]
       }
     ]
   }

@@ -8,7 +8,6 @@ import {
   Modal,
   Alert,
   Linking,
-  ScrollView,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LocationPickerModal from './LocationPickerModal';
@@ -107,11 +106,9 @@ const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({
       if (canOpen) {
         await Linking.openURL(url);
       } else {
-        // If canOpenURL returns false, still try to open it
         await Linking.openURL(url);
       }
     } catch (error) {
-      // Show a helpful message with the URL for manual opening
       Alert.alert(
         `Open ${platformName}`,
         `Please open your browser and go to:\n${url}\n\nCreate your meeting there and paste the link back here.`,
@@ -197,103 +194,100 @@ const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* Content based on active tab */}
-          <ScrollView 
-            style={styles.scrollViewContainer}
-            contentContainerStyle={styles.contentContainer}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            {activeTab === 'venue' ? (
-              <View style={styles.venueContent}>
-                {/* Use Map Modal for location search and selection */}
-                <View style={styles.searchRow}>
-                  <TouchableOpacity
-                    style={[styles.mapButton, { flex: 1, justifyContent: 'center' }]}
-                    onPress={() => setMapModalVisible(true)}
-                  >
-                    <Ionicons name="location" size={20} color="#2788ff" />
-                    <Text style={styles.mapButtonText}>Search & Select Location on Map</Text>
-                  </TouchableOpacity>
-                </View>
-                {address ? (
-                  <View style={{ marginBottom: 8 }}>
-                    <Text style={{ fontSize: 15, color: '#2788ff', fontWeight: '500' }}>Selected Address:</Text>
-                    <Text style={{ fontSize: 15, color: '#333' }}>{address}</Text>
+          {/* Content based on active tab - no ScrollView */}
+          <View style={styles.scrollViewContainer}>
+            <View style={styles.contentContainer}>
+              {activeTab === 'venue' ? (
+                <View style={styles.venueContent}>
+                  {/* Use Map Modal for location search and selection */}
+                  <View style={styles.searchRow}>
+                    <TouchableOpacity
+                      style={[styles.mapButton, { flex: 1, justifyContent: 'center' }]}
+                      onPress={() => setMapModalVisible(true)}
+                    >
+                      <Ionicons name="location" size={20} color="#2788ff" />
+                      <Text style={styles.mapButtonText}>Search & Select Location on Map</Text>
+                    </TouchableOpacity>
                   </View>
-                ) : null}
+                  {address ? (
+                    <View style={{ marginBottom: 8 }}>
+                      <Text style={{ fontSize: 15, color: '#2788ff', fontWeight: '500' }}>Selected Address:</Text>
+                      <Text style={{ fontSize: 15, color: '#333' }}>{address}</Text>
+                    </View>
+                  ) : null}
 
-                <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 8, color: '#4F8CFF' }}>Venue Details</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Venue name (optional)"
-                  placeholderTextColor="#888"
-                  value={venueName}
-                  onChangeText={setVenueName}
-                />
-
-                <View style={styles.addressRowFlat}>
-                <View style={styles.addressCol}>
-                  <AddressPicker
-                    country={country}
-                    setCountry={setCountry}
-                    state={state}
-                    setState={setState}
-                    city={city}
-                    setCity={setCity}
+                  <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 8, color: '#4F8CFF' }}>Venue Details</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Venue name"
+                    placeholderTextColor="#888"
+                    value={venueName}
+                    onChangeText={setVenueName}
                   />
-                </View>
-              </View>
 
-                {/* Coordinates */}
-                {(latitude || longitude) && (
-                  <View style={styles.coordinatesContainer}>
-                    <Text style={styles.coordinatesLabel}>Coordinates:</Text>
-                    <Text style={styles.coordinatesText}>
-                      {latitude}, {longitude}
-                    </Text>
+                  <View style={styles.addressRowFlat}>
+                    <View style={styles.addressCol}>
+                      <AddressPicker
+                        country={country}
+                        setCountry={setCountry}
+                        state={state}
+                        setState={setState}
+                        city={city}
+                        setCity={setCity}
+                      />
+                    </View>
                   </View>
-                )}
-              </View>
-            ) : (
-              <View style={styles.onlineContent}>
-                {/* Online Link Input */}
-                <TextInput
-                  style={styles.linkInput}
-                  placeholder="Paste your meeting link here after creating it from the buttons below"
-                  placeholderTextColor="#888"
-                  value={onlineLink}
-                  onChangeText={setOnlineLink}
-                  multiline
-                  numberOfLines={4}
-                />
 
-                {/* Quick Platform Buttons */}
-                <Text style={styles.quickLinksTitle}>Create a new link</Text>
-                <View style={styles.quickLinksContainer}>
-                  <TouchableOpacity
-                    style={styles.quickLinkButton}
-                    onPress={() =>
-                      handleQuickPlatform('Zoom', 'https://app.zoom.us/wc')
-                    }
-                  >
-                    <Ionicons name="videocam" size={20} color="#2788ff" />
-                    <Text style={styles.quickLinkText}>Zoom</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.quickLinkButton}
-                    onPress={() =>
-                      handleQuickPlatform('Google Meet', 'https://meet.google.com/landing')
-                    }
-                  >
-                    <Ionicons name="logo-google" size={20} color="#2788ff" />
-                    <Text style={styles.quickLinkText}>Google meet</Text>
-                  </TouchableOpacity>
+                  {/* Coordinates */}
+                  {(latitude || longitude) && (
+                    <View style={styles.coordinatesContainer}>
+                      <Text style={styles.coordinatesLabel}>Coordinates:</Text>
+                      <Text style={styles.coordinatesText}>
+                        {latitude}, {longitude}
+                      </Text>
+                    </View>
+                  )}
                 </View>
-              </View>
-            )}
-          </ScrollView>
+              ) : (
+                <View style={styles.onlineContent}>
+                  {/* Online Link Input */}
+                  <TextInput
+                    style={styles.linkInput}
+                    placeholder="Paste your meeting link here after creating it from the buttons below"
+                    placeholderTextColor="#888"
+                    value={onlineLink}
+                    onChangeText={setOnlineLink}
+                    multiline
+                    numberOfLines={4}
+                  />
+
+                  {/* Quick Platform Buttons */}
+                  <Text style={styles.quickLinksTitle}>Create a new link</Text>
+                  <View style={styles.quickLinksContainer}>
+                    <TouchableOpacity
+                      style={styles.quickLinkButton}
+                      onPress={() =>
+                        handleQuickPlatform('Zoom', 'https://app.zoom.us/wc')
+                      }
+                    >
+                      <Ionicons name="videocam" size={20} color="#2788ff" />
+                      <Text style={styles.quickLinkText}>Zoom</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.quickLinkButton}
+                      onPress={() =>
+                        handleQuickPlatform('Google Meet', 'https://meet.google.com/landing')
+                      }
+                    >
+                      <Ionicons name="logo-google" size={20} color="#2788ff" />
+                      <Text style={styles.quickLinkText}>Google meet</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            </View>
+          </View>
 
           {/* Save Button */}
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
@@ -467,10 +461,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e9ecef',
   },
-  // locationRow: {
-  //   flexDirection: 'row',
-  //   marginBottom: 12,
-  // },
   coordinatesContainer: {
     backgroundColor: '#e8f4f8',
     borderRadius: 8,
