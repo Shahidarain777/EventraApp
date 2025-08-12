@@ -11,13 +11,13 @@ const rootReducer = combineReducers({
   auth: authReducer,
   events: eventReducer,
   categories: categoryReducer,
-  // ... other reducers
+  notifications: require('./slices/NotificationSlice').default,
 });
 
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['auth', 'events', 'categories'], // persist auth, events, categories
+  whitelist: ['auth', 'events', 'categories', 'notifications'], // persist auth, events, categories, notifications
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

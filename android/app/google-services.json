@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "332923150284",
+    "project_id": "eventraapp-a814c",
+    "storage_bucket": "eventraapp-a814c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:332923150284:android:eb1813c4f1216193e0c769",
+        "android_client_info": {
+          "package_name": "com.eventraapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBOD4bR6FcT9CgPqJMm6Y53grt8wC-rCQ4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -20,6 +20,8 @@ import type { RootStackParamList, TabParamList } from '../types/navigations';
 import { fetchEvents, Event } from '../redux/slices/eventSlice';
 import EventCard from '../components/EventCard';
 import EmailVerificationBanner from '../components/EmailVerificationBanner';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { fetchUnreadCount } from '../redux/slices/NotificationSlice';
 
 const HomeScreen = () => {
   const navigation = useNavigation<
@@ -30,6 +32,7 @@ const HomeScreen = () => {
   >();
   const dispatch = useDispatch<AppDispatch>();
   const eventsRaw = useSelector((state: RootState) => state.events.events);
+  const unreadCount = useSelector((state: RootState) => (state as any).notifications.unreadCount as number);
 const userCity = useSelector((state: RootState) =>
   state.auth.user?.Address?.city?.toLowerCase() || ''
 );
@@ -75,6 +78,7 @@ const events = Array.isArray(eventsRaw)
 
   useEffect(() => {
     dispatch(fetchEvents());
+    dispatch(fetchUnreadCount());
   }, [dispatch]);
 
   const handleRefresh = () => {
@@ -90,9 +94,23 @@ const events = Array.isArray(eventsRaw)
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
       <View style={styles.header}>
         <Text style={styles.homeText}>Home</Text>
+         <TouchableOpacity
+          style={styles.bellIcon}
+          onPress={() => navigation.navigate({ name: 'NotificationScreen', params: undefined })}
+        >
+          <View>
+            <Ionicons name="notifications-outline" size={28} color="#333" />
+            {unreadCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{Math.min(99, unreadCount)}</Text>
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('CreateEvent')}>
           <Text style={styles.createEventText}>Create Event</Text>
         </TouchableOpacity>
+       
       </View>
       
       {/* Email Verification Banner */}
@@ -213,5 +231,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#777',
     marginBottom: 10,
+  },
+  bellIcon: {
+    padding: 4,
+    marginLeft: 170,
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -6,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#ff3b30',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
   },
 });

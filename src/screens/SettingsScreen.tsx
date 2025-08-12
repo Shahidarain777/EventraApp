@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { logout } from '../redux/slices/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetchNotificationPreferences, updateNotificationPreferences } from '../redux/slices/NotificationSlice';
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
@@ -43,6 +44,41 @@ const SettingsScreen = () => {
   const [selectedLanguage, setSelectedLanguage] = useState('English');
 
   const languages = ['English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese'];
+
+  // Load notification preferences from backend
+  useEffect(() => {
+    (async () => {
+      try {
+        const action = await dispatch(fetchNotificationPreferences());
+        const prefs: any = (action as any).payload || {};
+        const typePrefs = prefs?.typePreferences || {};
+        setEventReminders(typePrefs?.event_reminder?.enabled !== false);
+        setNewEvents(typePrefs?.new_event?.enabled !== false);
+      } catch {}
+    })();
+  }, [dispatch]);
+
+  const toggleEventReminders = async (value: boolean) => {
+    setEventReminders(value);
+    try {
+      await dispatch(updateNotificationPreferences({
+        typePreferences: {
+          event_reminder: { enabled: value },
+        },
+      } as any));
+    } catch {}
+  };
+
+  const toggleNewEvents = async (value: boolean) => {
+    setNewEvents(value);
+    try {
+      await dispatch(updateNotificationPreferences({
+        typePreferences: {
+          new_event: { enabled: value },
+        },
+      } as any));
+    } catch {}
+  };
 
   const handleClearCache = () => {
     Alert.alert(
@@ -192,7 +228,7 @@ const SettingsScreen = () => {
           icon: 'alarm-outline',
           title: 'Event Reminders',
           subtitle: 'Get notified about upcoming events',
-          action: setEventReminders,
+          action: toggleEventReminders,
           type: 'switch',
           value: eventReminders
         },
@@ -200,7 +236,7 @@ const SettingsScreen = () => {
           icon: 'calendar-outline',
           title: 'New Events',
           subtitle: 'Notifications for new events in your area',
-          action: setNewEvents,
+          action: toggleNewEvents,
           type: 'switch',
           value: newEvents
         },

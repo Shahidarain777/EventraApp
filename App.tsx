@@ -11,14 +11,35 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { navigationRef } from './src/navigators/NavigationService';
 import { setupInterceptors } from './src/api/setupInterceptors';
 import 'react-native-get-random-values';
+import OneSignal from 'react-native-onesignal';
 // Setup API interceptors once when app starts
 setupInterceptors();
 
+
 const AppEntry = () => {
+
+
+
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch() as AppDispatch; // ✅ Cast dispatch here
-
+  
   useEffect(() => {
+    // Adjust for OneSignal v4 vs v5: prefer v4 API fallback if initialize() not present
+    try {
+      if (typeof (OneSignal as any).initialize === 'function') {
+        (OneSignal as any).initialize('cfebaa5f-c0e5-4009-b951-e4f8efff21f2');
+        if ((OneSignal as any).Notifications?.requestPermission) {
+          (OneSignal as any).Notifications.requestPermission(true);
+        }
+      } else if (typeof (OneSignal as any).setAppId === 'function') {
+        (OneSignal as any).setAppId('cfebaa5f-c0e5-4009-b951-e4f8efff21f2');
+        if ((OneSignal as any).promptForPushNotificationsWithUserResponse) {
+          (OneSignal as any).promptForPushNotificationsWithUserResponse();
+        }
+      }
+    } catch (err) {
+      console.log('OneSignal init error:', err);
+    }
     const checkToken = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
