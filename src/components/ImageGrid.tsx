@@ -1,14 +1,15 @@
 import React from 'react';
-import { View, Image, Text, StyleSheet } from 'react-native';
+import { View, Image, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import api from '../api/axios';
 
 interface ImageGridProps {
   imageUrl: string[];
+  onImagePress?: (index: number) => void;
 }
 
 const placeholder = require('../../assets/EventraLogo.png');
 
-const ImageGrid: React.FC<ImageGridProps> = ({ imageUrl }) => {
+const ImageGrid: React.FC<ImageGridProps> = ({ imageUrl, onImagePress }) => {
   const getImageUrl = (imageUrl: string | undefined | null): string | undefined => {
     if (!imageUrl) return undefined;
     if (imageUrl.startsWith('http')) return imageUrl;
@@ -24,44 +25,73 @@ const ImageGrid: React.FC<ImageGridProps> = ({ imageUrl }) => {
     return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads/${imageUrl}`;
   };
 
-  const renderImage = (uri?: string, style?: any) => (
-    <Image
-      source={uri ? { uri: getImageUrl(uri) } : placeholder}
-      style={style}
-      resizeMode="cover"
-      defaultSource={placeholder}
-    />
-  );
+  const renderImage = (uri?: string, containerStyle?: any, index?: number) => {
+    const Img = (
+      <Image
+        source={uri ? { uri: getImageUrl(uri) } : placeholder}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+        defaultSource={placeholder}
+      />
+    );
+    if (typeof index === 'number' && onImagePress) {
+      return (
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => onImagePress(index)}
+          style={containerStyle}
+        >
+          {Img}
+        </TouchableOpacity>
+      );
+    }
+    return <View style={containerStyle}>{Img}</View>;
+  };
 
   if (!imageUrl || imageUrl.length === 0) {
-    return renderImage(undefined, styles.singleImage);
+    return renderImage(undefined, styles.singleImage, 0);
   }
 
   if (imageUrl.length === 1) {
-    return renderImage(imageUrl[0], styles.singleImage);
+    return renderImage(imageUrl[0], styles.singleImage, 0);
   }
 
   if (imageUrl.length === 2) {
     return (
       <View style={styles.row}>
-        {imageUrl.map((img, idx) => renderImage(img, styles.halfImage))}
+        {imageUrl.map((img, idx) => renderImage(img, styles.halfImage, idx))}
       </View>
     );
   }
 
   return (
     <View style={styles.row}>
-      {renderImage(imageUrl[0], styles.halfImage)}
+      {renderImage(imageUrl[0], styles.halfImage, 0)}
       <View style={styles.column}>
-        {renderImage(imageUrl[1], styles.quarterImage)}
-        <View style={styles.quarterContainer}>
-          {renderImage(imageUrl[2], styles.quarterImage)}
-          {imageUrl.length > 3 && (
-            <View style={styles.overlay}>
-              <Text style={styles.overlayText}>+{imageUrl.length - 3}</Text>
-            </View>
-          )}
-        </View>
+    {renderImage(imageUrl[1], styles.quarterImage, 1)}
+    {onImagePress ? (
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => onImagePress(2)}
+            style={styles.quarterContainer}
+          >
+      {renderImage(imageUrl[2], styles.quarterImage)}
+            {imageUrl.length > 3 && (
+              <View style={styles.overlay} pointerEvents="none">
+                <Text style={styles.overlayText}>+{imageUrl.length - 3}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.quarterContainer}>
+      {renderImage(imageUrl[2], styles.quarterImage)}
+            {imageUrl.length > 3 && (
+              <View style={styles.overlay}>
+                <Text style={styles.overlayText}>+{imageUrl.length - 3}</Text>
+              </View>
+            )}
+          </View>
+        )}
       </View>
     </View>
   );

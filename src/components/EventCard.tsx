@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
 import { Image } from 'react-native';
 import {
@@ -21,6 +21,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { likeEvent, addComment, Event } from '../redux/slices/eventSlice';
 import ImageGrid from '../components/ImageGrid';
+import ImageViewing from 'react-native-image-viewing';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 type EventCardProps = {
@@ -52,6 +53,7 @@ const EventCard = ({
   showActions = true,
 }: EventCardProps) => {
   const dispatch = useDispatch<AppDispatch>();
+  const currentUserId = useSelector((state: RootState) => state.auth.user?._id?.toString() || '');
   const [commentModalVisible, setCommentModalVisible] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [expanded, setExpanded] = useState(false);
@@ -66,10 +68,11 @@ const EventCard = ({
   );
   const [localCommentCount, setLocalCommentCount] = useState(event.noOfComments);
   const [localComments, setLocalComments] = useState(event.comments || []);
-  const heartAnimation = new Animated.Value(0);
+  const heartAnimation = useRef(new Animated.Value(0)).current;
+  const [viewerVisible, setViewerVisible] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState(0);
   const isLong = event.description && event.description.length > 100;
   const navigation = useNavigation<NavigationProp>();
-  const currentUserId = useSelector((state: RootState) => state.auth.user?._id?.toString() || '');
 
   // Sync localIsLiked with backend on mount or when event changes
   useEffect(() => {
@@ -161,6 +164,27 @@ const EventCard = ({
     }
   };
 
+  // Normalize image URLs for ImageGrid and viewer
+  const normalizedImages: string[] = (() => {
+    const base = api.defaults.baseURL?.replace(/\/api$/, '') || '';
+    const list: unknown = (event as any).imageUrl;
+    const arr = Array.isArray(list) ? list : list ? [list] : [];
+    return arr
+      .filter((u): u is string => typeof u === 'string' && !!u)
+      .map((url) => {
+        if (url.startsWith('http')) return url;
+        if (url.startsWith('/uploads')) return `${base}${url}`;
+        if (url.startsWith('/')) return `${base}/uploads${url}`;
+        return `${base}/uploads/${url}`;
+      });
+  })();
+
+  const handleImagePress = (index: number) => {
+    if (!normalizedImages.length) return;
+    setViewerIndex(index);
+    setViewerVisible(true);
+  };
+
   const triggerHeartAnimation = () => {
     setShowHeart(true);
     heartAnimation.setValue(0);
@@ -233,7 +257,7 @@ const EventCard = ({
         </View>
 
         <View style={styles.imageContainer}>
-          <ImageGrid imageUrl={event.imageUrl || [event.imageUrl]} />
+          <ImageGrid imageUrl={normalizedImages} onImagePress={handleImagePress} />
           {showHeart && (
             <Animated.View
               style={[
@@ -364,6 +388,23 @@ const EventCard = ({
           )}
         </View>
       </View>
+      {/* Fullscreen Image Viewer */}
+      <ImageViewing
+        images={normalizedImages.map((uri) => ({ uri }))}
+        imageIndex={viewerIndex}
+        visible={viewerVisible}
+        onRequestClose={() => setViewerVisible(false)}
+        onImageIndexChange={(idx) => setViewerIndex(idx)}
+        backgroundColor="#000"
+        presentationStyle="fullScreen"
+        swipeToCloseEnabled
+        doubleTapToZoomEnabled
+        FooterComponent={({ imageIndex }) => (
+          <View style={viewerStyles.footer}>
+            <Text style={viewerStyles.footerText}>{`${imageIndex + 1}/${normalizedImages.length}`}</Text>
+          </View>
+        )}
+      />
       <Modal
         animationType="slide"
         transparent={true}
@@ -755,4 +796,21 @@ const styles = StyleSheet.create({
   //   fontSize: 16,
   //   fontWeight: '600',
   // },
+});
+
+const viewerStyles = StyleSheet.create({
+  footer: {
+    position: 'absolute',
+    bottom: 24,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  footerText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
 });
