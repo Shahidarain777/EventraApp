@@ -20,6 +20,9 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList, RootStackParamList } from '../types/navigations';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { loginUser } from '../redux/slices/authSlice';
+import OneSignal from 'react-native-onesignal';
+import api from '../api/axios';
+import { initNotifications } from '../redux/slices/NotificationSlice';
 import CheckBox from '@react-native-community/checkbox';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { StatusBar } from 'react-native';
@@ -76,6 +79,64 @@ const LoginScreen = () => {
 
     if (loginUser.fulfilled.match(result)) {
       navigation.replace('Main'); // 🎯 Navigate on successful login
+
+      // OneSignal setup after login
+      try {
+        // 1️⃣ Initialize OneSignal (v4/v5 compatible)
+        if (typeof (OneSignal as any).initialize === 'function') {
+          (OneSignal as any).initialize('cfebaa5f-c0e5-4009-b951-e4f8efff21f2');
+          if ((OneSignal as any).Notifications?.requestPermission) {
+            (OneSignal as any).Notifications.requestPermission(true);
+          }
+        } else if (typeof (OneSignal as any).setAppId === 'function') {
+          (OneSignal as any).setAppId('cfebaa5f-c0e5-4009-b951-e4f8efff21f2');
+          if ((OneSignal as any).promptForPushNotificationsWithUserResponse) {
+            (OneSignal as any).promptForPushNotificationsWithUserResponse();
+          }
+        }
+
+        // 2️⃣ Get player ID and register with backend
+        let playerId: string | undefined;
+        const user: any = (OneSignal as any).User;
+        if (user?.pushSubscription?.id) {
+          playerId = user.pushSubscription.id;
+        } else if ((OneSignal as any).getDeviceState) {
+          const state = await (OneSignal as any).getDeviceState();
+          playerId = state?.userId;
+        }
+        Alert.alert('Player ID', playerId || 'Unknown');
+        if (playerId) {
+          await api.post('/notifications/register-device', { playerId });
+          console.log('✅ Player ID registered');
+        }
+
+        // 3️⃣ Notification event listeners (optional, for real-time refresh)
+        if ((OneSignal as any).Notifications?.addEventListener) { // v5
+          (OneSignal as any).Notifications.addEventListener('click', () => {
+            dispatch(initNotifications() as any);
+          });
+          (OneSignal as any).Notifications.addEventListener('foregroundWillDisplay', (ev: any) => {
+            try {
+              if (ev?.preventDefault) ev.preventDefault();
+              if ((OneSignal as any).Notifications?.display) {
+                (OneSignal as any).Notifications.display(ev.notification);
+              }
+            } catch {}
+            dispatch(initNotifications() as any);
+          });
+        } else if ((OneSignal as any).setNotificationOpenedHandler) { // v4
+          (OneSignal as any).setNotificationOpenedHandler(() => {
+            dispatch(initNotifications() as any);
+          });
+          (OneSignal as any).setNotificationWillShowInForegroundHandler((event: any) => {
+            const notif = event.getNotification();
+            event.complete(notif);
+            dispatch(initNotifications() as any);
+          });
+        }
+      } catch (err) {
+        console.log('OneSignal setup error:', err);
+      }
     } else {
       // Check if it's an email verification error
       const errorMessage = result.payload as string;
