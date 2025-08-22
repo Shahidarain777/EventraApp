@@ -9,7 +9,9 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
 import { useNavigation } from '@react-navigation/native';
@@ -24,6 +26,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { fetchUnreadCount } from '../redux/slices/NotificationSlice';
 
 const HomeScreen = () => {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<
     CompositeNavigationProp<
       BottomTabNavigationProp<TabParamList, 'Home'>,
@@ -45,33 +48,39 @@ const userCountry = useSelector((state: RootState) =>
   state.auth.user?.Address?.country?.toLowerCase() || ''
 );
 
+const now = Date.now();
 const events = Array.isArray(eventsRaw)
-  ? [...eventsRaw].sort((a, b) => {
-      // Compare by city, then state, then country
-      const aCity = a.location?.city?.toLowerCase() || '';
-      const bCity = b.location?.city?.toLowerCase() || '';
-      const aState = a.location?.state?.toLowerCase() || '';
-      const bState = b.location?.state?.toLowerCase() || '';
-      const aCountry = a.location?.country?.toLowerCase() || '';
-      const bCountry = b.location?.country?.toLowerCase() || '';
+  ? [...eventsRaw]
+      .filter(e => {
+        const end = e.dateTime?.end ? new Date(e.dateTime.end).getTime() : (e.dateTime?.start ? new Date(e.dateTime.start).getTime() : 0);
+        return end > now;
+      })
+      .sort((a, b) => {
+        // Compare by city, then state, then country
+        const aCity = a.location?.city?.toLowerCase() || '';
+        const bCity = b.location?.city?.toLowerCase() || '';
+        const aState = a.location?.state?.toLowerCase() || '';
+        const bState = b.location?.state?.toLowerCase() || '';
+        const aCountry = a.location?.country?.toLowerCase() || '';
+        const bCountry = b.location?.country?.toLowerCase() || '';
 
-      // Priority: city > state > country
-      const aPriority =
-        (aCity === userCity ? 3 : 0) +
-        (aState === userState ? 2 : 0) +
-        (aCountry === userCountry ? 1 : 0);
-      const bPriority =
-        (bCity === userCity ? 3 : 0) +
-        (bState === userState ? 2 : 0) +
-        (bCountry === userCountry ? 1 : 0);
+        // Priority: city > state > country
+        const aPriority =
+          (aCity === userCity ? 3 : 0) +
+          (aState === userState ? 2 : 0) +
+          (aCountry === userCountry ? 1 : 0);
+        const bPriority =
+          (bCity === userCity ? 3 : 0) +
+          (bState === userState ? 2 : 0) +
+          (bCountry === userCountry ? 1 : 0);
 
-      if (aPriority !== bPriority) return bPriority - aPriority;
+        if (aPriority !== bPriority) return bPriority - aPriority;
 
-      // Then newest first
-      const aDate = new Date(a.createdAt || a.dateTime?.start || 0).getTime();
-      const bDate = new Date(b.createdAt || b.dateTime?.start || 0).getTime();
-      return bDate - aDate;
-    })
+        // Then newest first
+        const aDate = new Date(a.createdAt || a.dateTime?.start || 0).getTime();
+        const bDate = new Date(b.createdAt || b.dateTime?.start || 0).getTime();
+        return bDate - aDate;
+      })
   : [];
   const loading = useSelector((state: RootState) => state.events.loading);
   const error = useSelector((state: RootState) => state.events.error);
@@ -90,32 +99,33 @@ const events = Array.isArray(eventsRaw)
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: insets.bottom }]}> 
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}> 
         <Text style={styles.homeText}>Home</Text>
-         <TouchableOpacity
-          style={styles.bellIcon}
-          onPress={() => navigation.navigate({ name: 'NotificationScreen', params: undefined })}
-        >
-          <View>
-            <Ionicons name="notifications-outline" size={28} color="#333" />
-            {unreadCount > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{Math.min(99, unreadCount)}</Text>
-              </View>
-            )}
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('CreateEvent')}>
-          <Text style={styles.createEventText}>Create Event</Text>
-        </TouchableOpacity>
-       
+        <View style={styles.headerRight}>
+          <TouchableOpacity
+            style={styles.bellIcon}
+            onPress={() => navigation.navigate({ name: 'NotificationScreen', params: undefined })}
+          >
+            <View>
+              <Ionicons name="notifications-outline" size={28} color="#333" />
+              {unreadCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{Math.min(99, unreadCount)}</Text>
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('CreateEvent')}>
+            <Text style={styles.createEventText}>Create Event</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-      
+
       {/* Email Verification Banner */}
       <EmailVerificationBanner />
-      
+
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007BFF" />
@@ -170,10 +180,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     paddingHorizontal: 16,
-    paddingTop: '2%',
     paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    minHeight: 56,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   homeText: {
     fontSize: 20,
@@ -234,7 +249,8 @@ const styles = StyleSheet.create({
   },
   bellIcon: {
     padding: 4,
-    marginLeft: 170,
+    marginLeft: 0,
+    marginRight: 12,
   },
   badge: {
     position: 'absolute',
