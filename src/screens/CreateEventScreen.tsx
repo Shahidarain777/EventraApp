@@ -4,6 +4,8 @@ import {
   ScrollView, Image, ActivityIndicator, Switch, Alert
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../types/navigations';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../redux/store';
 import { fetchCategories, addCategory } from '../redux/slices/categorySlice';
@@ -18,7 +20,7 @@ import api from '../api/axios';
 type LocationData = { type: 'venue' | 'online'; venueName?: string; address?: string; city?: string; state?: string; country?: string; latitude?: number; longitude?: number; link?: string; platform?: string; };
 
 const CreateEventScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const dispatch = useDispatch<AppDispatch>();
   const { categories, loading: categoriesLoading } = useSelector((state: RootState) => state.categories);
   const eventError = useSelector((state: RootState) => state.events.error);
@@ -184,7 +186,12 @@ const CreateEventScreen = () => {
     try {
       await api.post('/events', body);
       setUploading(false);
-      Alert.alert('Success', 'Event created successfully!', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+      Alert.alert('Success', 'Event created successfully!', [
+        { text: 'OK', onPress: () => navigation.reset({
+            index: 0,
+            routes: [{ name: 'Main' }]
+          }) }
+      ]);
     } catch (e: any) {
       setUploading(false);
       setError(e?.response?.data?.message || 'Failed to create event');
