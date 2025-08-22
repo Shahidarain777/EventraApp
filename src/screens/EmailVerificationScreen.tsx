@@ -120,7 +120,7 @@ const EmailVerificationScreen = () => {
   };
 
   return (
-    <LinearGradient colors={["#075cf8ff", "#4f89e6ff"]} style={styles.container}>
+    <LinearGradient colors={["#f8f8f9ff", "#b4bdcbff"]} style={styles.container}>
       <SafeAreaView style={{ flex: 1, width: '100%' }}>
         <View style={styles.flexContainer}>
           <ScrollView
