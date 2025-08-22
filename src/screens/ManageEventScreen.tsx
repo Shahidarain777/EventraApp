@@ -237,6 +237,7 @@ const [previewImageUrl, setPreviewImageUrl] = React.useState<string | null>(null
     setPaymentActionLoading(false);
   };
 
+  const [cancelLoading, setCancelLoading] = React.useState(false);
   const handleCancelEvent = () => {
     if (!event?.eventId) return Alert.alert('Error', 'No eventId found');
     Alert.alert('Cancel Event', 'Are you sure you want to cancel this event? This action cannot be undone.', [
@@ -245,13 +246,20 @@ const [previewImageUrl, setPreviewImageUrl] = React.useState<string | null>(null
         text: 'Yes',
         style: 'destructive',
         onPress: async () => {
+          setCancelLoading(true);
           try {
             await api.delete('/events', {
               headers: { Authorization: `Bearer ${token}` },
               data: { eventId: Number(event.eventId) },
             });
-            Alert.alert('Success', 'Event deleted successfully');
-            navigation.goBack();
+            Alert.alert('Success', 'Event Deleted successfully!', [
+              { text: 'OK', onPress: () => navigation.reset({
+                  index: 0,
+                  routes: [
+                    { name: 'Main', state: { routes: [{ name: 'Home' }] } }
+                  ]
+                }) }
+            ]);
           } catch (err) {
             const errorAny = err as any;
             const errorMsg =
@@ -259,6 +267,8 @@ const [previewImageUrl, setPreviewImageUrl] = React.useState<string | null>(null
                 ? errorAny.response.data.message
                 : 'Failed to delete event';
             Alert.alert('Error', errorMsg);
+          } finally {
+            setCancelLoading(false);
           }
         },
       },
@@ -357,16 +367,24 @@ const [previewImageUrl, setPreviewImageUrl] = React.useState<string | null>(null
           />
 
           {/* Cancel Event (unique style for red & one column) */}
-          <TabButton
-            icon="close-circle-outline"
-            text="Cancel Event"
+          <TouchableOpacity
+            style={[styles.tabButton, styles.cancelTab, cancelLoading && { opacity: 0.55 }]}
             onPress={handleCancelEvent}
-            style={styles.cancelTab}
-            iconColor="#ed6462"
-            textColor="#ed6462"
-            countColor="#fbeaea"
-            disabled={false}
-          />
+            activeOpacity={cancelLoading ? 1 : 0.8}
+            disabled={cancelLoading}
+          >
+            <Ionicons
+              name="close-circle-outline"
+              size={32}
+              color="#ed6462"
+              style={{ marginBottom: 10 }}
+            />
+            {cancelLoading ? (
+              <ActivityIndicator size="small" color="#ed6462" style={{ marginTop: 8 }} />
+            ) : (
+              <Text style={[styles.tabButtonText, { color: '#ed6462' }]}>Cancel Event</Text>
+            )}
+          </TouchableOpacity>
         </View>
         <Text style={styles.sectionTitleAttendees}>Attendee Status</Text>
 
