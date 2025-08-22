@@ -457,15 +457,7 @@ const EventCard = ({
               )}
             </View>
             <View style={styles.fbCommentInputRow}>
-              <TouchableOpacity>
-                <Icon name="camera" size={24} color="#666" style={{ marginRight: 8 }} />
-              </TouchableOpacity>
-              <TouchableOpacity>
-                <Icon name="happy" size={24} color="#666" style={{ marginRight: 8 }} />
-              </TouchableOpacity>
-              <TouchableOpacity>
-                <Icon name="images" size={24} color="#666" style={{ marginRight: 8 }} />
-              </TouchableOpacity>
+              
               <TextInput
                 style={styles.fbCommentInput}
                 placeholder="Write a comment..."
