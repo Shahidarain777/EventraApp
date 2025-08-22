@@ -295,7 +295,7 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
   const getButtonText = () => {
     switch (userStatus) {
       case 'member':
-        return 'You are a member';
+        return 'Generate Ticket';
       case 'approval_pending':
         return 'Awaiting Approval';
       case 'payment_pending':
@@ -317,6 +317,9 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
   };
   
   const getButtonStyle = () => {
+    if (userStatus === 'member') {
+      return [styles.joinButton, { backgroundColor: '#28a745' }]; // Green for Generate Ticket
+    }
     if (isButtonDisabled()) {
       return [styles.joinButton, styles.joinButtonDisabled];
     }
@@ -539,8 +542,10 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
           ) : (
             <TouchableOpacity
               style={getButtonStyle()}
-              onPress={handleJoinEvent}
-              disabled={isButtonDisabled()}
+              onPress={userStatus === 'member'
+                ? () => (navigation as any).navigate('GenerateTicketScreen', { event })
+                : handleJoinEvent}
+              disabled={isButtonDisabled() && userStatus !== 'member'}
             >
               {isJoining ? (
                 <ActivityIndicator color="#fff" size="small" />
