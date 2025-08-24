@@ -180,7 +180,7 @@ const ProfileScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+  <ScrollView style={[styles.container, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false}>
         <View style={styles.profileHorizontalCard}>
           <View style={styles.profileHorizontalRow}>
             <TouchableOpacity 
@@ -588,6 +588,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    marginBottom: 85,
   },
   logoutButtonText: {
     color: '#fff',

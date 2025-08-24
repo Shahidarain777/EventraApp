@@ -95,7 +95,7 @@ const MyEventsScreen = () => {
         </View>
       </View>
       {/* Tab Content fills the rest of the screen */}
-      <View style={styles.listContainer}>
+      <View style={[styles.listContainer, { paddingBottom: 0 }]}> 
         {activeTab === 'My Event' ? (
           <FlatList
             data={myEvents}
@@ -103,7 +103,7 @@ const MyEventsScreen = () => {
             renderItem={({ item }) => <EventCard event={item} showJoin={true} />}
             ListEmptyComponent={!loading ? <Text style={styles.empty}>No events found.</Text> : null}
             refreshControl={<RefreshControl refreshing={loading} onRefresh={() => dispatch(fetchEvents())} />}
-            contentContainerStyle={{ flexGrow: 1 }}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: 80 }}
           />
         ) : (
           <FlatList
@@ -112,7 +112,7 @@ const MyEventsScreen = () => {
             renderItem={({ item }) => <EventCard event={item} showJoin={true} />}
             ListEmptyComponent={!loading ? <Text style={styles.empty}>No joined events found.</Text> : null}
             refreshControl={<RefreshControl refreshing={loading} onRefresh={() => dispatch(fetchEvents())} />}
-            contentContainerStyle={{ flexGrow: 1 }}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: 80 }}
           />
         )}
       </View>

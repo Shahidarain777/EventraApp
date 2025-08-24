@@ -399,7 +399,7 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
               <Text style={styles.additionalDetailValue}>{getVisibilityText()}</Text>
             </View>
           </View>
-          <View style={styles.additionalDetailsRow}>
+          {/* <View style={styles.additionalDetailsRow}>
             <View style={styles.additionalDetailCard}>
               <Ionicons name="people-outline" size={18} color="#2788ff" />
               <Text style={styles.additionalDetailTitle}>Capacity</Text>
@@ -410,7 +410,8 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
               <Text style={styles.additionalDetailTitle}>Joined</Text>
               <Text style={styles.additionalDetailValue}>{String(getJoinedCount())}</Text>
             </View>
-          </View>
+          </View> */}
+
         </View>
         <View style={styles.dueDateCard}>
           <DueDate event={event} styles={styles} />

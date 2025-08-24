@@ -218,7 +218,7 @@ const CreateEventScreen = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView contentContainerStyle={[styles.container, { paddingBottom: 69 }]} showsVerticalScrollIndicator={false}>
       <Text style={styles.title}>Create Event</Text>
 
       <View style={styles.imageCard}>

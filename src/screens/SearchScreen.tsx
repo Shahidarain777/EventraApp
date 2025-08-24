@@ -77,7 +77,7 @@ const SearchScreen = () => {
               />
             )}
             ListEmptyComponent={<Text style={styles.emptyText}>No events found.</Text>}
-            contentContainerStyle={{ paddingBottom: 32 }}
+            contentContainerStyle={{ paddingBottom: 80 }}
           />
         )}
       </SafeAreaView>
