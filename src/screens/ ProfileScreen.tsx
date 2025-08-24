@@ -1,15 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  Image, 
-  ScrollView, 
-  SafeAreaView,
-  Alert,
-  ActivityIndicator
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import { logout, updateProfileImage, fetchUserProfileImage } from '../redux/slices/authSlice';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -19,6 +9,10 @@ import api from '../api/axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
+const { width } = Dimensions.get('window');
+const BG_HEIGHT = width * 0.6;
+const PROFILE_SIZE = 110;
+const CARD_TOP_RADIUS = 32;
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
@@ -178,306 +172,200 @@ const ProfileScreen = () => {
     });
   };
 
+  // Stats: total created events, total joined events, and logo
+  const createdEventsCount = events?.filter((event: any) => event.hostId?.toString() === currentUserId).length || 0;
+  const joinedEventsCount = events?.filter((event: any) =>
+    Array.isArray(event.joinedMembers) &&
+    event.joinedMembers.some((m: any) => m.userId?.toString() === currentUserId)
+  ).length || 0;
+  // Count all requests (approval, payment verification, etc.)
+  const approvalRequestsCount = events?.filter((event: any) =>
+    Array.isArray(event.joinedMembers) &&
+    event.joinedMembers.some((m: any) =>
+      m.userId?.toString() === currentUserId &&
+      (m.status === 'approval_pending' || m.status === 'payment_verification_pending' || m.status === 'approval_request' || m.status === 'payment_pending')
+    )
+  ).length || 0;
+
+  const stats = [
+    { icon: 'create-outline', value: createdEventsCount, label: 'Created Event' },
+    { icon: 'checkmark-done-outline', value: joinedEventsCount, label: 'Joined Event' },
+  { icon: 'alert-circle-outline', value: approvalRequestsCount, label: 'Requests' },
+  ];
+
+  // Profile image logic
+  let profileImageSource;
+  if (user?.profileImage) {
+    if (user.profileImage.startsWith('http')) profileImageSource = { uri: user.profileImage };
+    else if (user.profileImage.startsWith('/uploads')) profileImageSource = { uri: `${api.defaults.baseURL?.replace(/\/api$/, '')}${user.profileImage}` };
+    else if (user.profileImage.startsWith('/')) profileImageSource = { uri: `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads${user.profileImage}` };
+    else profileImageSource = { uri: `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads/${user.profileImage}` };
+  } else {
+    profileImageSource = require('../../assets/eventra_illustration.png');
+  }
+
+  // Use the same image for background and profile
+  const backgroundImageSource = profileImageSource;
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-  <ScrollView style={[styles.container, { paddingBottom: 120 }]} showsVerticalScrollIndicator={false}>
-        <View style={styles.profileHorizontalCard}>
-          <View style={styles.profileHorizontalRow}>
-            <TouchableOpacity 
-              style={styles.profileImageHorizontalContainer} 
-              onPress={handleProfileImagePick}
-              disabled={uploadingImage}
-            >
-              {user?.profileImage ? (
-                <Image
-                  source={{
-                    uri: (() => {
-                      if (user.profileImage.startsWith('http')) return user.profileImage;
-                      if (user.profileImage.startsWith('/uploads')) {
-                        return `${api.defaults.baseURL?.replace(/\/api$/, '')}${user.profileImage}`;
-                      }
-                      if (user.profileImage.startsWith('/')) {
-                        return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads${user.profileImage}`;
-                      }
-                      return `${api.defaults.baseURL?.replace(/\/api$/, '')}/uploads/${user.profileImage}`;
-                    })()
-                  }}
-                  style={styles.profileImageHorizontal}
-                />
-              ) : (
-                <View style={styles.placeholderImageHorizontal}>
-                  <Ionicons name="person-outline" size={60} color="#007BFF" />
-                </View>
-              )}
-              {uploadingImage && (
-                <View style={styles.loadingOverlayHorizontal}>
-                  <ActivityIndicator size="large" color="#007BFF" />
-                </View>
-              )}
-            </TouchableOpacity>
-            <View style={styles.profileTextColumn}>
-              <Text style={styles.profileName}>{user?.name || 'Eventra'}</Text>
-              <Text style={styles.profileEmail}>{user?.email || 'appeventra@gmail.com'}</Text>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.editProfileBtn} onPress={() => navigation.navigate('EditProfileScreen' as never)}>
-            <Text style={styles.editProfileBtnText}>Edit Profile</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.invoiceCardWrapper}>
-          <TouchableOpacity style={styles.invoiceCardBtn} onPress={() => navigation.navigate('InvoiceScreen' as never)}>
-            <Ionicons name="receipt-outline" size={38} color="#2788ff" style={{ marginBottom: 8 }} />
-            <Text style={styles.invoiceCardLabel}>Invoice</Text>
-            <View style={styles.invoiceCountPill}>
-              <Text style={styles.invoiceCountText}>{invoiceCount}</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.optionsSection}>
-          <TouchableOpacity style={styles.optionItem} onPress={() => navigation.navigate('SettingsScreen' as never)}>
-            <Ionicons name="settings-outline" size={20} color="#666" />
-            <Text style={styles.optionText}>Settings</Text>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.optionItem} onPress={() => navigation.navigate('HelpSupport' as never)}>
-            <Ionicons name="help-circle-outline" size={20} color="#666" />
-            <Text style={styles.optionText}>Help & Support</Text>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.optionItem} onPress={() => navigation.navigate('CommunityGuidelinesScreen' as never)}>
-            <Ionicons name="document-text-outline" size={20} color="#666" />
-            <Text style={styles.optionText}>Terms & Privacy</Text>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-
-      <View style={styles.logoutContainer}>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={20} color="#fff" />
-          <Text style={styles.logoutButtonText}>Logout</Text>
+    <View style={styles.root}>
+      {/* Background Image */}
+      <Image source={backgroundImageSource} style={styles.bgImage} />
+      {/* Back Button */}
+      <View style={styles.topBar}>
+        <TouchableOpacity style={styles.logoutIconBtn} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={26} color="#fff" />
+          <Text style={styles.logoutIconText}>Logout</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+      {/* White Card */}
+      <View style={styles.card}>
+        {/* Profile Image with Edit Icon */}
+        <View style={styles.profileWrapper}>
+          <TouchableOpacity onPress={handleProfileImagePick} disabled={uploadingImage}>
+            <Image source={profileImageSource} style={styles.profileImg} />
+            {uploadingImage && (
+              <View style={styles.loadingOverlay}>
+                <ActivityIndicator size="large" color="#075cf8ff" />
+              </View>
+            )}
+            <View style={styles.editIcon}>
+              <Ionicons name="pencil" size={22} color="#fff" />
+            </View>
+          </TouchableOpacity>
+        </View>
+        {/* Name & Location */}
+        <Text style={styles.name}>{user?.name || 'Eventra'}</Text>
+        <Text style={styles.location}>{user?.email}</Text>
+        {/* Stats Row */}
+        <View style={styles.statsRow}>
+          {stats.map((stat, idx) => (
+            <View style={styles.statItem} key={idx}>
+              {typeof stat.icon === 'string' ? (
+                <Ionicons name={stat.icon} size={28} color="#075cf8ff" style={{ marginBottom: 4 }} />
+              ) : (
+                <Image source={stat.icon} style={{ width: 28, height: 28, marginBottom: 4 }} resizeMode="contain" />
+              )}
+              <Text style={styles.statValue}>{stat.value}</Text>
+              {stat.label ? <Text style={styles.statLabel}>{stat.label}</Text> : null}
+            </View>
+          ))}
+        </View>
+      </View>
+      {/* Tabs Section */}
+      <View style={styles.tabsSection}>
+        {/* Invoice Tab */}
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('InvoiceScreen' as never)}>
+          <Ionicons name="receipt-outline" size={28} color="#075cf8ff" style={{ marginRight: 12 }} />
+          <Text style={styles.tabText}>Invoice</Text>
+          <View style={styles.invoiceCountPill}>
+            <Text style={styles.invoiceCountText}>{invoiceCount}</Text>
+          </View>
+        </TouchableOpacity>
+        {/* Settings Tab */}
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('SettingsScreen' as never)}>
+          <Ionicons name="settings-outline" size={28} color="#075cf8ff" style={{ marginRight: 12 }} />
+          <Text style={styles.tabText}>Settings</Text>
+        </TouchableOpacity>
+        {/* Help & Support Tab */}
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('HelpSupport' as never)}>
+          <Ionicons name="help-circle-outline" size={28} color="#075cf8ff" style={{ marginRight: 12 }} />
+          <Text style={styles.tabText}>Help & Support</Text>
+        </TouchableOpacity>
+        {/* Terms & Privacy Tab */}
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('CommunityGuidelinesScreen' as never)}>
+          <Ionicons name="document-text-outline" size={28} color="#075cf8ff" style={{ marginRight: 12 }} />
+          <Text style={styles.tabText}>Terms & Privacy</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
 
 export default ProfileScreen;
 
 const styles = StyleSheet.create({
-  invoiceCardWrapper: {
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: 18,
-  },
-  invoiceCardBtn: {
-    backgroundColor: '#fff',
-    borderRadius: 22,
-    width: '90%',
-    height: 150,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    paddingVertical: 18,
-    paddingHorizontal: 8,
-  },
-  invoiceCardLabel: {
+  root: {
+    flex: 1,
+    backgroundColor: '#F8F6F2',
+    paddingTop: 36,
     
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#222',
-    marginBottom: 10,
   },
-  invoiceCountPill: {
-    backgroundColor: '#eaf6ff',
-    borderRadius: 12,
-    paddingHorizontal: 18,
-    paddingVertical: 4,
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  invoiceCountText: {
-    color: '#2788ff',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
-  invoiceTabWrapper: {
+  bgImage: {
     width: '100%',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  invoiceTabBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 28,
-    paddingHorizontal: 40,
-    paddingVertical: 18,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    marginVertical: 8,
-  },
-  invoiceTabText: {
-    color: '#0059ffff',
-    fontWeight: 'bold',
-    fontSize: 22,
-    marginLeft: 6,
-  },
-  profileHorizontalCard: {
-    backgroundColor: '#0059ffff',
-    borderRadius: 16,
-    padding: 18,
-    marginHorizontal: 16,
-    marginTop: 24,
-    marginBottom: 18,
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-  },
-  profileHorizontalRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-  },
-  profileImageHorizontalContainer: {
-    marginRight: 16,
-    position: 'relative',
-  },
-  profileImageHorizontal: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderWidth: 3,
-    borderColor: '#fff',
-    backgroundColor: '#e6f2ea',
-  },
-  placeholderImageHorizontal: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#e6f2ea',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: '#fff',
-  },
-  loadingOverlayHorizontal: {
+    height: BG_HEIGHT,
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(255,255,255,0.7)',
-    borderRadius: 30,
-    justifyContent: 'center',
+    resizeMode: 'cover',
+    zIndex: 1,
+  },
+  topBar: {
+    position: 'absolute',
+    top: 40,
+    left: 0,
+    right: 0,
+    zIndex: 2,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 20,
   },
-  profileTextColumn: {
-    flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'center',
-  },
-  profileName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 2,
-  },
-  profileEmail: {
-    fontSize: 14,
-    color: '#e6f2ea',
-    fontWeight: '500',
-  },
-  editProfileBtn: {
-    marginTop: 12,
-    alignSelf: 'flex-end',
-    backgroundColor: '#fff',
-    paddingHorizontal: 18,
-    paddingVertical: 7,
+  logoutIconBtn: {
+    backgroundColor: '#000',
     borderRadius: 20,
-    elevation: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginLeft: 260,
   },
-  editProfileBtnText: {
-    color: '#0059ffff',
-    fontWeight: 'bold',
-    fontSize: 15,
+  logoutIconText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
+    marginLeft: 4,
   },
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  header: {
+
+  card: {
+    marginTop: BG_HEIGHT - PROFILE_SIZE / 2,
     backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    elevation: 2,
+    borderTopLeftRadius: CARD_TOP_RADIUS,
+    borderTopRightRadius: CARD_TOP_RADIUS,
+    paddingTop: PROFILE_SIZE / 2 + 16,
+    paddingHorizontal: 24,
+    paddingBottom: 12,
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    zIndex: 2,
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#111',
-    textAlign: 'center',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#f7faff',
-
-  },
-  profileImageSection: {
-    alignItems: 'center',
-    paddingVertical: 30,
-    backgroundColor: '#f7faff',
-    marginBottom: 10,
-  },
-  profileImageContainer: {
-    position: 'relative',
-  },
-  profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 4,
-    borderColor: '#007BFF',
-  },
-  placeholderImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#f0f0f0',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 4,
-    borderColor: '#007BFF',
-  },
-  editIconContainer: {
+  profileWrapper: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#007BFF',
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
+    top: -PROFILE_SIZE / 2,
+    alignSelf: 'center',
+  },
+  profileImg: {
+    width: PROFILE_SIZE,
+    height: PROFILE_SIZE,
+    borderRadius: PROFILE_SIZE / 2,
+    borderWidth: 4,
     borderColor: '#fff',
+    backgroundColor: '#eee',
+  },
+  editIcon: {
+    position: 'absolute',
+    right: -4,
+    bottom: 8,
+    backgroundColor: '#075cf8ff',
+    borderRadius: 16,
+    padding: 4,
+    borderWidth: 2,
+    borderColor: '#fff',
+    zIndex: 3,
   },
   loadingOverlay: {
     position: 'absolute',
@@ -485,115 +373,80 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 60,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderRadius: PROFILE_SIZE / 2,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  uploadingText: {
+  name: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#222',
     marginTop: 8,
-    fontSize: 14,
-    color: '#007BFF',
-    fontWeight: '500',
-  },
-  userInfoSection: {
-    paddingHorizontal: 16,
-  },
-  infoCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  infoTextContainer: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  changeButton: {
-    backgroundColor: '#f0f0f0',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    marginLeft: 8,
-  },
-  changeButtonText: {
-    color: '#007BFF',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  infoLabel: {
-    fontSize: 12,
-    color: '#666',
     marginBottom: 2,
-    textTransform: 'uppercase',
-    fontWeight: '600',
+    textAlign: 'center',
   },
-  infoValue: {
+  location: {
     fontSize: 16,
-    color: '#111',
-    fontWeight: '500',
+    color: '#888',
+    marginBottom: 18,
+    textAlign: 'center',
   },
-  optionsSection: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginBottom: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 8,
   },
-  optionItem: {
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#075cf8ff',
+  },
+  statLabel: {
+    fontSize: 13,
+    color: '#888',
+    marginTop: 2,
+  },
+  tabsSection: {
+    marginTop: 2,
+    paddingHorizontal: 4,
+  },
+  tabItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 18,
     paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    paddingHorizontal: 18,
+    marginBottom: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  optionText: {
-    fontSize: 16,
-    color: '#111',
-    marginLeft: 12,
+  tabText: {
+    fontSize: 17,
+    color: '#222',
+    fontWeight: '600',
     flex: 1,
   },
-  logoutContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-  logoutButton: {
-    backgroundColor: '#161112ff',
-    flexDirection: 'row',
+  invoiceCountPill: {
+    backgroundColor: '#eaf6ff',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 2,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 30,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    marginBottom: 85,
-  },
-  logoutButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
     marginLeft: 8,
+  },
+  invoiceCountText: {
+    color: '#075cf8ff',
+    fontWeight: 'bold',
+    fontSize: 15,
   },
 });
