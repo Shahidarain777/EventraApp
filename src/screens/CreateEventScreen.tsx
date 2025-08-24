@@ -20,6 +20,25 @@ import api from '../api/axios';
 type LocationData = { type: 'venue' | 'online'; venueName?: string; address?: string; city?: string; state?: string; country?: string; latitude?: number; longitude?: number; link?: string; platform?: string; };
 
 const CreateEventScreen = () => {
+  // Helper to check if all required fields are filled
+  const isFormValid = () => {
+    if (!title.trim()) return false;
+    if (!categoryId && !otherCategory.trim()) return false;
+    if (!description.trim()) return false;
+    if (!date.start || !date.end) return false;
+    if (isPaid && !joiningFee) return false;
+    if (!locationData) return false;
+    if (locationData.type === 'venue' && !(locationData.address || locationData.venueName)) return false;
+    if (locationData.type === 'online' && !locationData.link) return false;
+    for (let i = 0; i < subEvents.length; i++) {
+      const se = subEvents[i];
+      if (!se.itemName.trim()) return false;
+      if (!se.maxAttendees) return false;
+      if (se.isPaid && !se.fee) return false;
+    }
+    if (isPaid && (!accountHolderName.trim() || !accountNumber.trim() || !bankName)) return false;
+    return true;
+  };
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const dispatch = useDispatch<AppDispatch>();
   const { categories, loading: categoriesLoading } = useSelector((state: RootState) => state.categories);
@@ -228,7 +247,7 @@ const CreateEventScreen = () => {
       )}
 
       <Text style={styles.label}>Description</Text>
-      <TextInput style={styles.textarea} placeholder="Description" placeholderTextColor="#888" value={description} onChangeText={setDescription} multiline numberOfLines={3} />
+      <TextInput style={styles.textarea} placeholder="Description" placeholderTextColor="#888" value={description} onChangeText={setDescription} multiline numberOfLines={10} />
 
       <Text style={styles.label}>Event Location</Text>
       <TouchableOpacity style={styles.locationCard} onPress={() => setLocationModalVisible(true)}>
@@ -262,7 +281,7 @@ const CreateEventScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.label}>Capacity</Text>
+      {/* <Text style={styles.label}>Capacity</Text>
       <View style={styles.feeInputRow}>
         <TouchableOpacity style={styles.stepBtn} onPress={() => setCapacity(Math.max(0, (parseInt(capacity)||0) - capacityStep).toString())}>
           <Text style={styles.stepBtnText}>-</Text>
@@ -271,7 +290,7 @@ const CreateEventScreen = () => {
         <TouchableOpacity style={styles.stepBtn} onPress={() => setCapacity(((parseInt(capacity)||0) + capacityStep).toString())}>
           <Text style={styles.stepBtnText}>+</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
 
       <DateTimeSelector
         startDate={date.start}
@@ -287,7 +306,7 @@ const CreateEventScreen = () => {
 
       {isPaid && (
         <>
-          <View style={styles.feeInputRow}>
+          {/* <View style={styles.feeInputRow}>
             <TouchableOpacity style={styles.currencyBox} onPress={() => setCurrency(currency === 'PKR' ? 'USD' : 'PKR')}>
               <Text style={styles.currencyText}>{currency}</Text>
             </TouchableOpacity>
@@ -300,7 +319,7 @@ const CreateEventScreen = () => {
                 <Text style={styles.stepBtnText}>+</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </View> */}
 
           <Text style={styles.label}>Account Holder Name</Text>
           <TextInput style={styles.input} placeholder="Account Holder Name" placeholderTextColor="#888" value={accountHolderName} onChangeText={setAccountHolderName} />
@@ -330,7 +349,7 @@ const CreateEventScreen = () => {
         </>
       )}
 
-      <Text style={styles.label}>Sub Events</Text>
+      <Text style={styles.label}>Sub Events (add atleast one)</Text>
       {subEvents.map((sv, index) => (
         <View key={index} style={styles.subEventCard}>
           <View style={styles.subEventHeader}>
@@ -351,7 +370,7 @@ const CreateEventScreen = () => {
           </View>
           <View style={styles.subEventFullRow}>
             <Text style={styles.subEventLabel}>Item Name</Text>
-            <TextInput style={styles.subEventInputFull} placeholder="e.g., Jazz Band, Food Stall" placeholderTextColor="#888" value={sv.itemName} onChangeText={text => updateSubEvent(index,'itemName', text)} />
+            <TextInput style={styles.subEventInputFull} placeholder="e.g., Food Stall" placeholderTextColor="#888" value={sv.itemName} onChangeText={text => updateSubEvent(index,'itemName', text)} />
           </View>
         </View>
       ))}
@@ -361,7 +380,11 @@ const CreateEventScreen = () => {
         <Text style={styles.addSubEventBtnText}>Add Sub-Event</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={uploading}>
+      <TouchableOpacity
+        style={[styles.submitBtn, !isFormValid() ? { backgroundColor: '#ccc' } : { backgroundColor: '#2788ff' }]}
+        onPress={handleSubmit}
+        disabled={!isFormValid() || uploading}
+      >
         {uploading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>Upload Event</Text>}
       </TouchableOpacity>
 
@@ -386,7 +409,7 @@ const styles = StyleSheet.create({
   eventImagesLabel: { fontSize: 18, fontWeight: 'bold', color: '#2788ff', marginBottom: 10 },
   imagePreviewRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, paddingRight: 12 },
   label: { fontSize: 15, color: '#333', fontWeight: '600', marginBottom: 6, alignSelf: 'flex-start' },
-  input: { width: '100%', backgroundColor: '#f7f7f7', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12, fontSize: 16, marginBottom: 14, borderWidth: 1, borderColor: '#e0e0e0', color: '#222', fontWeight: '500' },
+  input: { width: '100%', backgroundColor: '#f7f7f7', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 6, fontSize: 18, marginBottom: 14, borderWidth: 1, borderColor: '#e0e0e0', color: '#222', fontWeight: '500' },
   textarea: { width: '100%', backgroundColor: '#f7f7f7', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12, fontSize: 16, marginBottom: 14, borderWidth: 1, borderColor: '#e0e0e0', minHeight: 70, maxHeight: 120, color: '#222', fontWeight: '500' },
   locationCard: { width: '100%', backgroundColor: '#f7f7f7', borderRadius: 12, marginBottom: 16, borderWidth: 1, borderColor: '#e0e0e0' },
   locationCardContent: { flexDirection: 'row', alignItems: 'center', padding: 16 },
