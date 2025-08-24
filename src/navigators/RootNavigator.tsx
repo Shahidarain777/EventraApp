@@ -37,6 +37,7 @@ const RootNavigator = () => {
           <Stack.Screen name="NotificationScreen" component={require('../screens/NotificationScreen').default} />
           <Stack.Screen name="EditProfileScreen" component={require('../screens/EditProfileScreen').default} />
           <Stack.Screen name="Home" component={require('../screens/HomeScreen').default} />
+          <Stack.Screen name="Login" component={require('../screens/LoginScreen').default} />
         </>
       ) : (
         <Stack.Screen name="Auth" component={AuthNavigator} />

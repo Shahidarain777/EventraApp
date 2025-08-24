@@ -16,6 +16,7 @@ export type RootStackParamList = {
   BlockedUsers: undefined;
   NotificationScreen: undefined;
   HomeScreen: undefined;
+  LoginScreen: undefined;
 };
 
 export type AuthStackParamList = {

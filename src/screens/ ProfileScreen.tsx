@@ -28,6 +28,15 @@ const ProfileScreen = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const token = useSelector((state: RootState) => state.auth.token);
 
+  useEffect(() => {
+      if (!token) {
+        (navigation as any).reset({
+          index: 0,
+          routes: [{ name: 'Auth', params: { screen: 'Login' } }],
+        });
+      }
+  }, [token, navigation]);
+
   const currentUserId = user?._id?.toString() || '';
   const invoiceCount = events?.filter((event: any) =>
     Array.isArray(event.joinedMembers) &&
@@ -86,6 +95,10 @@ const ProfileScreen = () => {
               }
             } catch {}
             dispatch(logout());
+              (navigation as any).reset({
+                index: 0,
+                routes: [{ name: 'Auth', params: { screen: 'Login' } }],
+              });
           },
         },
       ]
