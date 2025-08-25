@@ -155,7 +155,7 @@ const EventCard = ({
 
   const viewShotRef = useRef<React.ElementRef<typeof ViewShot>>(null);
   const [isSharing, setIsSharing] = useState(false);
-  const APK_LINK = 'https://yourdomain.com/your-app.apk'; // Replace with your actual APK link
+  const APK_LINK = 'https://drive.google.com/file/d/1iWB5d5eirGySZ3OKPjaK6MGm0cx2fMrX/view?usp=sharing'; // Replace with your actual APK link
   const handleShareEvent = async () => {
     try {
       setIsSharing(true);
