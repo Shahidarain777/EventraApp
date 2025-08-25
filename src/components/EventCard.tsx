@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
 import { Image } from 'react-native';
+import ViewShot from 'react-native-view-shot';
+import RNShare from 'react-native-share';
 import {
   View,
   Text,
@@ -151,16 +153,23 @@ const EventCard = ({
     setCommentModalVisible(false);
   };
 
-  const handleShareEvent = async (event: Event) => {
+  const viewShotRef = useRef<React.ElementRef<typeof ViewShot>>(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const APK_LINK = 'https://yourdomain.com/your-app.apk'; // Replace with your actual APK link
+  const handleShareEvent = async () => {
     try {
-      const shareMessage = `🎉 Check out this event: ${event.title}\n\n📝 ${event.description}\n\n📅 Date: ${event.dateTime.start} - ${event.dateTime.end}\n💰 Price: ${event.price}\n👨‍💼 Organizer: ${event.hostName}\n\nJoin us for an amazing experience!`;
-
-      await Share.share({
-        message: shareMessage,
-        title: event.title,
-      });
+      setIsSharing(true);
+      if (viewShotRef.current && typeof viewShotRef.current.capture === 'function') {
+        const uri = await viewShotRef.current.capture();
+        await RNShare.open({
+          url: uri,
+          message: `Install the app: ${APK_LINK}`,
+        });
+      }
     } catch (error) {
-      // No alert message
+      // Optionally handle error
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -218,7 +227,7 @@ const EventCard = ({
 
   return (
     <>
-      <View style={styles.eventCard}>
+  <ViewShot ref={viewShotRef} options={{ format: 'png', quality: 0.95 }} style={styles.eventCard}>
         <View style={styles.eventHeader}>
           <View style={styles.hostRow}>
             {event.hostProfileImage ? (
@@ -284,16 +293,16 @@ const EventCard = ({
             {event.title}
           </Text>
           <View>
-            <Text style={styles.eventDescription} numberOfLines={expanded ? undefined : 2}>
+            <Text style={styles.eventDescription} numberOfLines={isSharing ? undefined : (expanded ? undefined : 2)}>
               {event.description}
             </Text>
-            {isLong && (
+            {!isSharing && isLong && (
               <TouchableOpacity onPress={() => setExpanded((e) => !e)}>
                 <Text style={styles.seeMoreText}>{expanded ? 'see less' : 'see more'}</Text>
               </TouchableOpacity>
             )}
           </View>
-          {showActions && (
+          {!isSharing && showActions && (
             <View style={styles.eventActions}>
               <View style={styles.socialActions}>
                 <TouchableOpacity
@@ -321,7 +330,7 @@ const EventCard = ({
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.actionButton}
-                  onPress={() => handleShareEvent(event)}
+                  onPress={handleShareEvent}
                 >
                   <Icon name="paper-plane-outline" size={22} color="#666" />
                 </TouchableOpacity>
@@ -387,7 +396,7 @@ const EventCard = ({
             </View>
           )}
         </View>
-      </View>
+  </ViewShot>
       {/* Fullscreen Image Viewer */}
       <ImageViewing
         images={normalizedImages.map((uri) => ({ uri }))}

@@ -190,7 +190,7 @@ const ProfileScreen = () => {
   const stats = [
     { icon: 'create-outline', value: createdEventsCount, label: 'Created Event' },
     { icon: 'checkmark-done-outline', value: joinedEventsCount, label: 'Joined Event' },
-  { icon: 'alert-circle-outline', value: approvalRequestsCount, label: 'Requests' },
+    { icon: 'alert-circle-outline', value: approvalRequestsCount, label: 'Requests' },
   ];
 
   // Profile image logic
@@ -233,10 +233,19 @@ const ProfileScreen = () => {
               <Ionicons name="pencil" size={22} color="#fff" />
             </View>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.editProfileBtnAbsolute} onPress={() => navigation.navigate('EditProfileScreen' as never)}>
+            <Ionicons name="create-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
+            <Text style={styles.editProfileBtnText}>Edit Profile</Text>
+          </TouchableOpacity>
         </View>
         {/* Name & Location */}
         <Text style={styles.name}>{user?.name || 'Eventra'}</Text>
         <Text style={styles.location}>{user?.email}</Text>
+        {/* Edit Profile Button */}
+        <TouchableOpacity style={styles.editProfileBtn} onPress={() => navigation.navigate('EditProfileScreen' as never)}>
+          <Ionicons name="create-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
+          <Text style={styles.editProfileBtnText}>Edit Profile</Text>
+        </TouchableOpacity>
         {/* Stats Row */}
         <View style={styles.statsRow}>
           {stats.map((stat, idx) => (
@@ -303,7 +312,7 @@ const styles = StyleSheet.create({
   },
   topBar: {
     position: 'absolute',
-    top: 40,
+    top: '1%',
     left: 0,
     right: 0,
     zIndex: 2,
@@ -313,7 +322,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   logoutIconBtn: {
-    backgroundColor: '#000',
+    backgroundColor: 'rgba(40,40,50,0.85)',
     borderRadius: 20,
     flexDirection: 'row',
     alignItems: 'center',
@@ -412,6 +421,31 @@ const styles = StyleSheet.create({
     color: '#888',
     marginTop: 2,
   },
+  editProfileBtn: {
+    display: 'none',
+  },
+  editProfileBtnAbsolute: {
+    position: 'absolute',
+    right: -130,
+    top: '50%',
+    transform: [{ translateY: -22 }],
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(1, 64, 253, 0.85)',
+    borderRadius: 18,
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  editProfileBtnText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
+  },
   tabsSection: {
     marginTop: 2,
     paddingHorizontal: 4,
@@ -424,7 +458,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 18,
     marginBottom: 3,
-    shadowColor: '#000',
+    shadowColor: 'rgba(40,40,50,0.85)',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 6,
@@ -432,7 +466,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 17,
-    color: '#222',
+    color: 'rgba(40,40,50,0.85)',
     fontWeight: '600',
     flex: 1,
   },

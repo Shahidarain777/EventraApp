@@ -30,7 +30,7 @@ const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => 
             iconName = isFocused ? 'calendar' : 'calendar-outline';
             break;
           case 'CreateEvent':
-            iconName = 'create-outline';
+            iconName = 'add-outline';
             iconSize = 38;
             iconColor = isFocused ? '#075cf8ff' : '#075cf8ff';
             break;
