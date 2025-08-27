@@ -1,3 +1,11 @@
+// Add this at the top or after imports
+export type RootStackParamList = {
+  LoginScreen: undefined;
+  ForgotPasswordScreen: undefined;
+  OTPVerificationScreen: { email: string };
+  ResetPasswordScreen: { email: string };
+  // Add other screens as needed
+};
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
@@ -18,7 +26,10 @@ const RootNavigator = () => {
   const token = useSelector((state: RootState) => state.auth.token);
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Auth">
+      {/* Always register OTPVerificationScreen and ResetPasswordScreen for both flows */}
+      <Stack.Screen name="OTPVerificationScreen" component={require('../screens/OTPVerificationScreen').default} />
+      <Stack.Screen name="ResetPasswordScreen" component={require('../screens/ResetPasswordScreen').default} />
       {token ? (
         <>
           <Stack.Screen name="Main" component={TabNavigator} />

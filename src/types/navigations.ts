@@ -17,6 +17,8 @@ export type RootStackParamList = {
   NotificationScreen: undefined;
   HomeScreen: undefined;
   LoginScreen: undefined;
+  OTPVerificationScreen: { email: string };
+  ResetPasswordScreen: { email: string };
 };
 
 export type AuthStackParamList = {

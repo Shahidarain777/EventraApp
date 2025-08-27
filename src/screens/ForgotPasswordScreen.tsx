@@ -1,19 +1,45 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Image, Modal } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../navigators/RootNavigator';
+import api from '../api/axios';
 
+type ForgotPasswordScreenNavigationProp = StackNavigationProp<RootStackParamList, 'ForgotPasswordScreen'>;
 const ForgotPasswordScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<ForgotPasswordScreenNavigationProp>();
+  const route = useRoute();
   const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  // Removed modal and password states
 
-  const handleRequest = () => {
+  const handleRequest = async () => {
     if (!email) {
       Alert.alert('Validation Error', 'Please enter your registered email.');
       return;
     }
-    // TODO: Implement password reset logic here
-    Alert.alert('Request Sent', 'If the email is registered, you will receive password reset instructions.');
+    setLoading(true);
+    try {
+      const response = await api.post('/forgot-password-request', { email });
+      if (response.data && response.data.message) {
+        Alert.alert('Success', response.data.message, [
+          {
+            text: 'OK',
+            onPress: () => navigation.navigate('OTPVerificationScreen', { email })
+          }
+        ]);
+      } else {
+        Alert.alert('Error', 'Failed to send reset email');
+      }
+    } catch (error: any) {
+      if (error.response && error.response.data && error.response.data.message) {
+        Alert.alert('Error', error.response.data.message);
+      } else {
+        Alert.alert('Error', 'Network error');
+      }
+    }
+    setLoading(false);
   };
 
   return (
@@ -38,13 +64,15 @@ const ForgotPasswordScreen = () => {
         />
       </View>
       <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.button} onPress={handleRequest}>
-          <Text style={styles.buttonText}>Request</Text>
+        <TouchableOpacity style={styles.button} onPress={handleRequest} disabled={loading}>
+          <Text style={styles.buttonText}>{loading ? 'Sending...' : 'Request'}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('OTPVerificationScreen', { email })}>
           <Text style={styles.buttonText}>Cancel</Text>
         </TouchableOpacity>
       </View>
+
+  {/* Modal removed. Navigation to OTPVerificationScreen after request. */}
     </View>
   );
 };
@@ -133,5 +161,23 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 17,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 24,
+    width: '90%',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
 });
