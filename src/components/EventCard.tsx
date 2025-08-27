@@ -348,15 +348,20 @@ const EventCard = ({
                     return [styles.joinButton, { backgroundColor: '#2196F3' }];
                   })()}
                   onPress={() => {
-                    if (!isEventEnded) {
+                    if (isEventEnded) {
+                      if (event.hostId?.toString() === currentUserId) {
+                        navigation.navigate('ManageEventScreen', { event });
+                      }
+                      // If not host, do nothing when event ended
+                    } else {
                       if (event.hostId?.toString() === currentUserId) {
                         navigation.navigate('ManageEventScreen', { event });
                       }
                       else if (event.joinedMembers?.some((m) => m.status?.toString() === "payment_pending")) {
                         navigation.navigate('InvoiceScreen', { event });
                       }
-                      // else if (event.joinedMembers?.some((m) => m.status?.toString() === "member")) {
-                      //   navigation.navigate('GenerateTicketScreen', { event });
+                      // else if (event.hostId?.toString() === currentUserId) {
+                      //   navigation.navigate('ManageEventScreen', { event });
                       // }
                       else {
                         navigation.navigate('EventDetailScreen', { event });
