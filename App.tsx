@@ -1,6 +1,7 @@
 // App.tsx
 
 import React, { useEffect, useState } from 'react';
+import { StatusBar } from 'react-native';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import RootNavigator from './src/navigators/RootNavigator';
@@ -11,10 +12,10 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { navigationRef } from './src/navigators/NavigationService';
 import { setupInterceptors } from './src/api/setupInterceptors';
 import 'react-native-get-random-values';
-import OneSignal from 'react-native-onesignal';
-import { initNotifications } from './src/redux/slices/NotificationSlice';
-import api from './src/api/axios';
-import { Alert } from 'react-native';
+// import OneSignal from 'react-native-onesignal';
+// import { initNotifications } from './src/redux/slices/NotificationSlice';
+// import api from './src/api/axios';
+// import { Alert } from 'react-native';
 
 // Setup API interceptors once when app starts
 setupInterceptors();
@@ -26,14 +27,11 @@ const AppEntry = () => {
   const token = useSelector((state: RootState) => state.auth.token);
 
   useEffect(() => {
-    
 
   // 4️⃣ Check token & restore user session
     const checkToken = async () => {
       try {
         if (token) {
-          //const result = await dispatch(loginFromStorage(token));
-
           // Fetch profile image after login
           try {
             const userData = await AsyncStorage.getItem('userData');
@@ -93,7 +91,11 @@ export default function App() {
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <NavigationContainer ref={navigationRef}>
-          <AppEntry />
+          {/* Add space for status bar */}
+          <React.Fragment>
+            <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+            <AppEntry />
+          </React.Fragment>
         </NavigationContainer>
       </PersistGate>
     </Provider>
