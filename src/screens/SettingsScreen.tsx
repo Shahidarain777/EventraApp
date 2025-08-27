@@ -32,15 +32,11 @@ const SettingsScreen = () => {
   const [wifiOnly, setWifiOnly] = useState(true);
   
   // Modal states
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
   // Form states
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('English');
 
   const languages = ['English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese'];
@@ -137,32 +133,6 @@ const SettingsScreen = () => {
     }
   };
 
-  const handleChangePassword = async () => {
-    if (newPassword !== confirmPassword) {
-      Alert.alert('Error', 'New passwords do not match');
-      return;
-    }
-    if (newPassword.length < 6) {
-      Alert.alert('Error', 'New password must be at least 6 characters');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      // Simulate API call to change password
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setShowPasswordModal(false);
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      Alert.alert('Success', 'Password changed successfully');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to change password. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const settingSections = [
     {
       title: 'Account Settings',
@@ -179,7 +149,7 @@ const SettingsScreen = () => {
           icon: 'key-outline',
           title: 'Change Password',
           subtitle: 'Update your password',
-          action: () => setShowPasswordModal(true),
+          action: () => navigation.navigate('ForgotPasswordScreen' as never),
           type: 'navigate'
         },
         {
@@ -373,82 +343,6 @@ const SettingsScreen = () => {
 
         <View style={styles.bottomSpacing} />
       </ScrollView>
-
-      {/* Change Password Modal */}
-      <Modal
-        visible={showPasswordModal}
-        transparent
-        animationType="slide"
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Change Password</Text>
-              <TouchableOpacity
-                onPress={() => setShowPasswordModal(false)}
-                style={styles.modalCloseButton}
-              >
-                <Ionicons name="close" size={24} color="#666" />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.modalBody}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Current Password</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="Enter current password"
-                  secureTextEntry
-                  value={currentPassword}
-                  onChangeText={setCurrentPassword}
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>New Password</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="Enter new password"
-                  secureTextEntry
-                  value={newPassword}
-                  onChangeText={setNewPassword}
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Confirm New Password</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="Confirm new password"
-                  secureTextEntry
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                />
-              </View>
-
-              <View style={styles.modalActions}>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.cancelButton]}
-                  onPress={() => setShowPasswordModal(false)}
-                >
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.confirmButton]}
-                  onPress={handleChangePassword}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Text style={styles.confirmButtonText}>Change</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </View>
-      </Modal>
 
       {/* Language Selection Modal */}
       <Modal

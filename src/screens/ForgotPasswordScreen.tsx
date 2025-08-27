@@ -67,12 +67,10 @@ const ForgotPasswordScreen = () => {
         <TouchableOpacity style={styles.button} onPress={handleRequest} disabled={loading}>
           <Text style={styles.buttonText}>{loading ? 'Sending...' : 'Request'}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('OTPVerificationScreen', { email })}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.goBack()}>
           <Text style={styles.buttonText}>Cancel</Text>
         </TouchableOpacity>
       </View>
-
-  {/* Modal removed. Navigation to OTPVerificationScreen after request. */}
     </View>
   );
 };
