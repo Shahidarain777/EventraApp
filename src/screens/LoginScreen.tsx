@@ -233,7 +233,7 @@ const LoginScreen = () => {
                 <Text style={styles.loginBtnTextSimple}>Login</Text>
               )}
             </TouchableOpacity>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.googleSignInBtn}
               activeOpacity={0.85}
               onPress={() => Alert.alert('Google Login', 'Google login pressed')}
@@ -246,7 +246,7 @@ const LoginScreen = () => {
                 />
               </View>
               <Text style={styles.googleSignInText}>Sign in with Google</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
           
         </KeyboardAvoidingView>
