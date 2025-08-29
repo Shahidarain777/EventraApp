@@ -36,8 +36,8 @@ const LoginScreen = () => {
   const navi = useNavigation<SignUpNav>();
 
   const dispatch = useAppDispatch();
-  const { loading, error } = useAppSelector((state) => state.auth);
-
+  const { error } = useAppSelector((state) => state.auth);
+ const [loading,setLoading]=useState(false)
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [savePassword, setSavePassword] = useState(false);
@@ -74,9 +74,9 @@ const LoginScreen = () => {
         await AsyncStorage.removeItem('savedLogin');
       } catch {}
     }
-
+    setLoading(true);
     const result = await dispatch(loginUser({ email, password }));
-
+     setLoading(false);
     if (loginUser.fulfilled.match(result)) {
       navigation.replace('Main'); // 🎯 Navigate on successful login
 
