@@ -15,6 +15,8 @@ const OTPVerificationScreen = () => {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const email = route.params?.email || '';
+  // Get source screen from params
+  const source = route.params?.source || '';
 
   const handleVerify = async () => {
     if (!otp) {
@@ -25,12 +27,23 @@ const OTPVerificationScreen = () => {
     try {
       const response = await api.post('/verify-password-otp', { email, otp });
       if (response.data && response.data.message) {
-          Alert.alert('Success', response.data.message, [
-            {
-              text: 'OK',
-              onPress: () => navigation.navigate('ResetPasswordScreen', { email })
+        Alert.alert('Success', response.data.message, [
+          {
+            text: 'OK',
+            onPress: () => {
+              if (source === 'ForgotPasswordScreen') {
+                navigation.navigate('ResetPasswordScreen', { email });
+              } else if (source === 'SignupScreen') {
+                (navigation as any).reset({
+                  index: 0,
+                  routes: [
+                    { name: 'Auth', params: { screen: 'Login' } }
+                  ],
+                });
+              }
             }
-          ]);
+          }
+        ]);
       } else {
         Alert.alert('Error', 'Failed to verify OTP');
       }

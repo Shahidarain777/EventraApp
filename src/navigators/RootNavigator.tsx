@@ -2,7 +2,7 @@
 export type RootStackParamList = {
   LoginScreen: undefined;
   ForgotPasswordScreen: undefined;
-  OTPVerificationScreen: { email: string };
+  OTPVerificationScreen: { email: string; source?: string };
   ResetPasswordScreen: { email: string };
   // Add other screens as needed
 };

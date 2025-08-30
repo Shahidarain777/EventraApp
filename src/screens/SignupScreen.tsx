@@ -56,15 +56,26 @@ const SignupScreen = () => {
             {
               text: 'OK',
               onPress: () => {
-                // Navigate to email verification screen
-                (navigation as any).navigate('EmailVerification', { email });
+                // Navigate to OTP verification screen
+                (navigation as any).navigate('OTPVerificationScreen', { email, source: 'SignupScreen' });
               },
             },
           ]
         );
       } else {
         const msg = (response as any).data?.message || 'Unknown error';
-        Alert.alert('Signup Failed', msg);
+        if (msg.toLowerCase().includes('not verified')) {
+          Alert.alert('Email Not Verified', msg, [
+            {
+              text: 'Verify Now',
+              onPress: () => {
+                (navigation as any).navigate('OTPVerificationScreen', { email, source: 'SignupScreen' });
+              },
+            },
+          ]);
+        } else {
+          Alert.alert('Signup Failed', msg);
+        }
       }
     } catch (err: any) {
       let message = err?.response?.data?.message || err?.message || 'Unknown error';

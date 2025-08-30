@@ -26,7 +26,7 @@ const ForgotPasswordScreen = () => {
         Alert.alert('Success', response.data.message, [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('OTPVerificationScreen', { email })
+            onPress: () => navigation.navigate('OTPVerificationScreen', { email, source: 'ForgotPasswordScreen' })
           }
         ]);
       } else {
