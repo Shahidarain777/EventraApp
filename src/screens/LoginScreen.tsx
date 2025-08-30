@@ -36,8 +36,8 @@ const LoginScreen = () => {
   const navi = useNavigation<SignUpNav>();
 
   const dispatch = useAppDispatch();
-  const { loading, error } = useAppSelector((state) => state.auth);
-
+  const { error } = useAppSelector((state) => state.auth);
+ const [loading,setLoading]=useState(false)
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [savePassword, setSavePassword] = useState(false);
@@ -74,9 +74,9 @@ const LoginScreen = () => {
         await AsyncStorage.removeItem('savedLogin');
       } catch {}
     }
-
+    setLoading(true);
     const result = await dispatch(loginUser({ email, password }));
-
+     setLoading(false);
     if (loginUser.fulfilled.match(result)) {
       navigation.replace('Main'); // 🎯 Navigate on successful login
 
@@ -233,7 +233,7 @@ const LoginScreen = () => {
                 <Text style={styles.loginBtnTextSimple}>Login</Text>
               )}
             </TouchableOpacity>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.googleSignInBtn}
               activeOpacity={0.85}
               onPress={() => Alert.alert('Google Login', 'Google login pressed')}
@@ -246,7 +246,7 @@ const LoginScreen = () => {
                 />
               </View>
               <Text style={styles.googleSignInText}>Sign in with Google</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
           
         </KeyboardAvoidingView>

@@ -338,7 +338,8 @@ const EventCard = ({
               {showJoin && (
                 <TouchableOpacity
                   style={(() => {
-                    if (isEventEnded) return [styles.joinButton, { backgroundColor: '#cccccc' }];
+                    if (isEventEnded && event.hostId?.toString() !== currentUserId)
+                      return [styles.joinButton, { backgroundColor: '#cccccc' }];
                     if (event.hostId?.toString() === currentUserId)
                       return [styles.joinButton, { backgroundColor: '#4874e2ff' }];
                     const member = event.joinedMembers?.find(
@@ -348,32 +349,22 @@ const EventCard = ({
                     return [styles.joinButton, { backgroundColor: '#2196F3' }];
                   })()}
                   onPress={() => {
-                    if (isEventEnded) {
-                      if (event.hostId?.toString() === currentUserId) {
-                        navigation.navigate('ManageEventScreen', { event });
-                      }
-                      // If not host, do nothing when event ended
+                    if (event.hostId?.toString() === currentUserId) {
+                      navigation.navigate('ManageEventScreen', { event });
+                    } else if (isEventEnded) {
+                      // Do nothing for normal user if event ended
+                    } else if (event.joinedMembers?.some((m) => m.status?.toString() === "payment_pending")) {
+                      navigation.navigate('InvoiceScreen', { event });
                     } else {
-                      if (event.hostId?.toString() === currentUserId) {
-                        navigation.navigate('ManageEventScreen', { event });
-                      }
-                      else if (event.joinedMembers?.some((m) => m.status?.toString() === "payment_pending")) {
-                        navigation.navigate('InvoiceScreen', { event });
-                      }
-                      // else if (event.hostId?.toString() === currentUserId) {
-                      //   navigation.navigate('ManageEventScreen', { event });
-                      // }
-                      else {
-                        navigation.navigate('EventDetailScreen', { event });
-                      }
+                      navigation.navigate('EventDetailScreen', { event });
                     }
                   }}
-                  activeOpacity={isEventEnded ? 1 : 0.7}
-                  disabled={isEventEnded}
+                  activeOpacity={isEventEnded && event.hostId?.toString() !== currentUserId ? 1 : 0.7}
+                  disabled={isEventEnded && event.hostId?.toString() !== currentUserId}
                 >
                   <Text
                     style={(() => {
-                      if (isEventEnded) return styles.joinButtonText;
+                      if (isEventEnded && event.hostId?.toString() !== currentUserId) return styles.joinButtonText;
                       if (event.hostId?.toString() === currentUserId)
                         return [styles.joinButtonText, { color: '#fff' }];
                       const member = event.joinedMembers?.find(
@@ -383,7 +374,7 @@ const EventCard = ({
                       return styles.joinButtonText;
                     })()}
                   >
-                    {isEventEnded
+                    {isEventEnded && event.hostId?.toString() !== currentUserId
                       ? 'Event Ended'
                       : event.hostId?.toString() === currentUserId
                       ? 'Manage Event'
