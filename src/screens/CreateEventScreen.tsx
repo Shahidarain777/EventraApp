@@ -20,25 +20,6 @@ import api from '../api/axios';
 type LocationData = { type: 'venue' | 'online'; venueName?: string; address?: string; city?: string; state?: string; country?: string; latitude?: number; longitude?: number; link?: string; platform?: string; };
 
 const CreateEventScreen = () => {
-  // Helper to check if all required fields are filled
-  const isFormValid = () => {
-    if (!title.trim()) return false;
-    if (!categoryId && !otherCategory.trim()) return false;
-    if (!description.trim()) return false;
-    if (!date.start || !date.end) return false;
-    if (isPaid && !joiningFee) return false;
-    if (!locationData) return false;
-    if (locationData.type === 'venue' && !(locationData.address || locationData.venueName)) return false;
-    if (locationData.type === 'online' && !locationData.link) return false;
-    for (let i = 0; i < subEvents.length; i++) {
-      const se = subEvents[i];
-      if (!se.itemName.trim()) return false;
-      if (!se.maxAttendees) return false;
-      if (se.isPaid && !se.fee) return false;
-    }
-    if (isPaid && (!accountHolderName.trim() || !accountNumber.trim() || !bankName)) return false;
-    return true;
-  };
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const dispatch = useDispatch<AppDispatch>();
   const { categories, loading: categoriesLoading } = useSelector((state: RootState) => state.categories);
@@ -57,11 +38,11 @@ const CreateEventScreen = () => {
   const [visibility, setVisibility] = useState('public');
   const [approvalRequired, setApprovalRequired] = useState('no');
   const [capacity, setCapacity] = useState('');
-  const [capacityStep] = useState(1);
+  // const [capacityStep] = useState(1);
   const [isPaid, setIsPaid] = useState(false);
   const [joiningFee, setJoiningFee] = useState('');
   const [currency, setCurrency] = useState('PKR');
-  const [amountStep] = useState(1);
+  // const [amountStep] = useState(1);
   const [date, setDate] = useState({ start: new Date(), end: new Date() });
   const [subEvents, setSubEvents] = useState<{ itemName: string; maxAttendees: string; fee: string; isPaid: boolean }[]>([]);
   const [accountHolderName, setAccountHolderName] = useState('');
@@ -381,9 +362,9 @@ const CreateEventScreen = () => {
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={[styles.submitBtn, !isFormValid() ? { backgroundColor: '#ccc' } : { backgroundColor: '#2788ff' }]}
+        style={[styles.submitBtn]}
         onPress={handleSubmit}
-        disabled={!isFormValid() || uploading}
+        // disabled={!isFormValid() || uploading}
       >
         {uploading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>Upload Event</Text>}
       </TouchableOpacity>
