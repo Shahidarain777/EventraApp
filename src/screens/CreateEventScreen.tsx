@@ -306,11 +306,11 @@ const CreateEventScreen = () => {
 
       {isPaid && (
         <>
-          {/* <View style={styles.feeInputRow}>
+          <View style={styles.feeInputRow}>
             <TouchableOpacity style={styles.currencyBox} onPress={() => setCurrency(currency === 'PKR' ? 'USD' : 'PKR')}>
               <Text style={styles.currencyText}>{currency}</Text>
             </TouchableOpacity>
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+            {/* <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
               <TouchableOpacity style={styles.stepBtn} onPress={() => setJoiningFee(Math.max(0, (parseInt(joiningFee)||0) - amountStep).toString())}>
                 <Text style={styles.stepBtnText}>-</Text>
               </TouchableOpacity>
@@ -318,8 +318,8 @@ const CreateEventScreen = () => {
               <TouchableOpacity style={styles.stepBtn} onPress={() => setJoiningFee(((parseInt(joiningFee)||0) + amountStep).toString())}>
                 <Text style={styles.stepBtnText}>+</Text>
               </TouchableOpacity>
-            </View>
-          </View> */}
+            </View> */}
+          </View>
 
           <Text style={styles.label}>Account Holder Name</Text>
           <TextInput style={styles.input} placeholder="Account Holder Name" placeholderTextColor="#888" value={accountHolderName} onChangeText={setAccountHolderName} />
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
   toggleBtnActive: { backgroundColor: '#2788ffff' },
   toggleBtnText: { color: '#222', fontWeight: '600', fontSize: 15 },
   feeInputRow: { flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 14, backgroundColor: '#f7f7f7', borderRadius: 10, borderWidth: 1, borderColor: '#e0e0e0', paddingHorizontal: 10, paddingVertical: 2 },
-  currencyBox: { paddingHorizontal: 10, paddingVertical: 8, backgroundColor: '#eaf0fa', borderRadius: 8, marginRight: 6, borderWidth: 1, borderColor: '#dbe6fa' },
+  currencyBox: { paddingHorizontal: '43%', paddingVertical: 8, backgroundColor: '#eaf0fa', borderRadius: 8, marginRight: 6, borderWidth: 1, borderColor: '#dbe6fa' },
   currencyText: { color: '#2788ff', fontWeight: 'bold', fontSize: 16 },
   feeInput: { flex: 1, backgroundColor: 'transparent', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 12, fontSize: 16, color: '#222', fontWeight: '500' },
   stepBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#eaf0fa', justifyContent: 'center', alignItems: 'center', marginHorizontal: 4, borderWidth: 1, borderColor: '#dbe6fa' },
