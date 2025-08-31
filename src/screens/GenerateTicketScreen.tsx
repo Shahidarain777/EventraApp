@@ -165,10 +165,22 @@ const currentUserId = useSelector((state: any) =>
         </View>
 
         {event.price === 'Free' || Number(event.price) === 0 ? (
-          <Text style={[styles.paymentStatus, { color: '#43a047', fontWeight: 'bold', marginTop: 8 }]}>Payment: Free</Text>
+          <View>
+            <Text style={[styles.paymentStatus, { color: '#43a047', fontWeight: 'bold', marginTop: 8 }]}>Payment</Text>
+            <Text style={[styles.detailLabel, { marginTop: 8 }]}>Sub-Event Tickets:</Text>
+            {getTicketBreakdown(member, event).subEventDetails.map((sub: any) => {
+              const qty = getTicketBreakdown(member, event).subTickets[sub.subEventId || sub._id] || 0;
+              const price = sub.isPaid ? Number(sub.fee || 0) : 0;
+              return (
+                <Text key={sub.subEventId || sub._id} style={styles.detailValue}>
+                  {sub.itemName}: {qty} {sub.isPaid ? `(Price: ${event.currency || 'PKR'} ${price})` : '(Free)'}
+                </Text>
+              );
+            })}
+          </View>
         ) : (
           <>
-            <Text style={styles.paymentStatus}>Payment: {member.paymentStatus}</Text>
+            {/* <Text style={styles.paymentStatus}>Payment: {member.paymentStatus}</Text> */}
             <Text style={[styles.detailLabel, { marginTop: 8 }]}>Event Tickets:</Text>
             {getTicketBreakdown(member, event).subEventDetails.map((sub: any) => (
               <Text key={sub.subEventId || sub._id} style={styles.detailValue}>
