@@ -51,10 +51,11 @@ const EditEventScreen = () => {
   const [visibility, setVisibility] = useState(event?.visibility || 'public');
   const [approvalRequired, setApprovalRequired] = useState(event?.approvalRequired || 'no');
   const [capacity, setCapacity] = useState(event?.maxAttendees ? String(event.maxAttendees) : '');
-  const [capacityStep] = useState(1);
-  const [isPaid, setIsPaid] = useState(event?.isPaid || false);
-  const [joiningFee, setJoiningFee] = useState(event?.price ? String(event.price) : '');
-  const [currency, setCurrency] = useState(event?.currency || 'PKR');
+  // Remove main event capacity and joining fee logic
+  // const [capacityStep] = useState(1);
+  // const [isPaid, setIsPaid] = useState(event?.isPaid || false);
+  // const [joiningFee, setJoiningFee] = useState(event?.price ? String(event.price) : '');
+  // const [currency, setCurrency] = useState(event?.currency || 'PKR');
   const [date, setDate] = useState({
     start: event?.dateTime?.start ? new Date(event.dateTime.start) : new Date(),
     end: event?.dateTime?.end ? new Date(event.dateTime.end) : new Date(),
@@ -130,13 +131,9 @@ const EditEventScreen = () => {
           start: date.start ? date.start.toISOString() : undefined,
           end: date.end ? date.end.toISOString() : undefined,
         },
-        isPaid,
-        price: isPaid ? parseFloat(joiningFee) : 0,
-        maxAttendees: capacity ? parseInt(capacity) : undefined,
         visibility,
         approvalRequired,
         imageUrl: images,
-        currency,
         subEvents,
       };
       await api.put('/events', { ...body, eventId: Number(event.eventId) }, {
@@ -319,96 +316,12 @@ const EditEventScreen = () => {
           <Text style={{ color: '#222', fontWeight: '600', fontSize: 15 }}>Anyone Can Join</Text>
         </TouchableOpacity>
       </View>
-      <Text style={styles.label}>Capacity</Text>
-      <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 14, backgroundColor: '#f7f7f7', borderRadius: 10, borderWidth: 1, borderColor: '#e0e0e0', paddingHorizontal: 10, paddingVertical: 2 }}>
-        <TouchableOpacity
-          style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#eaf0fa', justifyContent: 'center', alignItems: 'center', marginHorizontal: 4, borderWidth: 1, borderColor: '#dbe6fa' }}
-          onPress={() => {
-            const val = Math.max(0, (parseInt(capacity) || 0) - 1);
-            setCapacity(val.toString());
-          }}
-        >
-          <Text style={{ color: '#2788ff', fontWeight: 'bold', fontSize: 18 }}>-</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-            style={styles.stepBtn}
-            onPress={() => {
-              const val = (parseInt(capacity) || 0) + capacityStep;
-              setCapacity(val.toString());
-            }}
-          >
-            <Text style={styles.stepBtnText}>+</Text>
-        </TouchableOpacity>
-        <TextInput
-          style={[{ flex: 1, backgroundColor: 'transparent', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 12, fontSize: 16, color: '#222', fontWeight: '500', textAlign: 'center', minWidth: 60 }]}
-          placeholder="Max attendees"
-          placeholderTextColor="#888"
-          value={capacity}
-          onChangeText={text => { if (/^\d*$/.test(text)) setCapacity(text); }}
-          keyboardType="numeric"
-        />
-        <TouchableOpacity
-          style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#eaf0fa', justifyContent: 'center', alignItems: 'center', marginHorizontal: 4, borderWidth: 1, borderColor: '#dbe6fa' }}
-          onPress={() => {
-            const val = (parseInt(capacity) || 0) + 1;
-            setCapacity(val.toString());
-          }}
-        >
-          <Text style={{ color: '#2788ff', fontWeight: 'bold', fontSize: 18 }}>+</Text>
-        </TouchableOpacity>
-      </View>
       <DateTimeSelector
         startDate={date.start}
         endDate={date.end}
         onStartDateChange={d => setDate(prev => ({ ...prev, start: d }))}
         onEndDateChange={d => setDate(prev => ({ ...prev, end: d }))}
       />
-      <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
-        <Text style={[styles.label, { flex: 1 }]}>Is Paid?</Text>
-        <Switch
-          value={isPaid}
-          onValueChange={setIsPaid}
-          trackColor={{ false: '#e0e0e0', true: '#007BFF' }}
-          thumbColor={isPaid ? '#007BFF' : '#fff'}
-        />
-      </View>
-      {isPaid && (
-        <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 14, backgroundColor: '#f7f7f7', borderRadius: 10, borderWidth: 1, borderColor: '#e0e0e0', paddingHorizontal: 10, paddingVertical: 2 }}>
-          <TouchableOpacity style={{ paddingHorizontal: 10, paddingVertical: 8, backgroundColor: '#eaf0fa', borderRadius: 8, marginRight: 6, borderWidth: 1, borderColor: '#dbe6fa' }} onPress={() => setCurrency(currency === 'PKR' ? 'USD' : 'PKR')}>
-            <Text style={{ color: '#2788ff', fontWeight: 'bold', fontSize: 16 }}>{currency}</Text>
-          </TouchableOpacity>
-          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', minWidth: 0 }}>
-            <TouchableOpacity
-              style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#eaf0fa', justifyContent: 'center', alignItems: 'center', marginHorizontal: 4, borderWidth: 1, borderColor: '#dbe6fa' }}
-              onPress={() => {
-                const val = Math.max(0, (parseInt(joiningFee) || 0) - 1);
-                setJoiningFee(val.toString());
-              }}
-            >
-              <Text style={{ color: '#2788ff', fontWeight: 'bold', fontSize: 18 }}>-</Text>
-            </TouchableOpacity>
-            <TextInput
-              style={[{ flex: 1, backgroundColor: 'transparent', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 12, fontSize: 16, color: '#222', fontWeight: '500', textAlign: 'center', minWidth: 60 }]}
-              placeholder="Amount"
-              placeholderTextColor="#888"
-              value={joiningFee}
-              onChangeText={text => {
-                if (/^\d*$/.test(text)) setJoiningFee(text);
-              }}
-              keyboardType="numeric"
-            />
-            <TouchableOpacity
-              style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#eaf0fa', justifyContent: 'center', alignItems: 'center', marginHorizontal: 4, borderWidth: 1, borderColor: '#dbe6fa' }}
-              onPress={() => {
-                const val = (parseInt(joiningFee) || 0) + 1;
-                setJoiningFee(val.toString());
-              }}
-            >
-              <Text style={{ color: '#2788ff', fontWeight: 'bold', fontSize: 18 }}>+</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
       <Text style={styles.label}>Sub Events</Text>
       {subEvents.map((subEvent, index) => (
         <View key={index} style={styles.subEventCardStyle}>

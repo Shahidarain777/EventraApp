@@ -124,14 +124,14 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
     });
   };
 
-  const handleMainEventTicketChange = (value: string) => {
-    const numValue = parseInt(value) || 0;
-    if (numValue < 1) {
-      setMainEventTickets(1);
-    } else {
-      setMainEventTickets(numValue);
-    }
-  };
+  // const handleMainEventTicketChange = (value: string) => {
+  //   const numValue = parseInt(value) || 0;
+  //   if (numValue < 1) {
+  //     setMainEventTickets(1);
+  //   } else {
+  //     setMainEventTickets(numValue);
+  //   }
+  // };
 
   const handleSubEventTicketChange = (subEventId: string, value: string) => {
     const numValue = parseInt(value) || 0;
@@ -218,13 +218,23 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
         mainEvent: mainEventTickets,
         subEvents: subEventTickets
       };
-      await api.post('/event_members', {
+      // Only send payment/account info if joining paid sub-events
+      const paidSubEventIds = event.subEvents?.filter(se => se.isPaid).map(se => String(se.subEventId));
+      const isJoiningPaidSubEvent = selectedSubEventIds.some(id => paidSubEventIds?.includes(String(id)));
+      const payload: any = {
         eventId: event.eventId,
         status: status,
         selectedSubEvents: selectedSubEventIds,
         totalAmount: totalFee,
         ticketQuantities: ticketQuantities
-      });
+      };
+      if (isJoiningPaidSubEvent) {
+        payload.accountHolderName = event.accountHolderName || '';
+        payload.accountNumber = event.accountNumber || '';
+        payload.bankName = event.bankName || '';
+        payload.currency = event.currency || 'PKR';
+      }
+      await api.post('/event_members', payload);
       setUserStatus(status);
       let message = '';
       switch (status) {
