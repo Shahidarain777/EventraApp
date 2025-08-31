@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import { logout, updateProfileImage, fetchUserProfileImage } from '../redux/slices/authSlice';
+import { clearNotifications } from '../redux/slices/NotificationSlice';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { launchImageLibrary } from 'react-native-image-picker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -87,7 +88,10 @@ const ProfileScreen = () => {
               if (user?._id) {
                 await AsyncStorage.removeItem(`profileImage_${user._id}`);
               }
+              // Clear notification cache
+              await AsyncStorage.removeItem('notifications');
             } catch {}
+            dispatch(clearNotifications());
             dispatch(logout());
               (navigation as any).reset({
                 index: 0,
