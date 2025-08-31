@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import api from '../api/axios';
 import { Image, View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Platform, ScrollView } from 'react-native';
 import ImageUploadCard from '../components/ImageUploadCard';
@@ -11,6 +12,21 @@ import ViewShot from 'react-native-view-shot';
 
 const InvoiceScreen: React.FC = () => {
   const events = useSelector((state: any) => state.events.events);
+  const dispatch = useSelector((state: any) => state.dispatch ? state.dispatch : null);
+  // Refetch events when screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      if (dispatch && typeof dispatch === 'function') {
+        // Replace 'fetchEvents' with your actual redux action to fetch events
+        dispatch({ type: 'events/fetchEvents' });
+      } else {
+        // If you use a custom API call, do it here
+        api.get('/events').then(res => {
+          // You may need to update your redux store here
+        });
+      }
+    }, [dispatch])
+  );
   const currentUserId = useSelector((state: any) =>
     state.auth.user?._id?.toString() || state.auth.user?.id?.toString() || ''
   );
