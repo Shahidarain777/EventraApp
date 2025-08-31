@@ -121,7 +121,7 @@ const CreateEventScreen = () => {
     if (!categoryId && !otherCategory.trim()) return setError('Category is required');
     if (!description.trim()) return setError('Description is required');
     if (!date.start || !date.end) return setError('Start and End date required');
-    if (isPaid && !joiningFee) return setError('Joining fee required for paid event');
+    // if (isPaid && !joiningFee) return setError('Joining fee required for paid event');
     if (!locationData) return setError('Location is required');
     if (locationData.type === 'venue' && !(locationData.address || locationData.venueName)) return setError('Venue address or name is required');
     if (locationData.type === 'online' && !locationData.link) return setError('Online event link is required');
@@ -154,13 +154,19 @@ const CreateEventScreen = () => {
       ? { type: 'venue', city: locationData.city||'', state: locationData.state||'', country: locationData.country||'', address: locationData.address||locationData.venueName||'', latitude: locationData.latitude||0, longitude: locationData.longitude||0, venueName: locationData.venueName||'' }
       : { type: 'online', link: locationData.link||'', platform: locationData.platform||'', city:'', state:'', country:'', address:'', latitude:0, longitude:0, venueName:'' };
 
+    const validImages = images.filter(uri => typeof uri === 'string' && uri.trim().length > 0);
+    if (!validImages.length) {
+      setUploading(false);
+      return setError('Please select a valid image to upload.');
+    }
     const uploadedImageUrls: string[] = [];
-    for (const uri of images) {
+    for (const uri of validImages) {
       const url = await uploadImage(uri);
       if (url) uploadedImageUrls.push(url);
       else {
+        console.error('Failed to upload image:', uri);
         setUploading(false);
-        return setError('Failed to upload one or more images.');
+        return setError(`Failed to upload image: ${uri}`);
       }
     }
 

@@ -126,12 +126,8 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
 
   const handleMainEventTicketChange = (value: string) => {
     const numValue = parseInt(value) || 0;
-    const maxCapacity = Number(event.maxAttendees) || Infinity;
     if (numValue < 1) {
       setMainEventTickets(1);
-    } else if (numValue > maxCapacity) {
-      setMainEventTickets(maxCapacity);
-      Alert.alert('Capacity Limit', `Maximum ${maxCapacity} tickets allowed for this event.`);
     } else {
       setMainEventTickets(numValue);
     }
@@ -152,11 +148,6 @@ const EventDetailScreen: React.FC<EventDetailScreenProps> = ({ route }) => {
   };
 
   const validateTicketQuantities = (): boolean => {
-    const maxCapacity = Number(event.maxAttendees) || Infinity;
-    if (mainEventTickets > maxCapacity) {
-      Alert.alert('Invalid Quantity', `Maximum ${maxCapacity} tickets allowed for the main event.`);
-      return false;
-    }
     for (const [subEventId, quantity] of Object.entries(subEventTickets)) {
       const subEvent = event.subEvents?.find(se => String(se.subEventId) === subEventId);
       if (subEvent && quantity > (subEvent.maxAttendees || Infinity)) {
