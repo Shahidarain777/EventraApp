@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
-  ScrollView, Image, ActivityIndicator, Switch, Alert
+  ScrollView, Image, ActivityIndicator, Switch,  PermissionsAndroid, Platform, Alert
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -87,10 +87,40 @@ const CreateEventScreen = () => {
   };
 
   let imagePickInProgress = false;
-  const handleImagePick = () => {
+  const requestGalleryPermission = async () => {
+  if (Platform.OS === 'android') {
+    // For Android 13+ (API 33)
+    const permission =
+      Platform.Version >= 33
+        ? PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES
+        : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+
+    // Check current status
+    const hasPermission = await PermissionsAndroid.check(permission);
+    if (hasPermission) return true;
+
+    // Request permission
+    const granted = await PermissionsAndroid.request(permission, {
+      title: 'Gallery Permission',
+      message: 'This app needs access to your photo library to select images.',
+      buttonPositive: 'OK',
+    });
+
+    return granted === PermissionsAndroid.RESULTS.GRANTED;
+  }
+
+  return true; // iOS will handle permission automatically
+};
+  const handleImagePick = async () => {
     if (imagePickInProgress) return;
     imagePickInProgress = true;
-    launchImageLibrary({ mediaType: 'photo', selectionLimit: 5, quality: 0.7 }, resp => {
+     const hasPermission = await requestGalleryPermission();
+     if (!hasPermission) {
+    Alert.alert('Permission Denied', 'You need to allow photo library access to pick images.');
+    imagePickInProgress = false;
+    return;
+  }
+     launchImageLibrary({ mediaType: 'photo', selectionLimit: 5, quality: 0.7 }, resp => {
       imagePickInProgress = false;
       if (resp.didCancel || resp.errorCode || !resp.assets) return;
       if (Array.isArray(resp.assets)) {
