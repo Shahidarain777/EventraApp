@@ -100,9 +100,9 @@ const events = Array.isArray(eventsRaw)
 
   return (
     <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: 80 }]}> 
-      <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}> 
-        <Text style={styles.homeText}>Home</Text>
+     
+      <View style={[styles.header]}> 
+        <Text style={styles.homeText}>Explore & Enjoy</Text>
         <View style={styles.headerRight}>
           <TouchableOpacity
             style={styles.bellIcon}
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     paddingHorizontal: 16,
-    paddingBottom: 8,
+    // paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
     minHeight: 56,

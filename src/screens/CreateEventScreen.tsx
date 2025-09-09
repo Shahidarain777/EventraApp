@@ -421,11 +421,11 @@ const CreateEventScreen = () => {
         </>
       )}
 
-      <Text style={styles.label}>Sub Events (add atleast one)</Text>
+      <Text style={styles.label}>Action Items / Activities (add atleast one)</Text>
       {subEvents.map((sv, index) => (
         <View key={index} style={styles.subEventCard}>
           <View style={styles.subEventHeader}>
-            <Text style={styles.subEventTitle}>Sub Event {index + 1}</Text>
+            <Text style={styles.subEventTitle}>Add Activity {index + 1}</Text>
             <TouchableOpacity onPress={() => removeSubEvent(index)}>
               <Ionicons name="close-circle" size={24} color="#d9534f" />
             </TouchableOpacity>
@@ -468,6 +468,7 @@ const CreateEventScreen = () => {
           {eventError ? <Text style={styles.error}>{eventError}</Text> : null}
         </View>
       )}
+      <View style={{height:100}}></View>
     </ScrollView>
   );
 };

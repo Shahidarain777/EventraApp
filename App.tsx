@@ -12,6 +12,7 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { navigationRef } from './src/navigators/NavigationService';
 import { setupInterceptors } from './src/api/setupInterceptors';
 import 'react-native-get-random-values';
+import CustomStatusBar from './src/components/CustomStatusBar';
 // import OneSignal from 'react-native-onesignal';
 // import { initNotifications } from './src/redux/slices/NotificationSlice';
 // import api from './src/api/axios';
@@ -93,7 +94,9 @@ export default function App() {
         <NavigationContainer ref={navigationRef}>
           {/* Add space for status bar */}
           <React.Fragment>
-            <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+             {/* <StatusBar backgroundColor="#fff" barStyle="dark-content" /> */}
+            {/* <StatusBar barStyle='light-content' backgroundColor="#fff" /> */}
+             <CustomStatusBar />
             <AppEntry />
           </React.Fragment>
         </NavigationContainer>

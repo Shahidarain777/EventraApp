@@ -243,13 +243,19 @@ const ProfileScreen = () => {
           </TouchableOpacity>
         </View>
         {/* Name & Location */}
-        <Text style={styles.name}>{user?.name || 'Eventra'}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center',height:60 }}>
+            <Text style={styles.name}>{user?.name || 'Eventra'}</Text>
+            <TouchableOpacity
+              style={{ marginLeft: 8,marginBottom:-10 }} // space between name and icon
+              onPress={() => navigation.navigate('EditProfileScreen' as never)}
+            >
+              <Ionicons name="pencil-sharp" size={20} color="#007BFF" /> 
+            </TouchableOpacity>
+        </View>
+        
         <Text style={styles.location}>{user?.email}</Text>
         {/* Edit Profile Button */}
-        <TouchableOpacity style={styles.editProfileBtn} onPress={() => navigation.navigate('EditProfileScreen' as never)}>
-          <Ionicons name="create-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
-          <Text style={styles.editProfileBtnText}>Edit Profile</Text>
-        </TouchableOpacity>
+        
         {/* Stats Row */}
         <View style={styles.statsRow}>
           {stats.map((stat, idx) => (
@@ -396,7 +402,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#222',
     marginTop: 8,
-    marginBottom: 2,
+    // marginBottom: 2,
     textAlign: 'center',
   },
   location: {
@@ -430,8 +436,9 @@ const styles = StyleSheet.create({
   },
   editProfileBtnAbsolute: {
     position: 'absolute',
-    right: -130,
-    top: '50%',
+    right: -140,
+    // top: '50%',
+    width:150,
     transform: [{ translateY: -22 }],
     flexDirection: 'row',
     alignItems: 'center',
