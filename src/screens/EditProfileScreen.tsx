@@ -98,10 +98,10 @@ const EditProfileScreen = () => {
       Alert.alert('Error', 'Name is required');
       return false;
     }
-    if (!formData.email.trim()) {
-      Alert.alert('Error', 'Email is required');
-      return false;
-    }
+    // if (!formData.email.trim()) {
+    //   Alert.alert('Error', 'Email is required');
+    //   return false;
+    // }
     if (!/\S+@\S+\.\S+/.test(formData.email)) {
       Alert.alert('Error', 'Please enter a valid email address');
       return false;
@@ -218,7 +218,7 @@ const EditProfileScreen = () => {
                 style={styles.textInput}
                 placeholder="Enter your email address"
                 value={formData.email}
-                onChangeText={(value) => handleInputChange('email', value)}
+                editable={false} // <-- disables the input
                 keyboardType="email-address"
                 autoCapitalize="none"
               />
@@ -259,9 +259,9 @@ const EditProfileScreen = () => {
         </View>
 
         <View style={styles.additionalSection}>
-          <Text style={styles.sectionTitle}>Account Security</Text>
+          {/* <Text style={styles.sectionTitle}>Account Security</Text> */}
 
-          <TouchableOpacity style={styles.optionItem}>
+          {/* <TouchableOpacity style={styles.optionItem}>
             <View style={styles.optionIconContainer}>
               <Ionicons name="key-outline" size={20} color="#007BFF" />
             </View>
@@ -270,9 +270,9 @@ const EditProfileScreen = () => {
               <Text style={styles.optionSubtitle}>Update your account password</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#ccc" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
-          <TouchableOpacity style={styles.optionItem}>
+          {/* <TouchableOpacity style={styles.optionItem}>
             <View style={styles.optionIconContainer}>
               <Ionicons name="shield-outline" size={20} color="#007BFF" />
             </View>
@@ -281,7 +281,7 @@ const EditProfileScreen = () => {
               <Text style={styles.optionSubtitle}>Add extra security to your account</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#ccc" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         <View style={styles.bottomSpacing} />
