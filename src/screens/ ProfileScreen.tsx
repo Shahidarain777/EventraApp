@@ -281,6 +281,11 @@ const ProfileScreen = () => {
             <Text style={styles.invoiceCountText}>{invoiceCount}</Text>
           </View>
         </TouchableOpacity>
+        {/* Earnings Tab */}
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('EarningsScreen' as never)}>
+          <Ionicons name="cash-outline" size={28} color="#075cf8ff" style={{ marginRight: 12 }} />
+          <Text style={styles.tabText}>My Earnings</Text>
+        </TouchableOpacity>
         {/* Settings Tab */}
         <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('SettingsScreen' as never)}>
           <Ionicons name="settings-outline" size={28} color="#075cf8ff" style={{ marginRight: 12 }} />
