@@ -130,6 +130,80 @@ const [selectedPayment, setSelectedPayment] = React.useState<any>(null);
   const declinedPercent = totalCount ? Math.round((declinedCount / totalCount) * 100) : 0;
   const pendingPercent = totalCount ? 100 - confirmedPercent - declinedPercent : 0;
 
+  // Calculate event earnings and total tickets
+  const calculateEventEarnings = () => {
+    let eventEarnings = 0;
+    let totalTickets = 0;
+    let currency = 'USD';
+
+    // Get earnings from completed payments
+    if (event.payments && Array.isArray(event.payments)) {
+      const completedPayments = event.payments.filter(
+        (payment: any) => payment.paymentStatus === 'completed'
+      );
+      
+      completedPayments.forEach((payment: any) => {
+        eventEarnings += payment.amount || 0;
+      });
+    }
+
+    // Detect currency from event or sub-events
+    if (event.currency) {
+      currency = event.currency;
+    } else if (event.subEvents && Array.isArray(event.subEvents) && event.subEvents.length > 0) {
+      const firstSubEventWithCurrency = event.subEvents.find((sub: any) => sub.currency);
+      if (firstSubEventWithCurrency) {
+        currency = firstSubEventWithCurrency.currency;
+      }
+    }
+
+    // Calculate total tickets from confirmed members
+    const confirmedMembers = members.filter((m: any) => m.status === 'member');
+    confirmedMembers.forEach((member: any) => {
+      if (member.ticketQuantities && member.ticketQuantities.subEvents) {
+        Object.values(member.ticketQuantities.subEvents).forEach((ticketCount: any) => {
+          totalTickets += Number(ticketCount) || 0;
+        });
+      } else {
+        totalTickets += member.numberOfPeople || 1;
+      }
+    });
+
+    return { eventEarnings, totalTickets, currency };
+  };
+
+  const { eventEarnings, totalTickets, currency } = calculateEventEarnings();
+
+  // Format currency function
+  const formatCurrency = (amount: number) => {
+    const formattedAmount = amount.toFixed(2);
+    
+    switch (currency.toUpperCase()) {
+      case 'PKR':
+        return `₨${formattedAmount}`;
+      case 'USD':
+        return `$${formattedAmount}`;
+      case 'EUR':
+        return `€${formattedAmount}`;
+      case 'GBP':
+        return `£${formattedAmount}`;
+      case 'INR':
+        return `₹${formattedAmount}`;
+      case 'JPY':
+        return `¥${Math.round(amount)}`;
+      case 'CAD':
+        return `C$${formattedAmount}`;
+      case 'AUD':
+        return `A$${formattedAmount}`;
+      case 'SAR':
+        return `﷼${formattedAmount}`;
+      case 'AED':
+        return `د.إ${formattedAmount}`;
+      default:
+        return `${currency} ${formattedAmount}`;
+    }
+  };
+
 
   // Add at the top of your component
 const [proofPreviewVisible, setProofPreviewVisible] = React.useState(false);
@@ -323,115 +397,131 @@ const [previewImageUrl, setPreviewImageUrl] = React.useState<string | null>(null
   };
 
   return (
-    <ScrollView>
-      <View style={styles.container}>
+    <View style={styles.container}>
+      <Text style={styles.sectionTitle}>Event Management Actions</Text>
+      <View style={styles.tabGrid}>
+        <TabButton
+          icon="create-outline"
+          text="Edit Event"
+          onPress={() => navigation.navigate('EditEventScreen', { event })}
+          style={{}}
+          iconColor="#00a2ff"
+        />
 
-        <Text style={styles.sectionTitle}>Event Management Actions</Text>
-        <View style={styles.tabGrid}>
-          <TabButton
-            icon="create-outline"
-            text="Edit Event"
-            onPress={() => navigation.navigate('EditEventScreen', { event })}
-            style={{}}
-            iconColor="#00a2ff"
+        <TabButton
+          icon="people-outline"
+          text="Member List"
+          count={membersCount}
+          countColor="#e6f6ff"
+          countLabelColor="#00a2ff"
+          onPress={handleMemberList}
+          style={{}}
+        />
+
+        <TabButton
+          icon="card-outline"
+          text="Payment Verification"
+          count={paymentVerificationCount > 0 ? `${paymentVerificationCount} Pending` : undefined}
+          countColor="#e6f6ff"
+          countLabelColor="#00a2ff"
+          onPress={handlePaymentVerificationPending}
+          style={{}}
+        />
+
+        <TabButton
+          icon="shield-checkmark-outline"
+          text="Approval Pending"
+          count={approvalPendingCount > 0 ? `${approvalPendingCount} Requests` : undefined}
+          countColor="#e6f6ff"
+          countLabelColor="#00a2ff"
+          onPress={handleApprovalPending}
+          style={{}}
+        />
+
+        {/* Cancel Event (unique style for red & one column) */}
+        <TouchableOpacity
+          style={[styles.tabButton, styles.cancelTab, cancelLoading && { opacity: 0.55 }]}
+          onPress={handleCancelEvent}
+          activeOpacity={cancelLoading ? 1 : 0.8}
+          disabled={cancelLoading}
+        >
+          <Ionicons
+            name="close-circle-outline"
+            size={24}
+            color="#ed6462"
+            style={{ marginBottom: 6 }}
           />
-
-          <TabButton
-            icon="people-outline"
-            text="Member List"
-            count={membersCount}
-            countColor="#e6f6ff"
-            countLabelColor="#00a2ff"
-            onPress={handleMemberList}
-            style={{}}
-          />
-
-          <TabButton
-            icon="card-outline"
-            text="Payment Verification"
-            count={paymentVerificationCount > 0 ? `${paymentVerificationCount} Pending` : undefined}
-            countColor="#e6f6ff"
-            countLabelColor="#00a2ff"
-            onPress={handlePaymentVerificationPending}
-            style={{}}
-          />
-
-          <TabButton
-            icon="shield-checkmark-outline"
-            text="Approval Pending"
-            count={approvalPendingCount > 0 ? `${approvalPendingCount} Requests` : undefined}
-            countColor="#e6f6ff"
-            countLabelColor="#00a2ff"
-            onPress={handleApprovalPending}
-            style={{}}
-          />
-
-          {/* Cancel Event (unique style for red & one column) */}
-          <TouchableOpacity
-            style={[styles.tabButton, styles.cancelTab, cancelLoading && { opacity: 0.55 }]}
-            onPress={handleCancelEvent}
-            activeOpacity={cancelLoading ? 1 : 0.8}
-            disabled={cancelLoading}
-          >
-            <Ionicons
-              name="close-circle-outline"
-              size={32}
-              color="#ed6462"
-              style={{ marginBottom: 10 }}
-            />
-            {cancelLoading ? (
-              <ActivityIndicator size="small" color="#ed6462" style={{ marginTop: 8 }} />
-            ) : (
-              <Text style={[styles.tabButtonText, { color: '#ed6462' }]}>Cancel Event</Text>
-            )}
-          </TouchableOpacity>
+          {cancelLoading ? (
+            <ActivityIndicator size="small" color="#ed6462" style={{ marginTop: 4 }} />
+          ) : (
+            <Text style={[styles.tabButtonText, { color: '#ed6462', fontSize: 14 }]}>Cancel Event</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+      
+      {/* Event Earnings Card */}
+      <Text style={[styles.sectionTitleAttendees, { marginTop: -32 }]}>Event Earning</Text>
+      <View style={styles.earningsCard}>
+        <View style={styles.earningsHeader}>
+          <Text style={styles.earningsTitle}>{event?.title || event?.eventName || 'Event'}</Text>
+          <Text style={styles.earningsAmount}>{formatCurrency(eventEarnings)}</Text>
         </View>
-        <Text style={styles.sectionTitleAttendees}>Attendee Status</Text>
-
-         {/* --- ADD THIS BLOCK: Attendee Status Chart --- */}
-        <View style={styles.attendeeStatusCard}>
-          {/* <Text style={styles.attendeeStatusTitle}>Attendee Status</Text> */}
-          <View style={{ alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-            <PieChart
-              data={attendeeChartData}
-              donut
-              radius={55}
-              innerRadius={38}
-              focusOnPress={false}
-              showText={false}
-              strokeColor="#fff"
-              strokeWidth={4}
-            />
-            {/* Legend/labels */}
-            <View style={styles.chartLabelsRow}>
-              <Text style={[styles.chartLegend, { color: '#00a2ff' }]}>
-                Confirmed ({confirmedPercent}%)
-              </Text>
-              <Text style={[styles.chartLegend, { color: '#888' }]}>
-                Declined ({declinedPercent}%)
-              </Text>
-              <Text style={[styles.chartLegend, { color: '#bbb', opacity: 0.5 }]}>
-                Pending ({pendingPercent}%)
-              </Text>
-            </View>
+        <View style={styles.earningsStats}>
+          <View style={styles.earningsStatItem}>
+            <Ionicons name="people" size={14} color="#666" />
+            <Text style={styles.earningsStatText}>{membersCount} members</Text>
           </View>
-          {/* Footer stats */}
-          <View style={styles.statsRow}>
-            <View style={styles.statsCol}>
-              <Text style={styles.statsNumber}>{totalCount}</Text>
-              <Text style={styles.statsLabel}>Total</Text>
-            </View>
-            <View style={styles.statsCol}>
-              <Text style={[styles.statsNumber, { color: '#00a2ff' }]}>{confirmedCount}</Text>
-              <Text style={styles.statsLabel}>Confirmed</Text>
-            </View>
-            <View style={styles.statsCol}>
-              <Text style={[styles.statsNumber, { color: '#bbb' }]}>{pendingCount}</Text>
-              <Text style={styles.statsLabel}>Pending</Text>
-            </View>
+          <View style={styles.earningsStatItem}>
+            <Ionicons name="ticket" size={14} color="#666" />
+            <Text style={styles.earningsStatText}>{totalTickets} tickets</Text>
           </View>
         </View>
-        {/* --- END: Attendee Status Chart --- */}
+      </View>
+      
+      <Text style={styles.sectionTitleAttendees}>Attendee Status</Text>
+
+       {/* Attendee Status Chart */}
+      <View style={styles.attendeeStatusCard}>
+        <View style={{ alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+          <PieChart
+            data={attendeeChartData}
+            donut
+            radius={45}
+            innerRadius={30}
+            focusOnPress={false}
+            showText={false}
+            strokeColor="#fff"
+            strokeWidth={3}
+          />
+          {/* Legend/labels */}
+          <View style={styles.chartLabelsRow}>
+            <Text style={[styles.chartLegend, { color: '#00a2ff' }]}>
+              Confirmed ({confirmedPercent}%)
+            </Text>
+            <Text style={[styles.chartLegend, { color: '#888' }]}>
+              Declined ({declinedPercent}%)
+            </Text>
+            <Text style={[styles.chartLegend, { color: '#bbb', opacity: 0.5 }]}>
+              Pending ({pendingPercent}%)
+            </Text>
+          </View>
+        </View>
+        {/* Footer stats */}
+        <View style={styles.statsRow}>
+          <View style={styles.statsCol}>
+            <Text style={styles.statsNumber}>{totalCount}</Text>
+            <Text style={styles.statsLabel}>Total</Text>
+          </View>
+          <View style={styles.statsCol}>
+            <Text style={[styles.statsNumber, { color: '#00a2ff' }]}>{confirmedCount}</Text>
+            <Text style={styles.statsLabel}>Confirmed</Text>
+          </View>
+          <View style={styles.statsCol}>
+            <Text style={[styles.statsNumber, { color: '#bbb' }]}>{pendingCount}</Text>
+            <Text style={styles.statsLabel}>Pending</Text>
+          </View>
+        </View>
+      </View>
 
         {/* Payment Verification Pending Modal */}
         <Modal
@@ -851,8 +941,7 @@ const [previewImageUrl, setPreviewImageUrl] = React.useState<string | null>(null
         </View>
       </Modal>
 
-      </View>
-    </ScrollView>
+    </View>
   );
 };
 
@@ -865,8 +954,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     backgroundColor: '#f7faff',
-    paddingHorizontal: 14,
-    paddingBottom: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    paddingBottom: 10,
   },
   memberInfoContainer: {
     flex: 1,
@@ -899,25 +989,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 36,
-    paddingTop: 8,
+    marginBottom: 12,
+    paddingTop: 4,
   },
   tabButton: {
     width: '47%',
-    aspectRatio: 1.08,
+    aspectRatio: 1.3,
     backgroundColor: '#fff',
-    borderRadius: 16,
-    marginBottom: 16,
+    borderRadius: 12,
+    marginBottom: 8,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#1E2C5C',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
     elevation: 2,
-    borderWidth: 1.1,
+    borderWidth: 1,
     borderColor: 'rgba(0,162,255,0.05)',
-    padding: 8,
+    padding: 6,
   },
   cancelTab: {
     width: '100%',
@@ -925,28 +1015,28 @@ const styles = StyleSheet.create({
     borderColor: '#fbeaea',
     marginBottom: 0,
     marginTop: 0,
-    borderRadius: 16,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    aspectRatio: 4.5,
+    aspectRatio: 6,
     shadowColor: '#ed6462',
-    shadowOpacity: 0.09,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 4,
     elevation: 2,
   },
   tabButtonText: {
-    fontSize: 17,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-    marginBottom: 4,
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 0.1,
+    marginBottom: 2,
     textAlign: 'center',
   },
   sectionTitle: {
     width: '100%',
-    marginBottom: 10,
-    marginTop: 20,
-    fontSize: 22,
+    marginBottom: 8,
+    marginTop: 8,
+    fontSize: 18,
     fontWeight: '700',
     textAlign: 'center',
     color: '#333',
@@ -954,9 +1044,9 @@ const styles = StyleSheet.create({
   },
   sectionTitleAttendees: {
     width: '100%',
-    marginBottom: 10,
-    marginTop: -50,
-    fontSize: 22,
+    marginBottom: 8,
+    marginTop: 8,
+    fontSize: 18,
     fontWeight: '700',
     textAlign: 'center',
     color: '#333',
@@ -1129,6 +1219,51 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     fontSize: 16,
+  },
+  earningsCard: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(0,162,255,0.05)',
+  },
+  earningsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  earningsTitle: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#222',
+    marginRight: 12,
+  },
+  earningsAmount: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#075cf8',
+  },
+  earningsStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  earningsStatItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  earningsStatText: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 4,
   },
 });
 
