@@ -841,7 +841,7 @@ const [previewImageUrl, setPreviewImageUrl] = React.useState<string | null>(null
               <Text style={styles.modalTitle}>Event Members</Text>
               <View style={styles.memberList}>
                 {members
-                  .filter((member: any) => member.status === 'member')
+                  //.filter((member: any) => member.status === 'member')
                   .map((member: any, idx: number) => (
                     <View key={member.id || idx} style={styles.memberRow}>
                       {/* Profile Image */}
@@ -870,7 +870,7 @@ const [previewImageUrl, setPreviewImageUrl] = React.useState<string | null>(null
                         <Text style={styles.memberName}>{member.name || 'No Name'}</Text>
                         <View style={styles.memberDetailsRow}>
                           <View style={styles.statusBadge}>
-                            <Text style={styles.statusText}>{member.status || 'Member'}</Text>
+                            <Text style={styles.statusText}>{member.status || 'unknown'}</Text>
                           </View>
                           <Text style={styles.ticketCount}>
                             <Ionicons name="ticket-outline" size={14} color="#666" /> {
