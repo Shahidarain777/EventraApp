@@ -783,7 +783,19 @@ const [previewImageUrl, setPreviewImageUrl] = React.useState<string | null>(null
                             <Text style={styles.statusText}>{member.status || 'Member'}</Text>
                           </View>
                           <Text style={styles.ticketCount}>
-                            <Ionicons name="ticket-outline" size={14} color="#666" /> {member.numberOfPeople || 1} {member.numberOfPeople > 1 ? 'tickets' : 'ticket'}
+                            <Ionicons name="ticket-outline" size={14} color="#666" /> {
+                              (() => {
+                                // Calculate total tickets from ticketQuantities
+                                if (member.ticketQuantities && member.ticketQuantities.subEvents) {
+                                  const totalTickets = Object.values(member.ticketQuantities.subEvents)
+                                    .reduce((sum: number, qty: any) => sum + (Number(qty) || 0), 0);
+                                  return `${totalTickets} ${totalTickets === 1 ? 'ticket' : 'tickets'}`;
+                                } else {
+                                  // Fallback to numberOfPeople or just show 1 ticket
+                                  return `${member.numberOfPeople || 1} ${(member.numberOfPeople || 1) > 1 ? 'tickets' : 'ticket'}`;
+                                }
+                              })()
+                            }
                           </Text>
                         </View>
                       </View>
