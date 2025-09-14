@@ -754,7 +754,7 @@ const [previewImageUrl, setPreviewImageUrl] = React.useState<string | null>(null
                   .filter((member: any) => member.status === 'member')
                   .map((member: any, idx: number) => (
                     <View key={member.id || idx} style={styles.memberRow}>
-                      {/* Profile Image (pattern as requested) */}
+                      {/* Profile Image */}
                       {member.profileImage ? (
                         <Image
                           source={{
@@ -776,7 +776,17 @@ const [previewImageUrl, setPreviewImageUrl] = React.useState<string | null>(null
                           <Ionicons name="person-outline" size={38} color="#007BFF" />
                         </View>
                       )}
-                      <Text style={styles.memberName}>{member.name || 'No Name'}</Text>
+                      <View style={styles.memberInfoContainer}>
+                        <Text style={styles.memberName}>{member.name || 'No Name'}</Text>
+                        <View style={styles.memberDetailsRow}>
+                          <View style={styles.statusBadge}>
+                            <Text style={styles.statusText}>{member.status || 'Member'}</Text>
+                          </View>
+                          <Text style={styles.ticketCount}>
+                            <Ionicons name="ticket-outline" size={14} color="#666" /> {member.numberOfPeople || 1} {member.numberOfPeople > 1 ? 'tickets' : 'ticket'}
+                          </Text>
+                        </View>
+                      </View>
                       <View style={styles.iconGroup}>
                         <Pressable style={styles.iconBtn}>
                           <Ionicons name="checkmark-circle-outline" size={26} color="#43a047" />
@@ -845,6 +855,32 @@ const styles = StyleSheet.create({
     backgroundColor: '#f7faff',
     paddingHorizontal: 14,
     paddingBottom: 20,
+  },
+  memberInfoContainer: {
+    flex: 1,
+    marginRight: 8,
+  },
+  memberDetailsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  statusBadge: {
+    backgroundColor: '#e6f6ff',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+    marginRight: 8,
+  },
+  statusText: {
+    color: '#00a2ff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  ticketCount: {
+    color: '#666',
+    fontSize: 13,
+    fontWeight: '500',
   },
   tabGrid: {
     width: '100%',
